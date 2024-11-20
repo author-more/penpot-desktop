@@ -24,3 +24,9 @@ jobs:
         run: |
           mkdir -p $(dirname $FLATPAK_SOURCES_PATH)
           flatpak-node-generator npm ./package-lock.json -o $FLATPAK_SOURCES_PATH
+      - name: Save artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-sources
+          path: ${{ env.FLATPAK_SOURCES_PATH }}
+          retention-days: 7
