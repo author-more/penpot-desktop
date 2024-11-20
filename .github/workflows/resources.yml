@@ -5,8 +5,12 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: write
+
 env:
   FLATPAK_SOURCES_PATH: ./build/flatpak/generated-sources.json
+  FLATPAK_SOURCES_COMMIT_MESSAGE: "build(flatpak): update generated sources"
 
 jobs:
   generate:
@@ -21,6 +25,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
       - name: Generate resources
+        id: resources
         run: |
           mkdir -p $(dirname $FLATPAK_SOURCES_PATH)
           flatpak-node-generator npm ./package-lock.json -o $FLATPAK_SOURCES_PATH
+          echo "flatpak-sources-changed=$(test -f $FLATPAK_SOURCES_PATH && git add -N $FLATPAK_SOURCES_PATH && (git diff --quiet --exit-code -- $FLATPAK_SOURCES_PATH || echo "true"))" >> $GITHUB_OUTPUT
+      - name: Commit build resources
+        if: ${{ steps.resources.outputs.flatpak-sources-changed == 'true' }}
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add $FLATPAK_SOURCES_PATH
+          git commit -m "$FLATPAK_SOURCES_COMMIT_MESSAGE"
+          git push
