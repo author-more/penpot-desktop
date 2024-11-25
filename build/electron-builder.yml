@@ -1,6 +1,7 @@
 productName: "Penpot Desktop"
 appId: "com.authormore.penpotdesktop"
 asar: true
+buildDependenciesFromSource: true
 
 # Update Server
 # publish:
