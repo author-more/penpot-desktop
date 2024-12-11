@@ -227,15 +227,30 @@ module.exports = {
    * @param {number} tabId
    */
   getTabMenu: function (tabId) {
+    /** @type {(command: string) => void} */
+    const dispatchAction = (command) =>
+      mainWindow.webContents.send("tab-menu-action", {
+        command,
+        tabId,
+      });
+
     return Menu.buildFromTemplate([
       {
         label: "Reload Tab",
-        click: async () => {
-          mainWindow.webContents.send("tab-menu-action", {
-            command: "reload-tab",
-            tabId,
-          });
-        },
+        click: () => dispatchAction("reload-tab"),
+      },
+      { type: "separator" },
+      {
+        label: "Close Other Tabs",
+        click: () => dispatchAction("close-tabs-other"),
+      },
+      {
+        label: "Close Tabs To Right",
+        click: () => dispatchAction("close-tabs-right"),
+      },
+      {
+        label: "Close Tabs To Left",
+        click: () => dispatchAction("close-tabs-left"),
       },
     ]);
   },

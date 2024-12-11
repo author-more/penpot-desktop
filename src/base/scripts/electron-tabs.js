@@ -113,4 +113,56 @@ async function handleTabMenuAction({ command, tabId }) {
   if (command === "reload-tab") {
     /** @type {WebviewTag} */ (tab?.webview).reload();
   }
+
+  if (command.startsWith("close-tabs-")) {
+    const pivotPosition = tab?.getPosition();
+
+    /** @type {-1 | 0| 1} */
+    let direction;
+    switch (command) {
+      case "close-tabs-right":
+        direction = 1;
+        break;
+      case "close-tabs-left":
+        direction = -1;
+        break;
+      case "close-tabs-other":
+      default:
+        direction = 0;
+    }
+
+    if (tabGroup && pivotPosition) {
+      closeTabs(tabGroup, pivotPosition, direction);
+    }
+  }
+}
+
+/**
+ * Close tabs from the given tab's position.
+ *
+ * @param {TabGroup} tabs
+ * @param {number} from - Position of the pivot tab.
+ * @param {-1 | 0 | 1} direction - Direction of the closing. 1 for higher position, 0 any other position, -1 for lower position.
+ */
+function closeTabs(tabs, from, direction) {
+  tabs.eachTab((tab) => {
+    const position = tab.getPosition();
+
+    const isMatchingPosition = position === from;
+    const isLowerPosition = position < from;
+    const isHigherPosition = position > from;
+    const isOtherDirection = direction === 0;
+    const isLowerDirection = direction === -1;
+    const isHigherDirection = direction === 1;
+
+    const isOtherClose = isOtherDirection && !isMatchingPosition;
+    const isHigherClose = isLowerDirection && isLowerPosition;
+    const isLowerClose = isHigherDirection && isHigherPosition;
+
+    const isClose = isOtherClose || isHigherClose || isLowerClose;
+
+    if (isClose) {
+      tab.close(true);
+    }
+  });
 }
