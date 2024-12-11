@@ -222,4 +222,21 @@ module.exports = {
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
   },
+
+  /**
+   * @param {number} tabId
+   */
+  getTabMenu: function (tabId) {
+    return Menu.buildFromTemplate([
+      {
+        label: "Reload Tab",
+        click: async () => {
+          mainWindow.webContents.send("tab-menu-action", {
+            command: "reload-tab",
+            tabId,
+          });
+        },
+      },
+    ]);
+  },
 };

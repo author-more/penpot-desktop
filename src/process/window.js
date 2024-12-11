@@ -49,6 +49,12 @@ module.exports = {
     ipcMain.on('MinimizeWindow', () => {mainWindow.minimize()})
     ipcMain.on('OpenHelp', () => {shell.openExternal('https://github.com/author-more/penpot-desktop/wiki')})
     ipcMain.on('OpenOffline', () => {shell.openExternal('https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting')})
+    ipcMain.on('openTabMenu', (_event, tabId) => {
+      const tabMenu = Menu.getTabMenu(tabId)
+      tabMenu.popup({
+        window: mainWindow
+      })
+    })
 
     if (process.platform === 'darwin') {
       // Move Tabs when entering or existing fullscreen on macOS

@@ -30,6 +30,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.api.onOpenTab(openTab);
+window.api.onTabMenuAction(handleTabMenuAction);
 
 async function resetTabs() {
   const tabGroup = await getTabGroup();
@@ -83,6 +84,11 @@ async function prepareTabReloadButton() {
  */
 function tabReadyHandler(tab) {
   const webview = /** @type {WebviewTag} */ (tab.webview);
+
+  tab.element.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+    window.api.send("openTabMenu", tab.id);
+  });
   webview.addEventListener("page-title-updated", () => {
     const newTitle = webview.getTitle();
     tab.setTitle(newTitle);
@@ -93,4 +99,18 @@ async function getTabGroup() {
   return /** @type {TabGroup | null} */ (
     await getIncludedElement("tab-group", "#include-tabs")
   );
+}
+
+/**
+ * Handles command send via tab menu interaction.
+ *
+ * @param {{command: string, tabId: number}} action
+ */
+async function handleTabMenuAction({ command, tabId }) {
+  const tabGroup = await getTabGroup();
+  const tab = tabGroup?.getTab(tabId);
+
+  if (command === "reload-tab") {
+    /** @type {WebviewTag} */ (tab?.webview).reload();
+  }
 }

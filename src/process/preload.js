@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld(
         "OpenOffline",
         "registerInstance",
         "removeInstance",
+        "openTabMenu",
       ];
 
       if (validChannels.includes(channel)) {
@@ -22,5 +23,7 @@ contextBridge.exposeInMainWorld(
     },
     onOpenTab: (callback) =>
       ipcRenderer.on("open-tab", (_event, value) => callback(value)),
+    onTabMenuAction: (callback) =>
+      ipcRenderer.on("tab-menu-action", (_event, value) => callback(value)),
   })
 );
