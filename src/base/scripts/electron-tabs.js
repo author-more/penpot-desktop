@@ -114,6 +114,11 @@ async function handleTabMenuAction({ command, tabId }) {
     /** @type {WebviewTag} */ (tab?.webview).reload();
   }
 
+  if (command === "duplicate-tab") {
+    const url = /** @type {WebviewTag} */ (tab?.webview).getURL();
+    openTab(url);
+  }
+
   if (command.startsWith("close-tabs-")) {
     const pivotPosition = tab?.getPosition();
 

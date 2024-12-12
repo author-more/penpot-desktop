@@ -239,6 +239,10 @@ module.exports = {
         label: "Reload Tab",
         click: () => dispatchAction("reload-tab"),
       },
+      {
+        label: "Duplicate Tab",
+        click: () => dispatchAction("duplicate-tab"),
+      },
       { type: "separator" },
       {
         label: "Close Other Tabs",
