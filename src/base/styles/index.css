@@ -11,11 +11,20 @@
   border: 0;
 }
 
-.theme-is-light {
-  background: #ffffff;
+@media (prefers-color-scheme: light) {
+  :root {
+    --theme-filter: invert(1);
+  }
 
-  .titlebar {
-    filter: invert(1);
+  body,
+  #settings {
+    background: #ffffff;
+  }
+
+  .titlebar,
+  .controls,
+  #settings > * {
+    filter: var(--theme-filter, none);
   }
 
   #theme-select-light {
@@ -24,8 +33,10 @@
   }
 }
 
-.theme-is-dark {
-  background: #18181a;
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #18181a;
+  }
 
   #theme-select-dark {
     border-color: #00ff89;
@@ -134,7 +145,6 @@ drag {
   margin: 6px;
   min-width: 250px;
   width: 300px;
-  transition: 1s all;
 
   div:nth-child(1) > div.settings-section-header {
     border-radius: 4px 4px 0px 0px;
@@ -154,11 +164,24 @@ drag {
     display: flex;
     margin: 12px;
 
-    input {
+    input,
+    select {
       padding: 6px 12px;
       border-radius: 4px;
       border: 1px #656565 solid;
       margin-right: 6px;
+    }
+
+    select {
+      width: 100%;
+      background: rgb(18, 18, 18);
+
+      @media (prefers-color-scheme: light) {
+        option {
+          background: rgb(237, 237, 237);
+          color: black;
+        }
+      }
     }
 
     input#instance-save {
@@ -175,28 +198,6 @@ div#theme {
   display: flex;
   justify-content: space-evenly;
   gap: 12px;
-}
-
-.theme-selection {
-  border: 2px #7d7d7d solid;
-  border-radius: 10px;
-  padding: 12px 32px;
-  width: 100%;
-  text-align: center;
-
-  p {
-    margin: 0px;
-  }
-}
-
-div#theme-select-light {
-  color: black;
-  background: white;
-}
-
-div#theme-select-dark {
-  color: white;
-  background: #232222;
 }
 
 .settings-section-content a {

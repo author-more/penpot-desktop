@@ -21,6 +21,9 @@ contextBridge.exposeInMainWorld(
         ipcRenderer.send(channel, data);
       }
     },
+    setTheme: (themeId) => {
+      ipcRenderer.send("set-theme", themeId);
+    },
     onOpenTab: (callback) =>
       ipcRenderer.on("open-tab", (_event, value) => callback(value)),
     onTabMenuAction: (callback) =>

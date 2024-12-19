@@ -85,9 +85,22 @@ async function prepareTabReloadButton() {
 function tabReadyHandler(tab) {
   const webview = /** @type {WebviewTag} */ (tab.webview);
 
+  tab.once("webview-dom-ready", () => {
+    tab.on("active", () => {
+      webview.send(THEME_TAB_EVENTS.REQUEST_UPDATE);
+    });
+  });
   tab.element.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     window.api.send("openTabMenu", tab.id);
+  });
+  webview.addEventListener("ipc-message", (event) => {
+    const isThemeUpdate = event.channel === THEME_TAB_EVENTS.UPDATE;
+    if (isThemeUpdate) {
+      const [theme] = event.args;
+
+      handleInTabThemeUpdate(theme);
+    }
   });
   webview.addEventListener("page-title-updated", () => {
     const newTitle = webview.getTitle();

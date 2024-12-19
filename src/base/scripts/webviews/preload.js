@@ -1,5 +1,7 @@
 // @ts-nocheck The file requires a review, before dedicating time to add quality types.
 
+const { ipcRenderer } = require("electron");
+
 // Set the title of the tab name
 /// Instead of the tab name being "PROJECT_NAME - Penpot", this script will remove the " - Penpot" portion.
 function SetTitleToDash() {
@@ -78,3 +80,39 @@ window.onload = function() {
         };
     }
 };
+
+// Theme
+window.addEventListener("DOMContentLoaded", () =>
+  onClassChange(document.body, () => dispatchThemeUpdate())
+);
+
+ipcRenderer.on("theme-request-update", () => dispatchThemeUpdate());
+
+/**
+ * Observes a node and executes a callback on a class change.
+ * 
+ * @param {Parameters<MutationObserver["observe"]>[0]} node
+ * @param {function} callback
+ */
+function onClassChange(node, callback) {
+  const observer = new MutationObserver((mutations) => {
+    const hasClassChanged = mutations.some(
+      ({ type, attributeName }) =>
+        type === "attributes" && attributeName === "class"
+    );
+
+    if (hasClassChanged) {
+      callback();
+    }
+  });
+
+  observer.observe(node, { attributes: true });
+}
+
+/**
+ * Sends an event, with a currently set theme, to the webview's host.
+ */
+function dispatchThemeUpdate() {
+  const isLightTheme = document.body.classList.contains("light");
+  ipcRenderer.sendToHost("theme-update", isLightTheme ? "light" : "dark");
+}

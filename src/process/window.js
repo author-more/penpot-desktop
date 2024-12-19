@@ -1,4 +1,4 @@
-const {app, BrowserWindow, ipcMain, ipcRenderer, shell} = require('electron')
+const {app, BrowserWindow, ipcMain, ipcRenderer, shell, nativeTheme} = require('electron')
 const windowStateKeeper = require('electron-window-state')
 const path = require('path')
 
@@ -55,6 +55,9 @@ module.exports = {
         window: mainWindow
       })
     })
+    ipcMain.on("set-theme", (_event, themeId) => {
+      nativeTheme.themeSource = themeId;
+    });
 
     if (process.platform === 'darwin') {
       // Move Tabs when entering or existing fullscreen on macOS
