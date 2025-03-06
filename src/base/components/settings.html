@@ -14,10 +14,11 @@
 		<h3>Instances</h3>
 		<div class="panel-list">
 			<div id="instance-list" class="list"></div>
-			<sl-button id="instance-add" variant="default" size="small">
+			<sl-button id="instance-add" variant="default">
 				<sl-icon
 					slot="prefix"
-					name="plus-square"
+					library="lucide"
+					name="circle-plus"
 					label="Add instance"
 				></sl-icon>
 				Add instance
@@ -46,8 +47,11 @@
 				placeholder="https://my-penpot.example.com"
 			></editable-text>
 		</div>
-		<sl-button variant="default" size="small">
-			<sl-icon slot="prefix" name="trash" label="Delete"></sl-icon>
-		</sl-button>
+		<sl-icon-button
+			library="lucide"
+			name="square-x"
+			size="small"
+			label="Delete instance"
+		></sl-icon-button>
 	</div>
 </template>

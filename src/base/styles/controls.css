@@ -6,7 +6,9 @@
 	margin: 4px 0px 0px 4px;
 	app-region: no-drag;
 
-	sl-button {
+	sl-icon-button {
+		font-size: 16px;
+
 		&::part(base) {
 			width: 32px;
 			height: 32px;
@@ -18,12 +20,6 @@
 		}
 		&::part(base):hover {
 			background: #303236;
-		}
-
-		svg {
-			width: 16px;
-			height: 16px;
-			filter: invert(1);
 		}
 	}
 }

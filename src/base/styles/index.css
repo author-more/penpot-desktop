@@ -16,7 +16,6 @@
 	}
 
 	.titlebar,
-	.controls,
 	.no-tabs-exist {
 		filter: var(--theme-filter, none);
 	}

@@ -1,6 +1,7 @@
 import {
 	SlButton,
 	SlDrawer,
+	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { getIncludedElement } from "./dom.js";
 
@@ -42,7 +43,7 @@ async function getTriggers() {
 	const toggleSettingsButton = await getIncludedElement(
 		"#toggle-settings",
 		"#include-controls",
-		SlButton,
+		SlIconButton,
 	);
 	const openDocsButton = await getIncludedElement(
 		"#open-docs",

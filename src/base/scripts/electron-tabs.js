@@ -1,3 +1,4 @@
+import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
@@ -110,6 +111,7 @@ async function prepareTabReloadButton() {
 	const reloadButton = await getIncludedElement(
 		"#reload-tab",
 		"#include-controls",
+		SlIconButton,
 	);
 	const tabGroup = await getTabGroup();
 
