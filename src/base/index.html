@@ -30,10 +30,16 @@
 		</div>
 
 		<div class="no-tabs-exist">
-			<img src="./assets/penpot-logo/logo-white.png" />
+			<picture>
+				<source
+					media="(prefers-color-scheme: dark)"
+					srcset="./assets/penpot-logo/logo-white.png"
+				/>
+				<img src="./assets/penpot-logo/logo-black.png" />
+			</picture>
 			<h2>No tabs are opened</h2>
 			<p>Add a new tab to start making awesome things.</p>
-			<button id="open-tab">Create a tab</button>
+			<sl-button variant="primary" id="open-tab">Create a tab</sl-button>
 		</div>
 	</body>
 </html>

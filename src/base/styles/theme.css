@@ -1,3 +1,8 @@
+:root {
+	/* Title bar overlay (window controls) size has to be updated manually. */
+	--top-bar-height: 40px;
+}
+
 sl-color-picker {
 	--sl-input-height-small: 16px;
 

@@ -8,7 +8,7 @@ import { deepFreeze } from "../tools/object.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {
-		height: 42,
+		height: 40,
 	},
 	DARK: {
 		color: "#18181a",

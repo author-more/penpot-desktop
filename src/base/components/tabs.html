@@ -1,99 +1,94 @@
 <tab-group new-tab-button="true" sortable="true" class="full-window">
 	<style>
 		:host {
-			--tabgroup-background: transparent !important;
-			--tab-background: transparent !important;
-			--tab-color: #ffffff !important;
-			--tab-border-color: transparent !important;
-			--tab-active-background: #34393c !important;
-			--tag-hover-background: #34393c !important;
-			--button-font-size: 15px !important;
+			--tabgroup-background: transparent;
+
+			/* Tab */
+			--tab-height: var(--top-bar-height);
+
+			--tab-background: transparent;
+			--tab-font-size: 16px;
+			--tab-color: var(--sl-color-neutral-600);
+			--tab-border-color: transparent;
+
+			--tab-active-color: var(--sl-color-primary-600);
+			--tab-active-background: transparent;
+
+			--tab-hover-color: var(--sl-color-primary-600);
+			--tag-hover-background: transparent;
+
+			/* Button */
+			--button-font-size: 20px !important;
 			--button-background: none !important;
-			--button-color: #fff !important;
-			--button-hover-background: #303236 !important;
-			--button-hover-color: #fff !important;
-			--button-border-radius: 6px !important;
-			--button-cursor: pointer !important;
-			--badge-background: #383a3e !important;
-			--badge-color: #fff !important;
-			--close-button-visibility: visible !important;
-			--tab-height: 42px;
-		}
-		* {
-			cursor: default !important;
+			--button-color: var(--sl-color-primary-600);
+			--button-border-radius: 12px;
+			--button-cursor: pointer;
+
+			--button-hover-background: #303236;
+			--button-hover-color: #fff;
+
+			--close-button-visibility: visible;
+
+			/* Badge */
+			--badge-background: #383a3e;
+			--badge-color: #fff;
 		}
 		.nav {
 			-webkit-app-region: drag;
-			color: white !important;
+
 			display: flex !important;
 			align-items: center;
-			position: fixed !important;
-			top: 0px !important;
-			z-index: 10 !important;
-			border: none !important;
+
+			position: fixed;
+			top: 0px;
+			z-index: 10;
+			border: none;
 			height: var(--tab-height);
-			width: calc(100% - var(--navBarWF));
-			filter: var(--theme-filter, none);
 
 			margin-left: 4.5rem;
 		}
+
 		.tab {
 			-webkit-app-region: no-drag;
-			display: flex;
+
 			flex: none;
-			border-radius: 6px;
-			margin: 4px;
-			padding: 5px 10px;
-			height: 80%;
-			min-height: 32px;
-			transition: 0.4s border;
-			border: 1px var(--tab-accent-color, transparent) solid !important;
+
+			.tab-close button {
+				display: grid;
+				place-content: center;
+			}
 		}
-		.tab:not(.active):hover {
-			background: #3f4247 !important;
-			color: white !important;
-		}
-		.tab.active {
-			padding: 5px 10px;
-			transition: 0.4s border;
-		}
-		.tab.visible:not(.active) + .tab.visible:not(.active) {
-			padding-left: 10px;
-		}
+
 		.tabs {
-			height: var(--tab-height);
 			display: flex;
 			align-items: center;
 			overflow-x: scroll;
+
+			&::-webkit-scrollbar {
+				background: transparent;
+				height: 1px;
+				width: 0px;
+			}
+			&::-webkit-scrollbar-thumb {
+				background: var(--sl-color-primary-600);
+			}
 		}
-		.tabs::-webkit-scrollbar {
-			background: transparent;
-			height: 1px;
-			width: 0px;
-		}
-		.tabs::-webkit-scrollbar-thumb {
-			background: #00ff89;
-		}
+
 		.buttons {
 			-webkit-app-region: no-drag;
-			border-left: none !important;
-			padding: 5px !important;
-			display: flex !important;
-			align-items: center !important;
+
+			button {
+				width: 32px;
+				height: 32px;
+			}
 		}
-		.buttons button {
-			width: 32px;
-			height: 32px;
-		}
+
 		webview {
 			height: calc(100% - var(--tab-height));
-			position: fixed !important;
-			bottom: 0px !important;
-			z-index: 20 !important;
-			left: 0px !important;
-		}
-		.tab.active:last-child {
-			border-right: inherit;
+			position: fixed;
+			bottom: 0px;
+			z-index: 20;
+			left: 0px;
 		}
 	</style>
 </tab-group>
