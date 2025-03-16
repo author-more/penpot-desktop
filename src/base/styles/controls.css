@@ -12,14 +12,9 @@
 		&::part(base) {
 			width: 32px;
 			height: 32px;
-			border: none;
-			border-radius: 6px;
-			background: transparent;
+
 			display: grid;
 			place-content: center;
-		}
-		&::part(base):hover {
-			background: #303236;
 		}
 	}
 }

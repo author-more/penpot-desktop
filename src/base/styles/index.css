@@ -6,23 +6,12 @@
 @import url("./settings.css");
 @import url("./menu.css");
 
-@media (prefers-color-scheme: light) {
-	body {
-		background: #ffffff;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
-	body {
-		background: #18181a;
-	}
-}
-
 body {
 	font-family: arial;
 	font-size: 16px;
 
-	color: var(--sl-color-neutral-800);
+	background: var(--color-background);
+	color: var(--color-neutral);
 }
 
 sl-include.alert-modal {

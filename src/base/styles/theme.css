@@ -1,6 +1,23 @@
+@import url(./penpotSwatches.css);
+@import url(./shoelaceTokens.css);
+
 :root {
 	/* Title bar overlay (window controls) size has to be updated manually. */
 	--top-bar-height: 40px;
+
+	@media (prefers-color-scheme: light) {
+		--color-background: var(--lb-primary);
+		--color-primary: var(--la-primary);
+		--color-neutral: var(--lf-primary);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		--color-background: var(--db-primary);
+		--color-primary: var(--da-primary);
+		--color-neutral: var(--df-primary);
+	}
+
+	--sl-panel-background-color: var(--color-background);
 }
 
 sl-color-picker {
