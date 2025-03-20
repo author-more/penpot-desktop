@@ -48,9 +48,9 @@
 		"electron-builder": "^25.1.8",
 		"eslint": "^9.22.0",
 		"globals": "^16.0.0",
-		"lint-staged": "^15.4.3",
+		"lint-staged": "^15.5.0",
 		"prettier": "3.5.3",
 		"typescript": "^5.8.2",
-		"typescript-eslint": "^8.26.1"
+		"typescript-eslint": "^8.27.0"
 	}
 }
