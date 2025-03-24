@@ -1,4 +1,5 @@
 @import url("./normalize.css");
+@import url("./fonts/workSans.css");
 @import url("./theme.css");
 @import url("./layout.css");
 @import url("./form.css");
@@ -7,7 +8,7 @@
 @import url("./menu.css");
 
 body {
-	font-family: arial;
+	font-family: var(--sl-font-sans);
 	font-size: 16px;
 
 	background: var(--color-background);

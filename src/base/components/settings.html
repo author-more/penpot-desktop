@@ -1,4 +1,18 @@
-<sl-drawer id="settings" class="settings" placement="start" label="Settings">
+<sl-drawer
+	id="settings"
+	class="settings"
+	placement="start"
+	no-header="true"
+	label="Settings"
+>
+	<sl-icon-button
+		id="close-settings"
+		class="close"
+		library="lucide"
+		name="chevron-left"
+		label="Close settings"
+	></sl-icon-button>
+
 	<div class="titled-section">
 		<h3>Theme</h3>
 		<sl-select id="theme-select" size="small">
@@ -14,7 +28,7 @@
 		<h3>Instances</h3>
 		<div class="panel-list">
 			<div id="instance-list" class="list"></div>
-			<sl-button id="instance-add" variant="default">
+			<sl-button id="instance-add" variant="primary">
 				<sl-icon
 					slot="prefix"
 					library="lucide"
@@ -26,15 +40,18 @@
 		</div>
 	</div>
 
-	<sl-button-group slot="footer" label="Help Center">
-		<sl-button id="open-docs" href="#" size="small">Documentation</sl-button>
-		<sl-button id="open-selfhost" href="#" size="small">Selfhost</sl-button>
-	</sl-button-group>
+	<div class="titled-section info" slot="footer">
+		<h3>Info</h3>
+		<ul>
+			<li><a id="open-docs" href="#">Documentation</a></li>
+			<li><a id="open-selfhost" href="#">Selfhost</a></li>
+		</ul>
+	</div>
 </sl-drawer>
 
 <template id="template-instance-panel">
 	<div class="panel" tabindex="0">
-		<sl-color-picker size="small" format="hsl" opacity="true"></sl-color-picker>
+		<sl-color-picker format="hsl" opacity="true"></sl-color-picker>
 		<div class="body">
 			<editable-text
 				class="label"

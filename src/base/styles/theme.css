@@ -9,21 +9,195 @@
 		--color-background: var(--lb-primary);
 		--color-primary: var(--la-primary);
 		--color-neutral: var(--lf-primary);
+
+		--button-color: var(--lf-secondary);
+		--button-color-hover: var(--lf-primary);
+		--button-background-color: var(--lb-tertiary);
+		--button-background-color-hover: var(--lb-tertiary);
+		--button-border-color-focus: var(--la-primary);
+
+		--button-color-primary: var(--lb-secondary);
+		--button-color-primary-hover: var(--lb-secondary);
+		--button-background-color-primary: var(--la-primary);
+		--button-background-color-primary-hover: var(--la-tertiary);
+
+		--link-color: var(--la-primary);
+		--link-color-hover: var(--lb-secondary);
+		--link-background-color-hover: var(--la-primary);
+
+		--color-input-border-color: var(--la-primary-muted);
+		--input-select-list-border-color: var(--lb-quaternary);
+
+		--panel-background-color: var(--lb-tertiary);
+		--panel-label-color: var(--lf-primary);
+		--panel-hint-color: var(--lf-secondary);
+
+		--sl-input-background-color: var(--lb-tertiary);
+		--sl-input-background-color-hover: var(--lb-quaternary);
+		--sl-input-color: var(--lf-primary);
+		--sl-input-color-hover: var(--lf-primary);
+		--sl-input-icon-color: var(--lf-secondary);
+
+		--sl-focus-ring-color: var(--la-primary);
 	}
 
 	@media (prefers-color-scheme: dark) {
 		--color-background: var(--db-primary);
 		--color-primary: var(--da-primary);
 		--color-neutral: var(--df-primary);
+
+		--button-color: var(--df-secondary);
+		--button-color-hover: var(--da-primary);
+		--button-background-color: var(--db-tertiary);
+		--button-background-color-hover: var(--db-tertiary);
+
+		--button-color-primary: var(--db-secondary);
+		--button-color-primary-hover: var(--db-secondary);
+		--button-background-color-primary: var(--da-primary);
+		--button-background-color-primary-hover: var(--da-tertiary);
+
+		--link-color: var(--da-primary);
+		--link-color-hover: var(--db-secondary);
+		--link-background-color-hover: var(--da-primary);
+
+		--color-input-border-color: var(--da-primary-muted);
+		--input-select-list-border-color: var(--db-quaternary);
+
+		--panel-background-color: var(--db-tertiary);
+		--panel-label-color: var(--df-primary);
+		--panel-hint-color: var(--df-secondary);
+
+		--sl-input-background-color: var(--db-tertiary);
+		--sl-input-background-color-hover: var(--db-quaternary);
+		--sl-input-color: var(--df-primary);
+		--sl-input-color-hover: var(--df-primary);
+		--sl-input-icon-color: var(--df-secondary);
+
+		--sl-focus-ring-color: var(--da-primary);
 	}
 
+	--sl-font-sans:
+		"Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol";
+
 	--sl-panel-background-color: var(--color-background);
+
+	--sl-input-border-color: transparent;
+	--sl-input-font-weight: var(--sl-font-weight-semibold);
+
+	--sl-focus-ring-width: 2px;
+}
+
+* {
+	&:focus-visible {
+		outline: var(--sl-focus-ring-width) var(--sl-focus-ring-style)
+			var(--sl-focus-ring-color);
+		outline-offset: var(--sl-focus-ring-offset);
+	}
+}
+
+sl-button,
+sl-icon-button {
+	--sl-border-width: 2px;
+
+	&::part(base) {
+		color: var(--button-color);
+		background-color: var(--button-background-color);
+
+		border-radius: var(--sl-border-radius-large);
+	}
+
+	&[variant="primary"]::part(base) {
+		color: var(--button-color-primary);
+		background-color: var(--button-background-color-primary);
+	}
+
+	&:not([disabled]):hover,
+	&:active {
+		&::part(base) {
+			color: var(--button-color-hover);
+		}
+
+		&[variant="primary"]::part(base) {
+			color: var(--button-color-primary-hover);
+			background-color: var(--button-background-color-primary-hover);
+		}
+	}
+
+	sl-popup::part(base) {
+		border-radius: var(--sl-border-radius-large);
+	}
+}
+
+sl-button {
+	font-size: var(--sl-font-size-small);
+}
+
+sl-select {
+	--sl-panel-background-color: var(--sl-input-background-color);
+	--sl-panel-border-color: var(--input-select-list-border-color);
+
+	&::part(expand-icon) {
+		color: var(--sl-input-icon-color);
+	}
+	&::part(combobox) {
+		min-height: 42px;
+		border-radius: var(--sl-border-radius-large);
+	}
+	&::part(listbox) {
+		margin-top: 4px;
+		border-radius: var(--sl-border-radius-large);
+	}
+
+	&:hover {
+		&::part(combobox) {
+			background-color: var(--sl-input-background-color-hover);
+		}
+	}
+}
+
+sl-option {
+	&:not([aria-selected="true"]):hover {
+		&::part(base) {
+			background: var(--sl-input-background-color-hover);
+		}
+	}
 }
 
 sl-color-picker {
-	--sl-input-height-small: 16px;
+	--sl-input-border-color: var(--color-input-border-color);
 
 	&::part(trigger) {
+		height: 16px;
+		width: 16px;
+
 		border-radius: var(--sl-border-radius-medium);
 	}
+
+	&:hover {
+		--sl-input-border-color: var(--color-primary);
+	}
+}
+
+a {
+	color: var(--link-color);
+	padding: var(--sl-spacing-3x-small) var(--sl-spacing-2x-small);
+	text-decoration: none;
+
+	position: relative;
+	left: calc(0px - var(--sl-spacing-2x-small));
+
+	border-radius: var(--sl-border-radius-small);
+
+	&:hover {
+		color: var(--link-color-hover);
+		background-color: var(--link-background-color-hover);
+	}
+}
+
+ul {
+	list-style: none;
+
+	padding: 0;
 }

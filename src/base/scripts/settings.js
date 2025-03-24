@@ -1,15 +1,19 @@
 import {
-	SlButton,
 	SlDrawer,
 	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { getIncludedElement } from "./dom.js";
 
 export async function initSettings() {
-	const { toggleSettingsButton, openDocsButton, openSelfhostButton } =
-		await getTriggers();
+	const {
+		toggleSettingsButton,
+		closeSettingsButton,
+		openDocsButton,
+		openSelfhostButton,
+	} = await getTriggers();
 
 	toggleSettingsButton?.addEventListener("click", () => toggleSettings());
+	closeSettingsButton?.addEventListener("click", () => toggleSettings());
 	openDocsButton?.addEventListener("click", () => window.api.send("OpenHelp"));
 	openSelfhostButton?.addEventListener("click", () =>
 		window.api.send("OpenOffline"),
@@ -45,18 +49,28 @@ async function getTriggers() {
 		"#include-controls",
 		SlIconButton,
 	);
+	const closeSettingsButton = await getIncludedElement(
+		"#close-settings",
+		"#include-settings",
+		SlIconButton,
+	);
 	const openDocsButton = await getIncludedElement(
 		"#open-docs",
 		"#include-settings",
-		SlButton,
+		HTMLAnchorElement,
 	);
 	const openSelfhostButton = await getIncludedElement(
 		"#open-selfhost",
 		"#include-settings",
-		SlButton,
+		HTMLAnchorElement,
 	);
 
-	return { toggleSettingsButton, openDocsButton, openSelfhostButton };
+	return {
+		toggleSettingsButton,
+		closeSettingsButton,
+		openDocsButton,
+		openSelfhostButton,
+	};
 }
 
 async function getSettingsElements() {
