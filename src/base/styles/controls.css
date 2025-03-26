@@ -6,6 +6,11 @@
 	margin: 4px 0px 0px 4px;
 	app-region: no-drag;
 
+	&::part(base) {
+		display: flex;
+		gap: var(--sl-spacing-2x-small);
+	}
+
 	sl-icon-button {
 		font-size: 16px;
 
