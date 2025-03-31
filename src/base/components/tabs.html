@@ -4,28 +4,21 @@
 			--tabgroup-background: transparent;
 
 			/* Tab */
-			--tab-height: var(--top-bar-height);
+			--tab-font-size: var(--et-tab-font-size);
+			--tab-color: var(--et-tab-color);
 
-			--tab-background: transparent;
-			--tab-font-size: 16px;
-			--tab-color: var(--color-neutral);
-			--tab-border-color: transparent;
-
-			--tab-active-color: var(--color-primary);
-			--tab-active-background: transparent;
-
-			--tab-hover-color: var(--color-primary);
-			--tag-hover-background: transparent;
+			--tab-background-alpha-offset: 0.5;
+			--tab-background-alpha-offset-active: 0.25;
 
 			/* Button */
-			--button-font-size: 20px !important;
-			--button-background: none !important;
-			--button-color: var(--color-primary);
-			--button-border-radius: 12px;
+			--button-font-size: 16px !important;
+			--button-color: var(--button-color);
+			--button-background: var(--button-background-color) !important;
+			--button-border-radius: var(--sl-border-radius-large);
 			--button-cursor: pointer;
 
-			--button-hover-background: #303236;
-			--button-hover-color: #fff;
+			--button-hover-background: var(--button-background-color-hover);
+			--button-hover-color: var(--button-color-hover);
 
 			--close-button-visibility: visible;
 
@@ -43,26 +36,18 @@
 			top: 0px;
 			z-index: 10;
 			border: none;
-			height: var(--tab-height);
+			height: var(--top-bar-height);
 
-			margin-left: 4.5rem;
-		}
+			margin-left: 4.75rem;
 
-		.tab {
-			-webkit-app-region: no-drag;
-
-			flex: none;
-
-			.tab-close button {
-				display: grid;
-				place-content: center;
-			}
+			box-shadow: none;
 		}
 
 		.tabs {
 			display: flex;
 			align-items: center;
 			overflow-x: scroll;
+			gap: var(--sl-spacing-2x-small);
 
 			&::-webkit-scrollbar {
 				background: transparent;
@@ -74,8 +59,83 @@
 			}
 		}
 
+		.tab {
+			-webkit-app-region: no-drag;
+
+			flex: none;
+
+			height: calc(var(--top-bar-height) - (2 * var(--sl-spacing-2x-small)));
+			padding: var(--sl-spacing-2x-small) var(--sl-spacing-x-small);
+
+			background:
+				linear-gradient(
+					hsla(
+						var(--tab-accent-color-hue),
+						var(--tab-accent-color-saturation),
+						var(--tab-accent-color-lightness),
+						calc(
+							var(--tab-accent-color-alpha) - var(--tab-background-alpha-offset)
+						)
+					),
+					hsla(
+						var(--tab-accent-color-hue),
+						var(--tab-accent-color-saturation),
+						var(--tab-accent-color-lightness),
+						calc(
+							var(--tab-accent-color-alpha) - var(--tab-background-alpha-offset)
+						)
+					)
+				),
+				var(--et-tab-background-color);
+			border: 1px solid var(--tab-accent-color) !important;
+			border-radius: var(--sl-border-radius-large);
+
+			box-shadow: none;
+
+			&.active,
+			&:not(.active):hover {
+				background:
+					linear-gradient(
+						hsla(
+							var(--tab-accent-color-hue),
+							var(--tab-accent-color-saturation),
+							var(--tab-accent-color-lightness),
+							calc(
+								var(--tab-accent-color-alpha) -
+									var(--tab-background-alpha-offset-active)
+							)
+						),
+						hsla(
+							var(--tab-accent-color-hue),
+							var(--tab-accent-color-saturation),
+							var(--tab-accent-color-lightness),
+							calc(
+								var(--tab-accent-color-alpha) -
+									var(--tab-background-alpha-offset-active)
+							)
+						)
+					),
+					var(--et-tab-background-color);
+
+				padding: var(--sl-spacing-2x-small) var(--sl-spacing-x-small);
+			}
+
+			.tab-close button {
+				display: grid;
+				place-content: center;
+
+				background: none;
+
+				&:hover {
+					background: rgb(from var(--button-background) r g b / 25%);
+					border-radius: var(--sl-border-radius-large);
+				}
+			}
+		}
+
 		.buttons {
 			-webkit-app-region: no-drag;
+			border: none;
 
 			button {
 				width: 32px;
@@ -84,7 +144,7 @@
 		}
 
 		webview {
-			height: calc(100% - var(--tab-height));
+			height: calc(100% - var(--top-bar-height));
 			position: fixed;
 			bottom: 0px;
 			z-index: 20;

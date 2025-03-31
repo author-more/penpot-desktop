@@ -32,6 +32,9 @@
 		--panel-label-color: var(--lf-primary);
 		--panel-hint-color: var(--lf-secondary);
 
+		--et-tab-color: var(--lf-primary);
+		--et-tab-background-color: var(--lb-tertiary);
+
 		--sl-input-background-color: var(--lb-tertiary);
 		--sl-input-background-color-hover: var(--lb-quaternary);
 		--sl-input-color: var(--lf-primary);
@@ -67,6 +70,9 @@
 		--panel-label-color: var(--df-primary);
 		--panel-hint-color: var(--df-secondary);
 
+		--et-tab-color: var(--df-primary);
+		--et-tab-background-color: var(--db-tertiary);
+
 		--sl-input-background-color: var(--db-tertiary);
 		--sl-input-background-color-hover: var(--db-quaternary);
 		--sl-input-color: var(--df-primary);
@@ -75,6 +81,8 @@
 
 		--sl-focus-ring-color: var(--da-primary);
 	}
+
+	--et-tab-font-size: 13px;
 
 	--sl-font-sans:
 		"Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,

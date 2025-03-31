@@ -25,6 +25,14 @@ const DEFAULT_TAB_OPTIONS = Object.freeze({
 	ready: tabReadyHandler,
 });
 
+const TAB_STYLE_PROPERTIES = Object.freeze({
+	ACCENT_COLOR: "--tab-accent-color",
+	ACCENT_COLOR_HUE: "--tab-accent-color-hue",
+	ACCENT_COLOR_SATURATION: "--tab-accent-color-saturation",
+	ACCENT_COLOR_LIGHTNESS: "--tab-accent-color-lightness",
+	ACCENT_COLOR_ALPHA: "--tab-accent-color-alpha",
+});
+
 export async function initTabs() {
 	const tabGroup = await getTabGroup();
 
@@ -129,7 +137,21 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 	const webview = /** @type {WebviewTag} */ (tab.webview);
 
 	if (accentColor) {
-		tab.element.style.setProperty("--tab-accent-color", accentColor);
+		const [hue, saturation, lightness, alpha] =
+			accentColor
+				?.replaceAll(/[hsla()]/g, "")
+				.split(",")
+				.map((entry) => entry.trim()) || [];
+
+		[
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR, accentColor],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_HUE, hue],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_SATURATION, saturation],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_LIGHTNESS, lightness],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_ALPHA, alpha],
+		].forEach(([key, value]) => {
+			tab.element.style.setProperty(key, value);
+		});
 	}
 
 	tab.once("webview-dom-ready", () => {
@@ -212,8 +234,9 @@ async function handleTabMenuAction({ command, tabId }) {
 		const url = webview.getURL();
 		const { partition } = webview;
 		const [, id] = partition.split(":");
-		const accentColor =
-			tab.element.style.getPropertyValue("--tab-accent-color");
+		const accentColor = tab.element.style.getPropertyValue(
+			TAB_STYLE_PROPERTIES.ACCENT_COLOR,
+		);
 
 		openTab(url, {
 			accentColor,
