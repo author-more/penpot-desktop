@@ -1,0 +1,9 @@
+.icon {
+	&.color {
+		width: 14px;
+		height: 14px;
+
+		background: var(--icon-color);
+		border-radius: var(--sl-border-radius-medium);
+	}
+}

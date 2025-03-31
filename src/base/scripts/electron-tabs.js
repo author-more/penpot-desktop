@@ -63,6 +63,7 @@ export async function initTabs() {
 
 		const menuItems = instances.map(({ id, origin, label, color }) => ({
 			label: label || origin,
+			color,
 			onClick: () => {
 				openTab(origin, { accentColor: color, partition: id });
 				hideContextMenu();

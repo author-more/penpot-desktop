@@ -32,6 +32,10 @@
 		--panel-label-color: var(--lf-primary);
 		--panel-hint-color: var(--lf-secondary);
 
+		--menu-color: var(--lf-primary);
+		--menu-background-color: var(--lb-quaternary);
+		--menu-item-background-color-hover: var(--lb-secondary);
+
 		--et-tab-color: var(--lf-primary);
 		--et-tab-background-color: var(--lb-tertiary);
 
@@ -69,6 +73,10 @@
 		--panel-background-color: var(--db-tertiary);
 		--panel-label-color: var(--df-primary);
 		--panel-hint-color: var(--df-secondary);
+
+		--menu-color: var(--df-primary);
+		--menu-background-color: var(--db-tertiary);
+		--menu-item-background-color-hover: var(--db-quaternary);
 
 		--et-tab-color: var(--df-primary);
 		--et-tab-background-color: var(--db-tertiary);

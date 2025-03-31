@@ -8,6 +8,7 @@ import { trapFocus } from "./ui.js";
 /**
  * @typedef {Object} MenuItem
  * @property {string} label
+ * @property {string =} color
  * @property {Function} onClick
  */
 
@@ -96,13 +97,25 @@ export function hideContextMenu() {
  *
  * @param {MenuItem} item
  */
-function createContextMenuItem({ label, onClick }) {
+function createContextMenuItem({ label, color, onClick }) {
 	const menuItem = new SlMenuItem();
 	menuItem.innerText = label;
 	menuItem.addEventListener("click", (event) => {
 		event.stopPropagation();
 		onClick();
 	});
+
+	if (color) {
+		const colorIcon = document.createElement("div");
+		colorIcon.classList.add("icon", "color");
+		colorIcon.style.setProperty("--icon-color", color);
+
+		const slotPrefix = document.createElement("slot");
+		slotPrefix.slot = "prefix";
+
+		slotPrefix.append(colorIcon);
+		menuItem.prepend(slotPrefix);
+	}
 
 	return menuItem;
 }
