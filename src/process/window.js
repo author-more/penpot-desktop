@@ -81,6 +81,11 @@ export const MainWindow = {
 				"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting",
 			);
 		});
+		ipcMain.on("OpenCredits", () => {
+			shell.openExternal(
+				"https://github.com/author-more/penpot-desktop/wiki/Credits",
+			);
+		});
 		ipcMain.on("openTabMenu", (_event, tabId) => {
 			const tabMenu = getTabMenu(tabId);
 			tabMenu.popup({

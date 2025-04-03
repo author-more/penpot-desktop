@@ -10,6 +10,7 @@ export async function initSettings() {
 		closeSettingsButton,
 		openDocsButton,
 		openSelfhostButton,
+		openCreditsButton,
 	} = await getTriggers();
 
 	toggleSettingsButton?.addEventListener("click", () => toggleSettings());
@@ -17,6 +18,9 @@ export async function initSettings() {
 	openDocsButton?.addEventListener("click", () => window.api.send("OpenHelp"));
 	openSelfhostButton?.addEventListener("click", () =>
 		window.api.send("OpenOffline"),
+	);
+	openCreditsButton?.addEventListener("click", () =>
+		window.api.send("OpenCredits"),
 	);
 }
 
@@ -64,12 +68,18 @@ async function getTriggers() {
 		"#include-settings",
 		HTMLAnchorElement,
 	);
+	const openCreditsButton = await getIncludedElement(
+		"#open-credits",
+		"#include-settings",
+		HTMLAnchorElement,
+	);
 
 	return {
 		toggleSettingsButton,
 		closeSettingsButton,
 		openDocsButton,
 		openSelfhostButton,
+		openCreditsButton,
 	};
 }
 
