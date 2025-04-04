@@ -1,45 +1,19 @@
 @import url("./normalize.css");
+@import url("./fonts/workSans.css");
 @import url("./theme.css");
 @import url("./layout.css");
+@import url("./elements.css");
 @import url("./form.css");
 @import url("./controls.css");
 @import url("./settings.css");
 @import url("./menu.css");
 
-@media (prefers-color-scheme: light) {
-	:root {
-		--theme-filter: invert(1);
-	}
-
-	body {
-		background: #ffffff;
-	}
-
-	.titlebar,
-	.controls,
-	.no-tabs-exist {
-		filter: var(--theme-filter, none);
-	}
-
-	#theme-select-light {
-		border-color: #00ff89;
-		color: #00ff89;
-	}
-}
-
-@media (prefers-color-scheme: dark) {
-	body {
-		background: #18181a;
-	}
-
-	#theme-select-dark {
-		border-color: #00ff89;
-		color: #00ff89;
-	}
-}
-
 body {
-	font-family: arial;
+	font-family: var(--sl-font-sans);
+	font-size: 16px;
+
+	background: var(--color-background);
+	color: var(--color-neutral);
 }
 
 sl-include.alert-modal {
@@ -68,7 +42,6 @@ drag {
 	left: 50%;
 	transform: translate(-50%, -50%);
 	text-align: center;
-	color: white;
 
 	img {
 		width: 54px;
@@ -82,23 +55,7 @@ drag {
 		margin: var(--sl-spacing-small) auto;
 	}
 
-	button {
+	sl-button {
 		margin: var(--sl-spacing-medium) auto var(--sl-spacing-small);
-		color: black;
-		background: #00ff89;
-		border: none;
-		border-radius: 3rem;
-		padding: 12px 24px;
-		transition:
-			0.3s background,
-			0.3s color;
-
-		&:hover {
-			color: black;
-			background: #e6e6e6;
-			transition:
-				0.3s background,
-				0.3s color;
-		}
 	}
 }

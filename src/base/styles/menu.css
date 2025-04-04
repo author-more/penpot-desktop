@@ -15,4 +15,34 @@
 		position: absolute;
 		max-width: 200px;
 	}
+
+	sl-menu {
+		background-color: var(--menu-background-color);
+		color: var(--menu-color);
+
+		border-radius: var(--sl-border-radius-large);
+
+		box-shadow: var(--sl-shadow-medium);
+	}
+
+	sl-menu-item {
+		&::part(base) {
+			padding: var(--sl-spacing-2x-small) var(--sl-spacing-small);
+		}
+		&::part(checked-icon) {
+			display: none;
+		}
+		&::part(prefix) {
+			margin-right: var(--sl-spacing-x-small);
+		}
+		&::part(label) {
+			font-size: var(--sl-font-size-small);
+		}
+
+		&:hover {
+			&::part(base) {
+				background: var(--menu-item-background-color-hover);
+			}
+		}
+	}
 }

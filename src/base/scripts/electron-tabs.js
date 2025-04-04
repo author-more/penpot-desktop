@@ -1,3 +1,4 @@
+import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
@@ -22,6 +23,14 @@ const DEFAULT_TAB_OPTIONS = Object.freeze({
 		allowpopups: true,
 	},
 	ready: tabReadyHandler,
+});
+
+const TAB_STYLE_PROPERTIES = Object.freeze({
+	ACCENT_COLOR: "--tab-accent-color",
+	ACCENT_COLOR_HUE: "--tab-accent-color-hue",
+	ACCENT_COLOR_SATURATION: "--tab-accent-color-saturation",
+	ACCENT_COLOR_LIGHTNESS: "--tab-accent-color-lightness",
+	ACCENT_COLOR_ALPHA: "--tab-accent-color-alpha",
 });
 
 export async function initTabs() {
@@ -54,6 +63,7 @@ export async function initTabs() {
 
 		const menuItems = instances.map(({ id, origin, label, color }) => ({
 			label: label || origin,
+			color,
 			onClick: () => {
 				openTab(origin, { accentColor: color, partition: id });
 				hideContextMenu();
@@ -110,6 +120,7 @@ async function prepareTabReloadButton() {
 	const reloadButton = await getIncludedElement(
 		"#reload-tab",
 		"#include-controls",
+		SlIconButton,
 	);
 	const tabGroup = await getTabGroup();
 
@@ -127,7 +138,21 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 	const webview = /** @type {WebviewTag} */ (tab.webview);
 
 	if (accentColor) {
-		tab.element.style.setProperty("--tab-accent-color", accentColor);
+		const [hue, saturation, lightness, alpha] =
+			accentColor
+				?.replaceAll(/[hsla()]/g, "")
+				.split(",")
+				.map((entry) => entry.trim()) || [];
+
+		[
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR, accentColor],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_HUE, hue],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_SATURATION, saturation],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_LIGHTNESS, lightness],
+			[TAB_STYLE_PROPERTIES.ACCENT_COLOR_ALPHA, alpha],
+		].forEach(([key, value]) => {
+			tab.element.style.setProperty(key, value);
+		});
 	}
 
 	tab.once("webview-dom-ready", () => {
@@ -210,8 +235,9 @@ async function handleTabMenuAction({ command, tabId }) {
 		const url = webview.getURL();
 		const { partition } = webview;
 		const [, id] = partition.split(":");
-		const accentColor =
-			tab.element.style.getPropertyValue("--tab-accent-color");
+		const accentColor = tab.element.style.getPropertyValue(
+			TAB_STYLE_PROPERTIES.ACCENT_COLOR,
+		);
 
 		openTab(url, {
 			accentColor,

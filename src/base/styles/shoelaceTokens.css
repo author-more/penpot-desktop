@@ -1,0 +1,95 @@
+:root,
+:host {
+	--sl-color-success-50: rgb(240, 248, 255);
+	--sl-color-success-100: rgb(210, 240, 255);
+	--sl-color-success-200: rgb(180, 230, 255);
+	--sl-color-success-300: rgb(150, 220, 255);
+	--sl-color-success-400: rgb(120, 210, 255);
+	--sl-color-success-500: rgb(45, 159, 143);
+	--sl-color-success-600: rgb(40, 140, 125);
+	--sl-color-success-700: rgb(35, 120, 110);
+	--sl-color-success-800: rgb(30, 100, 95);
+	--sl-color-success-900: rgb(25, 80, 80);
+	--sl-color-success-950: rgb(10, 41, 39);
+
+	--sl-color-warning-50: rgb(255, 244, 237);
+	--sl-color-warning-100: rgb(255, 224, 220);
+	--sl-color-warning-200: rgb(255, 204, 203);
+	--sl-color-warning-300: rgb(255, 184, 185);
+	--sl-color-warning-400: rgb(255, 164, 169);
+	--sl-color-warning-500: rgb(254, 72, 17);
+	--sl-color-warning-600: rgb(240, 60, 10);
+	--sl-color-warning-700: rgb(225, 50, 5);
+	--sl-color-warning-800: rgb(200, 40, 0);
+	--sl-color-warning-900: rgb(175, 30, 0);
+	--sl-color-warning-950: rgb(68, 8, 6);
+
+	--sl-color-danger-50: rgb(255, 240, 243);
+	--sl-color-danger-100: rgb(255, 220, 225);
+	--sl-color-danger-200: rgb(255, 202, 218);
+	--sl-color-danger-300: rgb(255, 180, 195);
+	--sl-color-danger-400: rgb(255, 150, 165);
+	--sl-color-danger-500: rgb(255, 50, 119);
+	--sl-color-danger-600: rgb(200, 40, 90);
+	--sl-color-danger-700: rgb(200, 8, 87);
+	--sl-color-danger-800: rgb(150, 5, 65);
+	--sl-color-danger-900: rgb(100, 2, 40);
+	--sl-color-danger-950: rgb(80, 2, 5);
+}
+
+:root,
+:host,
+.sl-theme-light {
+	--sl-color-primary-50: rgb(225, 210, 245);
+	--sl-color-primary-100: rgb(200, 180, 240);
+	--sl-color-primary-200: rgb(175, 150, 235);
+	--sl-color-primary-300: rgb(150, 120, 230);
+	--sl-color-primary-400: rgb(125, 90, 225);
+	--sl-color-primary-500: rgb(105, 17, 212);
+	--sl-color-primary-600: rgb(85, 10, 180);
+	--sl-color-primary-700: rgb(65, 5, 150);
+	--sl-color-primary-800: rgb(45, 0, 120);
+	--sl-color-primary-900: rgb(25, 0, 90);
+	--sl-color-primary-950: rgb(10, 0, 60);
+
+	--sl-color-neutral-0: rgb(255, 255, 255);
+	--sl-color-neutral-50: rgb(240, 240, 240);
+	--sl-color-neutral-100: rgb(220, 220, 220);
+	--sl-color-neutral-200: rgb(200, 200, 200);
+	--sl-color-neutral-300: rgb(150, 150, 150);
+	--sl-color-neutral-400: rgb(100, 100, 100);
+	--sl-color-neutral-500: rgb(70, 70, 70);
+	--sl-color-neutral-600: rgb(50, 50, 50);
+	--sl-color-neutral-700: rgb(30, 30, 30);
+	--sl-color-neutral-800: rgb(15, 15, 15);
+	--sl-color-neutral-900: rgb(5, 5, 5);
+	--sl-color-neutral-1000: rgb(0, 0, 0);
+}
+
+:host,
+.sl-theme-dark {
+	--sl-color-primary-50: rgb(224, 255, 253);
+	--sl-color-primary-100: rgb(188, 255, 250);
+	--sl-color-primary-200: rgb(152, 255, 247);
+	--sl-color-primary-300: rgb(116, 255, 244);
+	--sl-color-primary-400: rgb(80, 255, 241);
+	--sl-color-primary-500: rgb(46, 255, 238);
+	--sl-color-primary-600: rgb(36, 204, 204);
+	--sl-color-primary-700: rgb(26, 153, 170);
+	--sl-color-primary-800: rgb(16, 102, 136);
+	--sl-color-primary-900: rgb(6, 51, 102);
+	--sl-color-primary-950: rgb(3, 26, 51);
+
+	--sl-color-neutral-0: rgb(0, 0, 0);
+	--sl-color-neutral-50: rgb(5, 5, 5);
+	--sl-color-neutral-100: rgb(15, 15, 15);
+	--sl-color-neutral-200: rgb(30, 30, 30);
+	--sl-color-neutral-300: rgb(50, 50, 50);
+	--sl-color-neutral-400: rgb(70, 70, 70);
+	--sl-color-neutral-500: rgb(100, 100, 100);
+	--sl-color-neutral-600: rgb(150, 150, 150);
+	--sl-color-neutral-700: rgb(200, 200, 200);
+	--sl-color-neutral-800: rgb(220, 220, 220);
+	--sl-color-neutral-900: rgb(240, 240, 240);
+	--sl-color-neutral-1000: rgb(255, 255, 255);
+}

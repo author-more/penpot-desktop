@@ -3,6 +3,7 @@ import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
 	SlButton,
 	SlColorPicker,
+	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
@@ -124,8 +125,8 @@ function createInstancePanel(instance, template) {
 	}
 
 	const buttonDeleteEl = typedQuerySelector(
-		"sl-button",
-		SlButton,
+		"sl-icon-button",
+		SlIconButton,
 		instancePanel,
 	);
 	if (buttonDeleteEl) {

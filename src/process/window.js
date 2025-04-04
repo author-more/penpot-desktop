@@ -8,7 +8,7 @@ import { deepFreeze } from "../tools/object.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {
-		height: 42,
+		height: 40,
 	},
 	DARK: {
 		color: "#18181a",
@@ -79,6 +79,11 @@ export const MainWindow = {
 		ipcMain.on("OpenOffline", () => {
 			shell.openExternal(
 				"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting",
+			);
+		});
+		ipcMain.on("OpenCredits", () => {
+			shell.openExternal(
+				"https://github.com/author-more/penpot-desktop/wiki/Credits",
 			);
 		});
 		ipcMain.on("openTabMenu", (_event, tabId) => {

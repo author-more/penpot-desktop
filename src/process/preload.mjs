@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld(
 				"MinimizeWindow",
 				"OpenHelp",
 				"OpenOffline",
+				"OpenCredits",
 				"instance:register",
 				"instance:remove",
 				"instance:setDefault",

@@ -4,17 +4,44 @@
 	&::part(body) {
 		display: grid;
 		align-content: start;
-		row-gap: var(--sl-spacing-large);
+		row-gap: var(--sl-spacing-2x-large);
 	}
 
 	&::part(panel) {
 		--size: 20rem;
 
-		height: calc(100% - 42px);
+		height: calc(100% - var(--top-bar-height));
 		top: unset;
 		bottom: 0;
 
 		box-shadow: unset;
+
+		/* Visible overflow allows the close button be next to the drawer. */
+		overflow: visible;
+	}
+
+	.close {
+		position: absolute;
+		top: 15px;
+		right: 0;
+		transform: translateX(100%);
+
+		&::part(base) {
+			height: 50px;
+
+			background-color: var(--color-background);
+
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+
+			font-size: var(--sl-font-size-large);
+		}
+
+		&:hover {
+			&::part(base) {
+				color: var(--color-neutral);
+			}
+		}
 	}
 
 	sl-button-group {
@@ -29,7 +56,7 @@
 
 	.list {
 		display: grid;
-		row-gap: var(--sl-spacing-small);
+		row-gap: var(--sl-spacing-x-small);
 	}
 
 	> sl-button {
@@ -43,10 +70,11 @@
 	align-items: center;
 
 	gap: var(--sl-spacing-small);
-	padding: var(--sl-spacing-2x-small) var(--sl-spacing-x-small);
+	padding: var(--sl-spacing-2x-small) var(--sl-spacing-small);
 
-	background-color: var(--sl-color-neutral-0);
-	border: var(--sl-panel-border-width) var(--sl-panel-border-color) solid;
+	background-color: var(--panel-background-color);
+
+	border-radius: var(--sl-border-radius-large);
 
 	.label,
 	.hint {
@@ -55,8 +83,23 @@
 
 	.label {
 		font-size: var(--sl-font-size-small);
+		color: var(--panel-label-color);
 	}
 	.hint {
 		font-size: var(--sl-font-size-x-small);
+		color: var(--panel-hint-color);
+	}
+}
+
+.info {
+	text-align: left;
+
+	ul {
+		display: flex;
+		flex-direction: column;
+
+		gap: var(--sl-spacing-medium);
+
+		font-size: var(--sl-font-size-small);
 	}
 }

@@ -6,24 +6,20 @@
 	margin: 4px 0px 0px 4px;
 	app-region: no-drag;
 
-	sl-button {
+	&::part(base) {
+		display: flex;
+		gap: var(--sl-spacing-2x-small);
+	}
+
+	sl-icon-button {
+		font-size: 16px;
+
 		&::part(base) {
 			width: 32px;
 			height: 32px;
-			border: none;
-			border-radius: 6px;
-			background: transparent;
+
 			display: grid;
 			place-content: center;
-		}
-		&::part(base):hover {
-			background: #303236;
-		}
-
-		svg {
-			width: 16px;
-			height: 16px;
-			filter: invert(1);
 		}
 	}
 }
