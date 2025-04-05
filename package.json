@@ -1,6 +1,6 @@
 {
 	"name": "penpot-desktop",
-	"version": "0.11.0",
+	"version": "0.12.0",
 	"author": "Author More",
 	"license": "AGPL-3.0-or-later",
 	"trustedDependencies": [
