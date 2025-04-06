@@ -2,8 +2,8 @@ name: Resources
 
 on:
   push:
-    branches-ignore:
-      - main
+    tags:
+      - "**"
 
 env:
   FLATPAK_SOURCES_PATH: ./build/flatpak/generated-sources.json
