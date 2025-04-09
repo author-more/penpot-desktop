@@ -38,6 +38,9 @@
 
 		--et-tab-color: var(--lf-primary);
 		--et-tab-background-color: var(--lb-tertiary);
+		/* Derived from --lb-secondary, darkened for higher contrast. */
+		--et-tab-background-color-active: hsl(220, 15%, 88%);
+		--et-tab-border-color: var(--lf-secondary);
 
 		--sl-input-background-color: var(--lb-tertiary);
 		--sl-input-background-color-hover: var(--lb-quaternary);
@@ -80,6 +83,9 @@
 
 		--et-tab-color: var(--df-primary);
 		--et-tab-background-color: var(--db-tertiary);
+		/* Derived from --db-quaternary, lightened for higher contrast. */
+		--et-tab-background-color-active: hsl(180, 6%, 22%);
+		--et-tab-border-color: var(--df-secondary);
 
 		--sl-input-background-color: var(--db-tertiary);
 		--sl-input-background-color-hover: var(--db-quaternary);

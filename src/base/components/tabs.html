@@ -87,7 +87,12 @@
 					)
 				),
 				var(--et-tab-background-color);
-			border: 1px solid var(--tab-accent-color) !important;
+			border: 1px solid
+				color-mix(
+					in srgb,
+					var(--tab-accent-color),
+					var(--et-tab-border-color) 25%
+				) !important;
 			border-radius: var(--sl-border-radius-large);
 
 			box-shadow: none;
@@ -115,7 +120,7 @@
 							)
 						)
 					),
-					var(--et-tab-background-color);
+					var(--et-tab-background-color-active);
 
 				padding: var(--sl-spacing-2x-small) var(--sl-spacing-x-small);
 			}
