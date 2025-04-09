@@ -1,3 +1,13 @@
+:root {
+	&[platform="linux"] {
+		--tab-nav-spacing-right: 170px;
+	}
+
+	&[platform="win32"] {
+		--tab-nav-spacing-right: 210px;
+	}
+}
+
 .titled-section {
 	display: flex;
 	flex-direction: column;

@@ -9,6 +9,7 @@ export type Api = {
 		setting: S,
 		value: Settings[S],
 	) => void;
+	onSetFlag: (callback: (flag: string, value: string) => void) => void;
 	onOpenTab: (callback: (href: string) => void) => void;
 	onTabMenuAction: (
 		callback: ({ command, tabId }: TabContextMenuAction) => void,

@@ -34,6 +34,11 @@ contextBridge.exposeInMainWorld(
 		setSetting: (setting, value) => {
 			ipcRenderer.send("setting:set", setting, value);
 		},
+		onSetFlag: (callback) => {
+			ipcRenderer.on("set-flag", (_event, [flag, value]) =>
+				callback(flag, value),
+			);
+		},
 		onOpenTab: (callback) =>
 			ipcRenderer.on("open-tab", (_event, value) => callback(value)),
 		onTabMenuAction: (callback) =>

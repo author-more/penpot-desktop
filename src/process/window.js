@@ -58,6 +58,9 @@ export const MainWindow = {
 			},
 		});
 		mainWindow.loadFile("src/base/index.html");
+		mainWindow.on("ready-to-show", () => {
+			mainWindow.webContents.send("set-flag", ["platform", process.platform]);
+		});
 
 		// IPC Functions
 		ipcMain.on("ReloadApp", () => {
