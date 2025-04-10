@@ -6,6 +6,8 @@
 	margin: 4px 0px 0px 4px;
 	app-region: no-drag;
 
+	opacity: var(--top-bar-opacity, 1);
+
 	&::part(base) {
 		display: flex;
 		gap: var(--sl-spacing-2x-small);

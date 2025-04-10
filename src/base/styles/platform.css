@@ -1,0 +1,9 @@
+:root {
+	--top-bar-opacity: 1;
+
+	&[platform="darwin"] {
+		&[is-focused="false"] {
+			--top-bar-opacity: 0.5;
+		}
+	}
+}

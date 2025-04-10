@@ -22,6 +22,7 @@ const TITLEBAR_OVERLAY = deepFreeze({
 const FLAGS = Object.freeze({
 	PLATFORM: "platform",
 	FULL_SCREEN: "is-full-screen",
+	FOCUS: "is-focused",
 });
 
 /** @type {import("electron").BrowserWindow} */
@@ -118,22 +119,13 @@ export const MainWindow = {
 		mainWindow.on("leave-full-screen", () => {
 			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, false]);
 		});
+		mainWindow.on("focus", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, true]);
+		});
+		mainWindow.on("blur", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, false]);
+		});
 
-		if (process.platform === "darwin") {
-			// Fade Top Bar if the end-user leaves the window on macOS
-			mainWindow.on("blur", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("body > #include-tabs > tab-group").shadowRoot.querySelector("div > nav").style.opacity = '0.5'`,
-				);
-			});
-			mainWindow.on("focus", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("body > #include-tabs > tab-group").shadowRoot.querySelector("div > nav").style.opacity = '1'`,
-				);
-			});
-		}
-
-		// Other Functions
 		mainWindowState.manage(mainWindow);
 		setAppMenu();
 	},
