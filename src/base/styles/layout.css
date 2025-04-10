@@ -1,10 +1,39 @@
 :root {
+	--darwin-traffic-lights-width: 75px;
+	--controls-width: 76px;
+	--top-bar-gap: 4px;
+
+	--tab-nav-spacing-left: calc(var(--controls-width) + var(--top-bar-gap));
+
 	&[platform="linux"] {
 		--tab-nav-spacing-right: 170px;
 	}
 
 	&[platform="win32"] {
 		--tab-nav-spacing-right: 210px;
+	}
+
+	&[platform="darwin"] {
+		--tab-nav-spacing-left: calc(
+			var(--darwin-traffic-lights-width) + var(--controls-width) +
+				var(--top-bar-gap)
+		);
+
+		&[is-full-screen="true"] {
+			--tab-nav-spacing-left: calc(var(--controls-width) + var(--top-bar-gap));
+		}
+	}
+}
+
+&[platform="darwin"] {
+	.controls {
+		left: var(--darwin-traffic-lights-width);
+	}
+
+	&[is-full-screen="true"] {
+		.controls {
+			left: 0;
+		}
 	}
 }
 

@@ -3,7 +3,6 @@ import windowStateKeeper from "electron-window-state";
 import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
-import { applyDirectStyling } from "./platform.js";
 import { deepFreeze } from "../tools/object.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
@@ -18,6 +17,11 @@ const TITLEBAR_OVERLAY = deepFreeze({
 		color: "#ffffff",
 		symbolColor: "#000000",
 	},
+});
+
+const FLAGS = Object.freeze({
+	PLATFORM: "platform",
+	FULL_SCREEN: "is-full-screen",
 });
 
 /** @type {import("electron").BrowserWindow} */
@@ -59,13 +63,15 @@ export const MainWindow = {
 		});
 		mainWindow.loadFile("src/base/index.html");
 		mainWindow.on("ready-to-show", () => {
-			mainWindow.webContents.send("set-flag", ["platform", process.platform]);
+			mainWindow.webContents.send("set-flag", [
+				FLAGS.PLATFORM,
+				process.platform,
+			]);
 		});
 
 		// IPC Functions
 		ipcMain.on("ReloadApp", () => {
 			mainWindow.reload();
-			applyDirectStyling();
 		});
 		ipcMain.on("MaximizeWindow", () => {
 			mainWindow.maximize();
@@ -106,18 +112,14 @@ export const MainWindow = {
 			});
 		});
 
+		mainWindow.on("enter-full-screen", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, true]);
+		});
+		mainWindow.on("leave-full-screen", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, false]);
+		});
+
 		if (process.platform === "darwin") {
-			// Move Tabs when entering or existing fullscreen on macOS
-			mainWindow.on("enter-full-screen", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("tab-group").shadowRoot.querySelector("nav").style.left = '0px'`,
-				);
-			});
-			mainWindow.on("leave-full-screen", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("tab-group").shadowRoot.querySelector("nav").style.left = '80px'`,
-				);
-			});
 			// Fade Top Bar if the end-user leaves the window on macOS
 			mainWindow.on("blur", () => {
 				mainWindow.webContents.executeJavaScript(
@@ -134,6 +136,5 @@ export const MainWindow = {
 		// Other Functions
 		mainWindowState.manage(mainWindow);
 		setAppMenu();
-		applyDirectStyling();
 	},
 };

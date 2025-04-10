@@ -1,5 +1,4 @@
 import { app, Menu, shell } from "electron";
-import { applyDirectStyling } from "./platform.js";
 import { getMainWindow } from "./window.js";
 
 /**
@@ -117,9 +116,6 @@ export function setAppMenu() {
 				accelerator: "CmdOrCtrl+Shift+R",
 				click: async () => {
 					mainWindow.reload();
-					setTimeout(() => {
-						applyDirectStyling();
-					}, 1000);
 				},
 			},
 			{ role: "toggleDevTools" },
