@@ -3,7 +3,6 @@ import windowStateKeeper from "electron-window-state";
 import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
-import { applyDirectStyling } from "./platform.js";
 import { deepFreeze } from "../tools/object.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
@@ -18,6 +17,12 @@ const TITLEBAR_OVERLAY = deepFreeze({
 		color: "#ffffff",
 		symbolColor: "#000000",
 	},
+});
+
+const FLAGS = Object.freeze({
+	PLATFORM: "platform",
+	FULL_SCREEN: "is-full-screen",
+	FOCUS: "is-focused",
 });
 
 /** @type {import("electron").BrowserWindow} */
@@ -58,11 +63,16 @@ export const MainWindow = {
 			},
 		});
 		mainWindow.loadFile("src/base/index.html");
+		mainWindow.on("ready-to-show", () => {
+			mainWindow.webContents.send("set-flag", [
+				FLAGS.PLATFORM,
+				process.platform,
+			]);
+		});
 
 		// IPC Functions
 		ipcMain.on("ReloadApp", () => {
 			mainWindow.reload();
-			applyDirectStyling();
 		});
 		ipcMain.on("MaximizeWindow", () => {
 			mainWindow.maximize();
@@ -103,34 +113,20 @@ export const MainWindow = {
 			});
 		});
 
-		if (process.platform === "darwin") {
-			// Move Tabs when entering or existing fullscreen on macOS
-			mainWindow.on("enter-full-screen", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("tab-group").shadowRoot.querySelector("nav").style.left = '0px'`,
-				);
-			});
-			mainWindow.on("leave-full-screen", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("tab-group").shadowRoot.querySelector("nav").style.left = '80px'`,
-				);
-			});
-			// Fade Top Bar if the end-user leaves the window on macOS
-			mainWindow.on("blur", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("body > #include-tabs > tab-group").shadowRoot.querySelector("div > nav").style.opacity = '0.5'`,
-				);
-			});
-			mainWindow.on("focus", () => {
-				mainWindow.webContents.executeJavaScript(
-					`document.querySelector("body > #include-tabs > tab-group").shadowRoot.querySelector("div > nav").style.opacity = '1'`,
-				);
-			});
-		}
+		mainWindow.on("enter-full-screen", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, true]);
+		});
+		mainWindow.on("leave-full-screen", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, false]);
+		});
+		mainWindow.on("focus", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, true]);
+		});
+		mainWindow.on("blur", () => {
+			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, false]);
+		});
 
-		// Other Functions
 		mainWindowState.manage(mainWindow);
 		setAppMenu();
-		applyDirectStyling();
 	},
 };

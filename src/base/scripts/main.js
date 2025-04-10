@@ -15,3 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	initToggles();
 	initSettings();
 });
+
+window.api.onSetFlag((flag, value) => {
+	document.documentElement.setAttribute(flag, value);
+});
