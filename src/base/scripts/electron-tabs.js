@@ -98,6 +98,12 @@ export async function setDefaultTab(href, { accentColor, partition } = {}) {
  */
 export async function openTab(href, { accentColor, partition } = {}) {
 	const tabGroup = await getTabGroup();
+	const activeTab = tabGroup?.getActiveTab();
+
+	// Use the same instance as the active tab if not requested otherwise.
+	const activeTabProperties = activeTab && getTabProperties(activeTab);
+	partition = partition || activeTabProperties?.partition;
+	accentColor = accentColor || activeTabProperties?.accentColor;
 
 	tabGroup?.addTab(
 		href
@@ -231,17 +237,11 @@ async function handleTabMenuAction({ command, tabId }) {
 	}
 
 	if (command === "duplicate-tab") {
-		const webview = /** @type {WebviewTag} */ (tab.webview);
-		const url = webview.getURL();
-		const { partition } = webview;
-		const [, id] = partition.split(":");
-		const accentColor = tab.element.style.getPropertyValue(
-			TAB_STYLE_PROPERTIES.ACCENT_COLOR,
-		);
+		const { url, accentColor, partition } = getTabProperties(tab);
 
 		openTab(url, {
 			accentColor,
-			partition: id,
+			partition,
 		});
 	}
 
@@ -296,4 +296,25 @@ function closeTabs(tabs, from, direction) {
 			tab.close(true);
 		}
 	});
+}
+
+/**
+ * @param {Tab} tab
+ *
+ * @returns {Required<TabOptions & { url: string}>}
+ */
+function getTabProperties(tab) {
+	const webview = /** @type {WebviewTag} */ (tab.webview);
+	const url = webview.getURL();
+	const { partition } = webview;
+	const [, id] = partition.split(":");
+	const accentColor = tab.element.style.getPropertyValue(
+		TAB_STYLE_PROPERTIES.ACCENT_COLOR,
+	);
+
+	return {
+		url,
+		accentColor,
+		partition: id,
+	};
 }
