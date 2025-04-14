@@ -31,9 +31,9 @@ export async function initTheme() {
 function syncThemeClass() {
 	/**
 	 * @function
-	 * @param {MediaQueryListEvent} arg0
+	 * @param {Pick<MediaQueryListEvent, 'matches' | 'media'>} arg0
 	 */
-	const mediaMatchListener = ({ matches, media }) => {
+	const mediaMatchHandler = ({ matches, media }) => {
 		if (!matches) {
 			return;
 		}
@@ -50,9 +50,12 @@ function syncThemeClass() {
 		}
 	};
 
-	Object.values(THEME_MEDIA).forEach((media) => {
-		const match = matchMedia(media);
-		match.addEventListener("change", mediaMatchListener);
+	Object.values(THEME_MEDIA).forEach((query) => {
+		const match = matchMedia(query);
+		const { matches, media } = match;
+
+		mediaMatchHandler({ matches, media });
+		match.addEventListener("change", mediaMatchHandler);
 	});
 }
 
