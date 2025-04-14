@@ -1,7 +1,7 @@
 export const DEFAULT_INSTANCE = Object.freeze({
 	origin: "https://design.penpot.app",
 	label: "Official",
-	color: "hsla(0,0%,0%,0.00)",
+	color: "hsla(0,0,0,0)",
 	isDefault: false,
 });
 
