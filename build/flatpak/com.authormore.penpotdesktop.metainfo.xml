@@ -53,6 +53,19 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+				<release version="v0.13.0" date="2025-04-16">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.13.0</url>
+            <description>
+								<p>Features</p>
+								<ul>
+										<li>[BREAKING CHANGE] Added color setting validation.</li>
+								</ul>
+								<p>Fixes</p>
+								<ul>
+										<li>Fixed theme to set without media change on initialisation.</li>
+								</ul>
+            </description>
+        </release>
 				<release version="v0.12.1" date="2025-04-12">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.12.1</url>
             <description>
