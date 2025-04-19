@@ -8,7 +8,7 @@ import {
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
 import { EditableText } from "../components/editableText.js";
-import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../../shared/instance.js";
+import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import {
 	disableSettingsFocusTrap,
@@ -132,7 +132,7 @@ function createInstancePanel(instance, template) {
 	if (buttonDeleteEl) {
 		buttonDeleteEl.disabled = isDefault;
 		buttonDeleteEl.addEventListener("click", () => {
-			window.api.send(INSTANCE_EVENTS.REMOVE, id);
+			window.api.instance.remove(id);
 			updateInstanceList();
 		});
 	}
@@ -152,7 +152,7 @@ function createInstancePanel(instance, template) {
 							accentColor: color,
 							partition: id,
 						});
-						window.api.send(INSTANCE_EVENTS.SET_DEFAULT, id);
+						window.api.instance.setDefault(id);
 						hideContextMenu();
 						updateInstanceList();
 						enableSettingsFocusTrap();
@@ -191,7 +191,7 @@ async function getInstanceSettingsElements() {
 function registerInstance(instance) {
 	const { id, origin, color, isDefault } = instance;
 
-	window.api.send(INSTANCE_EVENTS.REGISTER, {
+	window.api.instance.register({
 		...DEFAULT_INSTANCE,
 		...instance,
 	});

@@ -15,15 +15,17 @@ contextBridge.exposeInMainWorld(
 				"OpenHelp",
 				"OpenOffline",
 				"OpenCredits",
-				"instance:register",
-				"instance:remove",
-				"instance:setDefault",
 				"openTabMenu",
 			];
 
 			if (validChannels.includes(channel)) {
 				ipcRenderer.send(channel, data);
 			}
+		},
+		instance: {
+			register: (instance) => ipcRenderer.send("instance:register", instance),
+			remove: (id) => ipcRenderer.send("instance:remove", id),
+			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
 		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);

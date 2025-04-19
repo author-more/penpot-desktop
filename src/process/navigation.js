@@ -1,10 +1,9 @@
-import { app, ipcMain, shell, dialog } from "electron";
+import { app, shell, dialog } from "electron";
 import { URL } from "url";
 import { join } from "path";
 import { toMultiline } from "./string.js";
 import { getMainWindow } from "./window.js";
 import { settings } from "./settings.js";
-import { INSTANCE_EVENTS } from "../shared/instance.js";
 
 // Covered origins and URLs are scoped to the Penpot web app (e.g. links in the Menu > Help & info).
 const ALLOWED_INTERNAL_ORIGINS = Object.freeze([
@@ -21,47 +20,6 @@ const ALLOWED_EXTERNAL_URLS = Object.freeze([
 	"https://www.youtube.com/c/Penpot", // Tutorials
 	"https://github.com/penpot/penpot",
 ]);
-
-ipcMain.on(INSTANCE_EVENTS.REGISTER, (event, instance) => {
-	const { id, origin } = instance;
-	const hasValidOrigin = URL.canParse(origin);
-	if (hasValidOrigin) {
-		const instanceIndex = settings.instances.findIndex(
-			({ id: registeredId }) => registeredId === id,
-		);
-		if (instanceIndex > -1) {
-			settings.instances = settings.instances.toSpliced(
-				instanceIndex,
-				1,
-				instance,
-			);
-			return;
-		}
-
-		settings.instances = [...settings.instances, instance];
-	} else {
-		console.warn(
-			`[WARN] [IPC.${INSTANCE_EVENTS.REGISTER}] Failed with: ${origin}`,
-		);
-	}
-});
-
-ipcMain.on(INSTANCE_EVENTS.REMOVE, (event, id) => {
-	const userDataPath = app.getPath("sessionData");
-	const partitionPath = join(userDataPath, "Partitions", id);
-
-	shell.trashItem(partitionPath);
-	settings.instances = settings.instances.filter(
-		({ id: registeredId }) => registeredId !== id,
-	);
-});
-
-ipcMain.on(INSTANCE_EVENTS.SET_DEFAULT, (event, id) => {
-	settings.instances = settings.instances.map((instance) => {
-		instance.isDefault = instance.id === id ? true : false;
-		return instance;
-	});
-});
 
 app.on("web-contents-created", (event, contents) => {
 	const mainWindow = getMainWindow();
