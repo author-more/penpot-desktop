@@ -2,6 +2,11 @@ import { app, ipcMain, shell } from "electron";
 import { join } from "path";
 import { settings } from "./settings.js";
 import { INSTANCE_EVENTS } from "../shared/instance.js";
+import { isDockerAvailable } from "./docker.js";
+
+ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
+	isDockerAvailable: await isDockerAvailable(),
+}));
 
 ipcMain.on(INSTANCE_EVENTS.REGISTER, (_event, instance) => {
 	const { id, origin } = instance;

@@ -1,8 +1,10 @@
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
+	SlAlert,
 	SlButton,
 	SlColorPicker,
+	SlDialog,
 	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
@@ -39,9 +41,23 @@ export async function initInstance() {
 }
 
 async function prepareInstanceControls() {
-	const { instanceButtonAdd } = await getInstanceSettingsElements();
+	const {
+		instanceButtonAdd,
+		instanceButtonOpenCreator,
+		instanceButtonCloseCreator,
+		instanceCreator,
+	} = await getInstanceSettingsElements();
 
 	instanceButtonAdd?.addEventListener("click", addInstance);
+
+	if (instanceCreator) {
+		instanceButtonOpenCreator?.addEventListener("click", () =>
+			openInstanceCreator(instanceCreator),
+		);
+		instanceButtonCloseCreator?.addEventListener("click", () =>
+			instanceCreator.hide(),
+		);
+	}
 }
 
 function addInstance() {
@@ -49,6 +65,20 @@ function addInstance() {
 		id: crypto.randomUUID(),
 	});
 	updateInstanceList();
+}
+
+/**
+ * @param {SlDialog} creator
+ */
+async function openInstanceCreator(creator) {
+	const { warningAlert } = getInstanceCreatorElements();
+	const { isDockerAvailable } = await window.api.instance.getSetupInfo();
+
+	if (warningAlert && !isDockerAvailable) {
+		warningAlert.show();
+	}
+
+	creator.show();
 }
 
 /**
@@ -181,8 +211,39 @@ async function getInstanceSettingsElements() {
 		"#include-settings",
 		SlButton,
 	);
+	const instanceButtonOpenCreator = await getIncludedElement(
+		"#instance-open-creator",
+		"#include-settings",
+		SlButton,
+	);
+	const instanceButtonCloseCreator = await getIncludedElement(
+		"#instance-close-creator",
+		["#include-settings", "#include-instance-creator"],
+		SlButton,
+	);
+	const instanceCreator = await getIncludedElement(
+		"#instance-creator",
+		["#include-settings", "#include-instance-creator"],
+		SlDialog,
+	);
 
-	return { instanceList, instancePanelTemplate, instanceButtonAdd };
+	return {
+		instanceList,
+		instancePanelTemplate,
+		instanceButtonAdd,
+		instanceButtonOpenCreator,
+		instanceButtonCloseCreator,
+		instanceCreator,
+	};
+}
+
+function getInstanceCreatorElements() {
+	const warningAlert = typedQuerySelector(
+		"#instance-creator #warning-alert",
+		SlAlert,
+	);
+
+	return { warningAlert };
 }
 
 /**

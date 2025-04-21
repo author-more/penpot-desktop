@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld(
 			}
 		},
 		instance: {
+			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
 			register: (instance) => ipcRenderer.send("instance:register", instance),
 			remove: (id) => ipcRenderer.send("instance:remove", id),
 			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
