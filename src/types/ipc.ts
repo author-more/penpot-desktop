@@ -7,6 +7,7 @@ export type Api = {
 		getSetupInfo: () => Promise<{
 			isDockerAvailable: boolean;
 		}>;
+		create: (instance: Record<string, unknown>) => Promise<string>;
 		register: (instance: Partial<Settings["instances"][number]>) => void;
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;

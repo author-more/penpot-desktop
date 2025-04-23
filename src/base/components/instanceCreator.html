@@ -34,7 +34,18 @@
 		</ul>
 	</sl-alert>
 
-	<sl-button slot="footer" id="instance-close-creator" variant="primary"
-		>Close</sl-button
-	>
+	<form id="instance-creator-form">
+		<sl-input name="label" label="Label" required></sl-input>
+	</form>
+
+	<div slot="footer">
+		<sl-button
+			id="instance-submit-creator"
+			type="submit"
+			variant="primary"
+			form="instance-creator-form"
+			>Create</sl-button
+		>
+		<sl-button id="instance-close-creator" variant="primary">Close</sl-button>
+	</div>
 </sl-dialog>

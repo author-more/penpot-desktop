@@ -10,6 +10,7 @@ export const DEFAULT_INSTANCE = Object.freeze({
  */
 export const INSTANCE_EVENTS = Object.freeze({
 	SETUP_INFO: "instance:setup-info",
+	CREATE: "instance:create",
 	REGISTER: "instance:register",
 	REMOVE: "instance:remove",
 	SET_DEFAULT: "instance:setDefault",

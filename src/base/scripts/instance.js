@@ -71,14 +71,48 @@ function addInstance() {
  * @param {SlDialog} creator
  */
 async function openInstanceCreator(creator) {
-	const { warningAlert } = getInstanceCreatorElements();
+	const { warningAlert, form } = getInstanceCreatorElements();
 	const { isDockerAvailable } = await window.api.instance.getSetupInfo();
 
 	if (warningAlert && !isDockerAvailable) {
 		warningAlert.show();
 	}
 
+	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
+	await customElements.whenDefined("sl-input");
+	form?.addEventListener("submit", handleInstanceCreation);
+
 	creator.show();
+}
+
+/**
+ * Handles instance creation from form submission.
+ *
+ * @param {SubmitEvent} event
+ */
+async function handleInstanceCreation(event) {
+	event.preventDefault();
+
+	const { form, buttonSubmit } = getInstanceCreatorElements();
+
+	if (!form) {
+		return;
+	}
+
+	buttonSubmit?.setAttribute("loading", "true");
+
+	try {
+		const data = new FormData(form);
+		const instance = Object.fromEntries(data.entries());
+		await window.api.instance.create(instance);
+
+		updateInstanceList();
+	} catch (error) {
+		console.error(error);
+	}
+
+	form.reset();
+	buttonSubmit?.removeAttribute("loading");
 }
 
 /**
@@ -242,8 +276,10 @@ function getInstanceCreatorElements() {
 		"#instance-creator #warning-alert",
 		SlAlert,
 	);
+	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
+	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
 
-	return { warningAlert };
+	return { warningAlert, form, buttonSubmit };
 }
 
 /**
