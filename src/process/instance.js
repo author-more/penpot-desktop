@@ -4,7 +4,12 @@ import { settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
 import { isDockerAvailable } from "./docker.js";
 import { exec as sudoExec } from "@vscode/sudo-prompt";
-import { z } from "zod";
+import { z, ZodError } from "zod";
+import { findAvailablePort } from "./server.js";
+import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
+
+const DEFAULT_FRONTEND_CONTAINER_PORT = 9001;
+const DEFAULT_MAILCATCH_CONTAINER_PORT = 1080;
 
 const sudoOptions = {
 	name: "Penpot Desktop",
@@ -18,13 +23,34 @@ ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	isDockerAvailable: await isDockerAvailable(),
 }));
 
-ipcMain.handle(INSTANCE_EVENTS.CREATE, (_event, instance) => {
+ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	let validInstance;
+	let frontendPort;
+	let mailcatchPort;
 
 	try {
 		validInstance = instanceCreateFormSchema.parse(instance);
+		frontendPort = await findAvailablePort([
+			DEFAULT_FRONTEND_CONTAINER_PORT,
+			DEFAULT_FRONTEND_CONTAINER_PORT + 9,
+		]);
+		mailcatchPort = await findAvailablePort([
+			DEFAULT_MAILCATCH_CONTAINER_PORT,
+			DEFAULT_MAILCATCH_CONTAINER_PORT + 9,
+		]);
 	} catch (error) {
-		const message = "Invalid input.";
+		let message;
+
+		if (error instanceof ZodError) {
+			message = "Invalid input.";
+		}
+		if (
+			isAppError(error) &&
+			isErrorCode(error, ERROR_CODES.NO_AVAILABLE_PORT)
+		) {
+			message = error.message;
+		}
+
 		console.error(`[ERROR] [instance:create]: ${message}`);
 
 		throw new Error(message);
@@ -36,7 +62,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, (_event, instance) => {
 		app.getAppPath(),
 		"bin/docker-compose.yaml",
 	);
-	const dockerComposeCommand = `docker compose -p ${label} -f ${dockerComposeFilePath} up -d`;
+	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} docker compose -p ${label} -f ${dockerComposeFilePath} up -d`;
 
 	return new Promise((resolve) => {
 		sudoExec(dockerComposeCommand, sudoOptions, (error) => {
@@ -45,7 +71,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, (_event, instance) => {
 					...DEFAULT_INSTANCE,
 					id,
 					label,
-					origin: "http://localhost:9001",
+					origin: `http://localhost:${frontendPort}`,
 				});
 
 				resolve(id);

@@ -31,7 +31,7 @@ x-flags: &penpot-flags
   PENPOT_FLAGS: disable-email-verification enable-smtp enable-prepl-server disable-secure-session-cookies
 
 x-uri: &penpot-public-uri
-  PENPOT_PUBLIC_URI: http://localhost:9001
+  PENPOT_PUBLIC_URI: http://localhost:${PENPOT_DESKTOP_FRONTEND_PORT}
 
 x-body-size: &penpot-http-body-size
   # Max body size (30MiB); Used for plain requests, should never be
@@ -78,7 +78,7 @@ services:
     image: "penpotapp/frontend:${PENPOT_VERSION:-latest}"
     restart: always
     ports:
-      - 9001:8080
+      - ${PENPOT_DESKTOP_FRONTEND_PORT}:8080
 
     volumes:
       - penpot_assets:/opt/data/assets
@@ -260,7 +260,7 @@ services:
     expose:
       - "1025"
     ports:
-      - "1080:1080"
+      - "${PENPOT_DESKTOP_MAILCATCH_PORT}:1080"
     networks:
       - penpot
 
