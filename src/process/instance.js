@@ -7,9 +7,18 @@ import { exec as sudoExec } from "@vscode/sudo-prompt";
 import { z, ZodError } from "zod";
 import { findAvailablePort } from "./server.js";
 import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
+import { generateId } from "../tools/id.js";
+import { readConfig, writeConfig } from "./config.js";
+import { observe } from "../tools/object.js";
+
+/**
+ * @typedef {z.infer<typeof instancesConfigSchema>} LocalInstances
+ */
 
 const DEFAULT_FRONTEND_CONTAINER_PORT = 9001;
 const DEFAULT_MAILCATCH_CONTAINER_PORT = 1080;
+const CONFIG_INSTANCES_NAME = "instances";
+const CONTAINER_ID_PREFIX = `pd`;
 
 const sudoOptions = {
 	name: "Penpot Desktop",
@@ -17,6 +26,23 @@ const sudoOptions = {
 
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
+});
+const instancesConfigSchema = z
+	.record(
+		z.string(),
+		z.object({
+			dockerId: z.string(),
+			ports: z.object({
+				frontend: z.number().min(0).max(65535),
+				mailcatch: z.number().min(0).max(65535),
+			}),
+		}),
+	)
+	.default({});
+
+const instancesConfig = await getInstancesConfig();
+export const localInstances = observe(instancesConfig, (newInstances) => {
+	writeConfig(CONFIG_INSTANCES_NAME, newInstances);
 });
 
 ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
@@ -58,11 +84,13 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 	const { label } = validInstance;
 	const id = crypto.randomUUID();
+	const containerNameId = generateId();
 	const dockerComposeFilePath = path.join(
 		app.getAppPath(),
 		"bin/docker-compose.yaml",
 	);
-	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} docker compose -p ${label} -f ${dockerComposeFilePath} up -d`;
+
+	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} docker compose -p ${CONTAINER_ID_PREFIX}-${containerNameId} -f ${dockerComposeFilePath} up -d`;
 
 	return new Promise((resolve) => {
 		sudoExec(dockerComposeCommand, sudoOptions, (error) => {
@@ -75,6 +103,15 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 				});
 
 				resolve(id);
+
+				localInstances[id] = {
+					...localInstances[id],
+					dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
+					ports: {
+						frontend: frontendPort,
+						mailcatch: mailcatchPort,
+					},
+				};
 			}
 		});
 	});
@@ -92,6 +129,7 @@ ipcMain.on(INSTANCE_EVENTS.REMOVE, (_event, id) => {
 	settings.instances = settings.instances.filter(
 		({ id: registeredId }) => registeredId !== id,
 	);
+	delete localInstances[id];
 });
 
 ipcMain.on(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
@@ -128,4 +166,11 @@ function registerInstance(instance) {
 			`[WARN] [IPC.${INSTANCE_EVENTS.REGISTER}] Failed with: ${origin}`,
 		);
 	}
+}
+
+async function getInstancesConfig() {
+	/** @type {LocalInstances | Record<string, unknown>} */
+	const instancesConfig = (await readConfig(CONFIG_INSTANCES_NAME)) || {};
+
+	return instancesConfigSchema.parse(instancesConfig);
 }
