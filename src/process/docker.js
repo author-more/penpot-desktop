@@ -47,12 +47,7 @@ export async function composeUp(
 	return new Promise((resolve, reject) => {
 		sudoExec(dockerComposeCommand, sudoOptions, (error) => {
 			if (error) {
-				reject(
-					new AppError(
-						ERROR_CODES.FAILED_CONTAINER_SETUP,
-						"Failed to setup containers.",
-					),
-				);
+				reject(new AppError(ERROR_CODES.FAILED_CONTAINER_SETUP, error.message));
 			}
 
 			resolve(true);

@@ -16,6 +16,7 @@ import {
 	disableSettingsFocusTrap,
 	enableSettingsFocusTrap,
 } from "./settings.js";
+import { showAlert } from "./alert.js";
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
@@ -106,9 +107,24 @@ async function handleInstanceCreation(event) {
 		const instance = Object.fromEntries(data.entries());
 		await window.api.instance.create(instance);
 
+		showAlert(
+			"success",
+			{
+				heading: "Instance created",
+				message: "Local instance has been created successfully.",
+			},
+			{
+				duration: 3000,
+			},
+		);
 		updateInstanceList();
 	} catch (error) {
-		console.error(error);
+		if (error instanceof Error) {
+			showAlert("danger", {
+				heading: "Failed to create an instance",
+				message: error.message,
+			});
+		}
 	}
 
 	form.reset();
