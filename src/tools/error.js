@@ -1,5 +1,6 @@
 export const ERROR_CODES = Object.freeze({
 	NO_AVAILABLE_PORT: "NOPORT",
+	FAILED_CONTAINER_SETUP: "FAILEDCONTAINER",
 });
 
 /**

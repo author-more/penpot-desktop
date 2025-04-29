@@ -1,9 +1,9 @@
 import { app, ipcMain, shell } from "electron";
-import path, { join } from "node:path";
+import { join } from "node:path";
 import { settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
-import { isDockerAvailable } from "./docker.js";
-import { exec as sudoExec } from "@vscode/sudo-prompt";
+import { composeUp, isDockerAvailable } from "./docker.js";
+
 import { z, ZodError } from "zod";
 import { findAvailablePort } from "./server.js";
 import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
@@ -20,24 +20,18 @@ const DEFAULT_MAILCATCH_CONTAINER_PORT = 1080;
 const CONFIG_INSTANCES_NAME = "instances";
 const CONTAINER_ID_PREFIX = `pd`;
 
-const sudoOptions = {
-	name: "Penpot Desktop",
-};
-
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
 });
+export const localInstanceConfig = z.object({
+	dockerId: z.string(),
+	ports: z.object({
+		frontend: z.number().min(0).max(65535),
+		mailcatch: z.number().min(0).max(65535),
+	}),
+});
 const instancesConfigSchema = z
-	.record(
-		z.string(),
-		z.object({
-			dockerId: z.string(),
-			ports: z.object({
-				frontend: z.number().min(0).max(65535),
-				mailcatch: z.number().min(0).max(65535),
-			}),
-		}),
-	)
+	.record(z.string(), localInstanceConfig)
 	.default({});
 
 const instancesConfig = await getInstancesConfig();
@@ -51,16 +45,15 @@ ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 
 ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	let validInstance;
-	let frontendPort;
-	let mailcatchPort;
+	let ports = {};
 
 	try {
 		validInstance = instanceCreateFormSchema.parse(instance);
-		frontendPort = await findAvailablePort([
+		ports.frontend = await findAvailablePort([
 			DEFAULT_FRONTEND_CONTAINER_PORT,
 			DEFAULT_FRONTEND_CONTAINER_PORT + 9,
 		]);
-		mailcatchPort = await findAvailablePort([
+		ports.mailcatch = await findAvailablePort([
 			DEFAULT_MAILCATCH_CONTAINER_PORT,
 			DEFAULT_MAILCATCH_CONTAINER_PORT + 9,
 		]);
@@ -84,37 +77,32 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 	const { label } = validInstance;
 	const id = crypto.randomUUID();
-	const containerNameId = generateId();
-	const dockerComposeFilePath = path.join(
-		app.getAppPath(),
-		"bin/docker-compose.yaml",
-	);
+	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId()}`;
 
-	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} docker compose -p ${CONTAINER_ID_PREFIX}-${containerNameId} -f ${dockerComposeFilePath} up -d`;
+	try {
+		await composeUp(containerNameId, ports);
 
-	return new Promise((resolve) => {
-		sudoExec(dockerComposeCommand, sudoOptions, (error) => {
-			if (!error) {
-				registerInstance({
-					...DEFAULT_INSTANCE,
-					id,
-					label,
-					origin: `http://localhost:${frontendPort}`,
-				});
-
-				resolve(id);
-
-				localInstances[id] = {
-					...localInstances[id],
-					dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
-					ports: {
-						frontend: frontendPort,
-						mailcatch: mailcatchPort,
-					},
-				};
-			}
+		registerInstance({
+			...DEFAULT_INSTANCE,
+			id,
+			label,
+			origin: `http://localhost:${ports.frontend}`,
 		});
-	});
+
+		localInstances[id] = {
+			...localInstances[id],
+			dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
+			ports,
+		};
+
+		return id;
+	} catch (error) {
+		const message = isAppError(error)
+			? error.message
+			: "Something went wrong during the local instance setup.";
+
+		throw new Error(message);
+	}
 });
 
 ipcMain.on(INSTANCE_EVENTS.REGISTER, (_event, instance) =>
