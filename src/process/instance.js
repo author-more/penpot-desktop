@@ -77,7 +77,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 	const { label } = validInstance;
 	const id = crypto.randomUUID();
-	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId()}`;
+	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
 		await composeUp(containerNameId, ports);
