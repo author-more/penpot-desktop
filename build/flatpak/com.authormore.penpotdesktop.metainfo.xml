@@ -53,6 +53,15 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+				<release version="v0.13.1" date="2025-05-01">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.13.1</url>
+            <description>
+								<p>Fixes</p>
+								<ul>
+										<li>Fixed opaque instance color to accept a float value for alpha.</li>
+								</ul>
+            </description>
+        </release>
 				<release version="v0.13.0" date="2025-04-16">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.13.0</url>
             <description>
