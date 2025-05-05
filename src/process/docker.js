@@ -1,16 +1,19 @@
 import { promisify } from "node:util";
 import child_process from "node:child_process";
-import { exec as sudoExec } from "@vscode/sudo-prompt";
 import path from "node:path";
 import { app } from "electron";
 import { AppError, ERROR_CODES } from "../tools/error.js";
 import { getCommandPath } from "./path.js";
 import { constants as fsConstants, copyFile } from "node:fs/promises";
+import { sudoExec } from "./childProcess.js";
 
 const exec = promisify(child_process.exec);
 
 /**
  * @typedef {import("zod").z.infer<typeof import("./instance.js").localInstanceConfig>} LocalInstanceConfig
+ *
+ * @typedef {Object} CommandOptions
+ * @property {boolean =} isSudoEnabled
  */
 
 const sudoOptions = {
@@ -40,10 +43,12 @@ export async function isDockerAvailable() {
  *
  * @param {string} containerNamePrefix
  * @param {ContainerPorts} ports
+ * @param {CommandOptions} options
  */
 export async function composeUp(
 	containerNamePrefix,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
+	{ isSudoEnabled } = {},
 ) {
 	if (!dockerPath) {
 		throw new AppError(ERROR_CODES.MISSING_DOCKER, "Docker command not found.");
@@ -52,15 +57,18 @@ export async function composeUp(
 	const dockerComposeFilePath = await deployComposeFile();
 	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} ${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
 
-	return new Promise((resolve, reject) => {
-		sudoExec(dockerComposeCommand, sudoOptions, (error) => {
-			if (error) {
-				reject(new AppError(ERROR_CODES.FAILED_CONTAINER_SETUP, error.message));
-			}
+	try {
+		if (isSudoEnabled) {
+			await sudoExec(dockerComposeCommand, sudoOptions);
+		} else {
+			await exec(dockerComposeCommand);
+		}
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Failed to set up an instance.";
 
-			resolve(true);
-		});
-	});
+		throw new AppError(ERROR_CODES.DOCKER_FAILED_SETUP, message);
+	}
 }
 
 async function deployComposeFile() {

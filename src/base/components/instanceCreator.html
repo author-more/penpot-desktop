@@ -36,6 +36,13 @@
 
 	<form id="instance-creator-form">
 		<sl-input name="label" label="Label" required></sl-input>
+		<sl-details summary="Advanced options">
+			<sl-checkbox
+				name="enableElevatedAccess"
+				help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions."
+				>Enable elevated access</sl-checkbox
+			>
+		</sl-details>
 	</form>
 
 	<div slot="footer">

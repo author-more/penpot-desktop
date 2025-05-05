@@ -22,6 +22,10 @@ const CONTAINER_ID_PREFIX = `pd`;
 
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
+	enableElevatedAccess: z
+		.literal("on")
+		.optional()
+		.transform((value) => Boolean(value)),
 });
 export const localInstanceConfig = z.object({
 	dockerId: z.string(),
@@ -75,12 +79,14 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		throw new Error(message);
 	}
 
-	const { label } = validInstance;
+	const { label, enableElevatedAccess } = validInstance;
 	const id = crypto.randomUUID();
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
-		await composeUp(containerNameId, ports);
+		await composeUp(containerNameId, ports, {
+			isSudoEnabled: enableElevatedAccess,
+		});
 
 		registerInstance({
 			...DEFAULT_INSTANCE,

@@ -81,6 +81,7 @@ async function openInstanceCreator(creator) {
 
 	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
 	await customElements.whenDefined("sl-input");
+	await customElements.whenDefined("sl-checkbox");
 	form?.addEventListener("submit", handleInstanceCreation);
 
 	creator.show();

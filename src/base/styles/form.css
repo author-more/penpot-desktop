@@ -1,6 +1,17 @@
+form {
+	display: grid;
+	row-gap: var(--sl-spacing-medium);
+}
+
 form.inline {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(auto, 1fr));
 	gap: 0.5rem;
 	align-items: end;
+}
+
+sl-checkbox {
+	&::part(form-control-help-text) {
+		margin-top: var(--sl-spacing-small);
+	}
 }
