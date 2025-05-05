@@ -28,7 +28,7 @@
 # WARNING: if you're exposing Penpot to the internet, you should remove the flags
 # 'disable-secure-session-cookies' and 'disable-email-verification'
 x-flags: &penpot-flags
-  PENPOT_FLAGS: disable-email-verification enable-smtp enable-prepl-server disable-secure-session-cookies
+  PENPOT_FLAGS: disable-email-verification enable-smtp enable-prepl-server disable-secure-session-cookies ${PENPOT_DESKTOP_FLAGS}
 
 x-uri: &penpot-public-uri
   PENPOT_PUBLIC_URI: http://localhost:${PENPOT_DESKTOP_FRONTEND_PORT}
@@ -176,8 +176,8 @@ services:
       ## based on real scenarios. If you want to help us, please leave it enabled. You can
       ## audit what data we send with the code available on github.
 
-      PENPOT_TELEMETRY_ENABLED: true
-      PENPOT_TELEMETRY_REFERER: compose
+      PENPOT_TELEMETRY_ENABLED: ${PENPOT_DESKTOP_BACKEND_TELEMETRY}
+      PENPOT_TELEMETRY_REFERER: penpot-desktop
 
       ## Example SMTP/Email configuration. By default, emails are sent to the mailcatch
       ## service, but for production usage it is recommended to setup a real SMTP

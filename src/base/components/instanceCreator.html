@@ -53,6 +53,12 @@
 		</div>
 		<form id="instance-creator-form">
 			<sl-input name="label" label="Label" required></sl-input>
+			<sl-checkbox
+				name="enableInstanceTelemetry"
+				checked
+				help-text="When enabled, a periodical process will send anonymous data about this instance."
+				>Enable instance telemetry</sl-checkbox
+			>
 			<sl-details summary="Advanced options">
 				<sl-checkbox
 					name="enableElevatedAccess"

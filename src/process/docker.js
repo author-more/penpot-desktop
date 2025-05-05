@@ -14,6 +14,7 @@ const exec = promisify(child_process.exec);
  *
  * @typedef {Object} CommandOptions
  * @property {boolean =} isSudoEnabled
+ * @property {boolean =} isInstanceTelemetryEnabled
  */
 
 const sudoOptions = {
@@ -48,14 +49,16 @@ export async function isDockerAvailable() {
 export async function composeUp(
 	containerNamePrefix,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
-	{ isSudoEnabled } = {},
+	{ isSudoEnabled, isInstanceTelemetryEnabled } = {},
 ) {
 	if (!dockerPath) {
 		throw new AppError(ERROR_CODES.MISSING_DOCKER, "Docker command not found.");
 	}
 
 	const dockerComposeFilePath = await deployComposeFile();
-	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} ${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
+	const instanceTelemetryFlag = `${isInstanceTelemetryEnabled ? "enable" : "disable"}-telemetry`;
+
+	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} PENPOT_DESKTOP_FLAGS=${instanceTelemetryFlag} PENPOT_DESKTOP_BACKEND_TELEMETRY=${isInstanceTelemetryEnabled} ${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
 
 	try {
 		if (isSudoEnabled) {

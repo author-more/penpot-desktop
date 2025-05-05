@@ -20,12 +20,15 @@ const DEFAULT_MAILCATCH_CONTAINER_PORT = 1080;
 const CONFIG_INSTANCES_NAME = "instances";
 const CONTAINER_ID_PREFIX = `pd`;
 
+const checkboxSchema = z
+	.literal("on")
+	.optional()
+	.transform((value) => Boolean(value));
+
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
-	enableElevatedAccess: z
-		.literal("on")
-		.optional()
-		.transform((value) => Boolean(value)),
+	enableElevatedAccess: checkboxSchema,
+	enableInstanceTelemetry: checkboxSchema,
 });
 export const localInstanceConfig = z.object({
 	dockerId: z.string(),
@@ -33,6 +36,7 @@ export const localInstanceConfig = z.object({
 		frontend: z.number().min(0).max(65535),
 		mailcatch: z.number().min(0).max(65535),
 	}),
+	isInstanceTelemetryEnabled: z.boolean(),
 });
 const instancesConfigSchema = z
 	.record(z.string(), localInstanceConfig)
@@ -79,13 +83,15 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		throw new Error(message);
 	}
 
-	const { label, enableElevatedAccess } = validInstance;
+	const { label, enableElevatedAccess, enableInstanceTelemetry } =
+		validInstance;
 	const id = crypto.randomUUID();
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
 		await composeUp(containerNameId, ports, {
 			isSudoEnabled: enableElevatedAccess,
+			isInstanceTelemetryEnabled: enableInstanceTelemetry,
 		});
 
 		registerInstance({
@@ -99,6 +105,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 			...localInstances[id],
 			dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
 			ports,
+			isInstanceTelemetryEnabled: enableInstanceTelemetry,
 		};
 
 		return id;
