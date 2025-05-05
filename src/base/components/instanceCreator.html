@@ -34,16 +34,34 @@
 		</ul>
 	</sl-alert>
 
-	<form id="instance-creator-form">
-		<sl-input name="label" label="Label" required></sl-input>
-		<sl-details summary="Advanced options">
-			<sl-checkbox
-				name="enableElevatedAccess"
-				help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions."
-				>Enable elevated access</sl-checkbox
-			>
-		</sl-details>
-	</form>
+	<div class="columns columns-2">
+		<div class="info-section">
+			<p>
+				This is an experimental feature. For production-critical work, please
+				use the existing self-hosting setup guide. Refer to the "Info" section
+				in the Settings panel for more details.
+			</p>
+			<p>
+				The creator will set up a local Penpot instance using the official
+				Docker method for self-hosting Penpot, and your computer as the host.
+			</p>
+			<p>
+				The process may take anywhere from a few seconds to a few minutes,
+				depending on the availability of Docker images, your internet connection
+				(for downloading images), and your computer's performance.
+			</p>
+		</div>
+		<form id="instance-creator-form">
+			<sl-input name="label" label="Label" required></sl-input>
+			<sl-details summary="Advanced options">
+				<sl-checkbox
+					name="enableElevatedAccess"
+					help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions."
+					>Enable elevated access</sl-checkbox
+				>
+			</sl-details>
+		</form>
+	</div>
 
 	<div slot="footer">
 		<sl-button

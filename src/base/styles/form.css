@@ -1,6 +1,8 @@
 form {
 	display: grid;
 	row-gap: var(--sl-spacing-medium);
+
+	align-content: flex-start;
 }
 
 form.inline {
