@@ -6,6 +6,7 @@ import { AppError, ERROR_CODES } from "../tools/error.js";
 import { getCommandPath } from "./path.js";
 import { constants as fsConstants, copyFile } from "node:fs/promises";
 import { sudoExec } from "./childProcess.js";
+import { isLinux } from "./platform.js";
 
 const exec = promisify(child_process.exec);
 
@@ -58,13 +59,39 @@ export async function composeUp(
 	const dockerComposeFilePath = await deployComposeFile();
 	const instanceTelemetryFlag = `${isInstanceTelemetryEnabled ? "enable" : "disable"}-telemetry`;
 
-	const dockerComposeCommand = `PENPOT_DESKTOP_FRONTEND_PORT=${frontendPort} PENPOT_DESKTOP_MAILCATCH_PORT=${mailcatchPort} PENPOT_DESKTOP_FLAGS=${instanceTelemetryFlag} PENPOT_DESKTOP_BACKEND_TELEMETRY=${isInstanceTelemetryEnabled} ${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
+	const envVariables = {
+		PENPOT_DESKTOP_FRONTEND_PORT: `${frontendPort}`,
+		PENPOT_DESKTOP_MAILCATCH_PORT: `${mailcatchPort}`,
+		PENPOT_DESKTOP_FLAGS: `${instanceTelemetryFlag}`,
+		PENPOT_DESKTOP_BACKEND_TELEMETRY: `${isInstanceTelemetryEnabled}`,
+	};
+	const envVariablesCommandString = Object.entries(envVariables).reduce(
+		(envVarString, [key, value]) => {
+			return `${envVarString} ${key}=${value}`;
+		},
+		"",
+	);
+	const dockerComposeCommand = `${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
 
 	try {
+		const optionEnv = {
+			env: { ...process.env, ...envVariables },
+		};
+
 		if (isSudoEnabled) {
-			await sudoExec(dockerComposeCommand, sudoOptions);
+			// Variables from the `env` option are excluded by `pkexec` and `kdesudo`. On Linux they will be set with the command.
+			const command = isLinux()
+				? `${envVariablesCommandString} ${dockerComposeCommand}`
+				: dockerComposeCommand;
+
+			await sudoExec(command, {
+				...sudoOptions,
+				...(!isLinux() && optionEnv),
+			});
 		} else {
-			await exec(dockerComposeCommand);
+			await exec(dockerComposeCommand, {
+				...optionEnv,
+			});
 		}
 	} catch (error) {
 		const message =
