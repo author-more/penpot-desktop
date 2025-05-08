@@ -1,19 +1,22 @@
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
+	SlAlert,
 	SlButton,
 	SlColorPicker,
+	SlDialog,
 	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
 import { EditableText } from "../components/editableText.js";
-import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../../shared/instance.js";
+import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import {
 	disableSettingsFocusTrap,
 	enableSettingsFocusTrap,
 } from "./settings.js";
+import { showAlert } from "./alert.js";
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
@@ -39,9 +42,23 @@ export async function initInstance() {
 }
 
 async function prepareInstanceControls() {
-	const { instanceButtonAdd } = await getInstanceSettingsElements();
+	const {
+		instanceButtonAdd,
+		instanceButtonOpenCreator,
+		instanceButtonCloseCreator,
+		instanceCreator,
+	} = await getInstanceSettingsElements();
 
 	instanceButtonAdd?.addEventListener("click", addInstance);
+
+	if (instanceCreator) {
+		instanceButtonOpenCreator?.addEventListener("click", () =>
+			openInstanceCreator(instanceCreator),
+		);
+		instanceButtonCloseCreator?.addEventListener("click", () =>
+			instanceCreator.hide(),
+		);
+	}
 }
 
 function addInstance() {
@@ -49,6 +66,70 @@ function addInstance() {
 		id: crypto.randomUUID(),
 	});
 	updateInstanceList();
+}
+
+/**
+ * @param {SlDialog} creator
+ */
+async function openInstanceCreator(creator) {
+	const { warningAlert, form } = getInstanceCreatorElements();
+	const { isDockerAvailable } = await window.api.instance.getSetupInfo();
+
+	if (warningAlert && !isDockerAvailable) {
+		warningAlert.show();
+	}
+
+	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
+	await customElements.whenDefined("sl-input");
+	await customElements.whenDefined("sl-checkbox");
+	form?.addEventListener("submit", handleInstanceCreation);
+
+	creator.show();
+}
+
+/**
+ * Handles instance creation from form submission.
+ *
+ * @param {SubmitEvent} event
+ */
+async function handleInstanceCreation(event) {
+	event.preventDefault();
+
+	const { form, buttonSubmit } = getInstanceCreatorElements();
+
+	if (!form) {
+		return;
+	}
+
+	buttonSubmit?.setAttribute("loading", "true");
+
+	try {
+		const data = new FormData(form);
+		const instance = Object.fromEntries(data.entries());
+		await window.api.instance.create(instance);
+
+		showAlert(
+			"success",
+			{
+				heading: "Instance created",
+				message: "Local instance has been created successfully.",
+			},
+			{
+				duration: 3000,
+			},
+		);
+		updateInstanceList();
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert("danger", {
+				heading: "Failed to create an instance",
+				message: error.message,
+			});
+		}
+	}
+
+	form.reset();
+	buttonSubmit?.removeAttribute("loading");
 }
 
 /**
@@ -132,7 +213,7 @@ function createInstancePanel(instance, template) {
 	if (buttonDeleteEl) {
 		buttonDeleteEl.disabled = isDefault;
 		buttonDeleteEl.addEventListener("click", () => {
-			window.api.send(INSTANCE_EVENTS.REMOVE, id);
+			window.api.instance.remove(id);
 			updateInstanceList();
 		});
 	}
@@ -152,7 +233,7 @@ function createInstancePanel(instance, template) {
 							accentColor: color,
 							partition: id,
 						});
-						window.api.send(INSTANCE_EVENTS.SET_DEFAULT, id);
+						window.api.instance.setDefault(id);
 						hideContextMenu();
 						updateInstanceList();
 						enableSettingsFocusTrap();
@@ -181,8 +262,41 @@ async function getInstanceSettingsElements() {
 		"#include-settings",
 		SlButton,
 	);
+	const instanceButtonOpenCreator = await getIncludedElement(
+		"#instance-open-creator",
+		"#include-settings",
+		SlButton,
+	);
+	const instanceButtonCloseCreator = await getIncludedElement(
+		"#instance-close-creator",
+		["#include-settings", "#include-instance-creator"],
+		SlButton,
+	);
+	const instanceCreator = await getIncludedElement(
+		"#instance-creator",
+		["#include-settings", "#include-instance-creator"],
+		SlDialog,
+	);
 
-	return { instanceList, instancePanelTemplate, instanceButtonAdd };
+	return {
+		instanceList,
+		instancePanelTemplate,
+		instanceButtonAdd,
+		instanceButtonOpenCreator,
+		instanceButtonCloseCreator,
+		instanceCreator,
+	};
+}
+
+function getInstanceCreatorElements() {
+	const warningAlert = typedQuerySelector(
+		"#instance-creator #warning-alert",
+		SlAlert,
+	);
+	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
+	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
+
+	return { warningAlert, form, buttonSubmit };
 }
 
 /**
@@ -191,7 +305,7 @@ async function getInstanceSettingsElements() {
 function registerInstance(instance) {
 	const { id, origin, color, isDefault } = instance;
 
-	window.api.send(INSTANCE_EVENTS.REGISTER, {
+	window.api.instance.register({
 		...DEFAULT_INSTANCE,
 		...instance,
 	});

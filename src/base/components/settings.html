@@ -28,15 +28,26 @@
 		<h3>Instances</h3>
 		<div class="panel-list">
 			<div id="instance-list" class="list"></div>
-			<sl-button id="instance-add" variant="primary">
-				<sl-icon
-					slot="prefix"
-					library="lucide"
-					name="circle-plus"
-					label="Add instance"
-				></sl-icon>
-				Add instance
-			</sl-button>
+			<sl-button-group label="Add instance">
+				<sl-button id="instance-add" variant="primary">
+					<sl-icon
+						slot="prefix"
+						library="lucide"
+						name="circle-plus"
+						label="Add instance"
+					></sl-icon>
+					Add instance
+				</sl-button>
+				<sl-button id="instance-open-creator" variant="primary">
+					<sl-icon
+						slot="prefix"
+						library="lucide"
+						name="wand-sparkles"
+						label="Create local instance"
+					></sl-icon>
+					<sl-visually-hidden>Create local instance</sl-visually-hidden>
+				</sl-button>
+			</sl-button-group>
 		</div>
 	</div>
 
@@ -48,6 +59,10 @@
 			<li><a id="open-credits" href="#">Credits</a></li>
 		</ul>
 	</div>
+	<sl-include
+		id="include-instance-creator"
+		src="components/instanceCreator.html"
+	></sl-include>
 </sl-drawer>
 
 <template id="template-instance-panel">

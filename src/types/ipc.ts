@@ -3,6 +3,15 @@ import { Settings } from "../process/settings.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
+	instance: {
+		getSetupInfo: () => Promise<{
+			isDockerAvailable: boolean;
+		}>;
+		create: (instance: Record<string, unknown>) => Promise<string>;
+		register: (instance: Partial<Settings["instances"][number]>) => void;
+		remove: (id: string) => void;
+		setDefault: (id: string) => void;
+	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 	setSetting: <S extends keyof Settings>(

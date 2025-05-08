@@ -1,3 +1,5 @@
+import { SlInclude } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
+
 /**
  * @template T
  * @typedef {new (...args: any[]) => T} Class<T>
@@ -8,40 +10,56 @@
  *
  * @overload
  * @param {string} selector
- * @param {string} includeSelector
+ * @param {string | string[]} includeSelector
  * @returns {Promise<Element | null>}
  */
 /**
  * @template E
  * @overload
  * @param {string} selector
- * @param {string} includeSelector
+ * @param {string | string[]} includeSelector
  * @param {Class<E> =} type
  * @returns {Promise<ReturnType<typeof typedQuerySelector<E>> | null>}
  *
  */
 /**
  * @param {string} selector - The CSS selector of the element to retrieve.
- * @param {string} includeSelector - The CSS selector of the sl-include element.
+ * @param {string | string[]} includeSelector - The CSS selector of the sl-include element or an array in case of nested includes.
  * @param {Class<E> =} type - The expected type of the element.
  */
-export function getIncludedElement(selector, includeSelector, type) {
+export async function getIncludedElement(selector, includeSelector, type) {
+	/** @type {SlInclude | null} */
+	let includeElement;
+
+	const isNestedInclude = Array.isArray(includeSelector);
+	if (isNestedInclude) {
+		const includeSelectorsReversed = includeSelector.toReversed();
+		const hasMultipleIncludes = includeSelectorsReversed.length > 1;
+		const topInclude = includeSelectorsReversed[0];
+		const followingIncludes = includeSelectorsReversed.slice(1);
+
+		includeElement = hasMultipleIncludes
+			? await getIncludedElement(topInclude, followingIncludes, SlInclude)
+			: document.querySelector(topInclude);
+	} else {
+		includeElement = document.querySelector(includeSelector);
+	}
+
+	if (!includeElement) {
+		return null;
+	}
+
+	const getElement = () =>
+		type
+			? typedQuerySelector(selector, type, includeElement)
+			: includeElement.querySelector(selector);
+
+	const element = getElement();
+	if (element) {
+		return element;
+	}
+
 	return new Promise((resolve) => {
-		const includeElement = document.querySelector(includeSelector);
-		if (!includeElement) {
-			return resolve(null);
-		}
-
-		const getElement = () =>
-			type
-				? typedQuerySelector(selector, type, includeElement)
-				: includeElement.querySelector(selector);
-		const element = getElement();
-
-		if (element) {
-			return resolve(element);
-		}
-
 		includeElement.addEventListener("sl-load", () => {
 			const element = getElement();
 

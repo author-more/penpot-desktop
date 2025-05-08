@@ -1,0 +1,7 @@
+.info-section {
+	display: grid;
+	row-gap: var(--sl-spacing-small);
+	align-content: flex-start;
+
+	font-size: var(--sl-font-size-small);
+}

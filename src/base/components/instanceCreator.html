@@ -1,0 +1,82 @@
+<sl-dialog id="instance-creator" label="Instance creator">
+	<sl-alert id="warning-alert" variant="warning">
+		<sl-icon slot="icon" library="lucide" name="circle-alert"></sl-icon>
+		<strong>Docker is required for local instance</strong><br />
+		To run a self-hosted, local instance of the app, Docker is required. Please
+		install Docker by following the steps outlined in the official
+		documentation. You can choose between installing Docker Desktop for a
+		user-friendly experience or Docker Engine for a more customizable setup.
+		<ul>
+			<li>
+				<a
+					href="https://docs.docker.com/desktop/"
+					target="_blank"
+					rel="noopener noreferrer"
+					>Docker Desktop</a
+				>
+				(Mac, Linux, Windows)
+			</li>
+			<li>
+				<a
+					href="https://docs.docker.com/engine/install/"
+					target="_blank"
+					rel="noopener noreferrer"
+					>Docker Engine</a
+				>+
+				<a
+					href="https://docs.docker.com/compose/"
+					target="_blank"
+					rel="noopener noreferrer"
+					>Docker Compose</a
+				>
+				(Linux)
+			</li>
+		</ul>
+	</sl-alert>
+
+	<div class="columns columns-2">
+		<div class="info-section">
+			<p>
+				This is an experimental feature. For production-critical work, please
+				use the existing self-hosting setup guide. Refer to the "Info" section
+				in the Settings panel for more details.
+			</p>
+			<p>
+				The creator will set up a local Penpot instance using the official
+				Docker method for self-hosting Penpot, and your computer as the host.
+			</p>
+			<p>
+				The process may take anywhere from a few seconds to a few minutes,
+				depending on the availability of Docker images, your internet connection
+				(for downloading images), and your computer's performance.
+			</p>
+		</div>
+		<form id="instance-creator-form">
+			<sl-input name="label" label="Label" required></sl-input>
+			<sl-checkbox
+				name="enableInstanceTelemetry"
+				checked
+				help-text="When enabled, a periodical process will send anonymous data about this instance."
+				>Enable instance telemetry</sl-checkbox
+			>
+			<sl-details summary="Advanced options">
+				<sl-checkbox
+					name="enableElevatedAccess"
+					help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions."
+					>Enable elevated access</sl-checkbox
+				>
+			</sl-details>
+		</form>
+	</div>
+
+	<div slot="footer">
+		<sl-button
+			id="instance-submit-creator"
+			type="submit"
+			variant="primary"
+			form="instance-creator-form"
+			>Create</sl-button
+		>
+		<sl-button id="instance-close-creator" variant="primary">Close</sl-button>
+	</div>
+</sl-dialog>
