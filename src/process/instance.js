@@ -10,6 +10,7 @@ import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
 import { generateId } from "../tools/id.js";
 import { readConfig, writeConfig } from "./config.js";
 import { observe } from "../tools/object.js";
+import { getContainerSolution } from "./platform.js";
 
 /**
  * @typedef {z.infer<typeof instancesConfigSchema>} LocalInstances
@@ -49,6 +50,7 @@ export const localInstances = observe(instancesConfig, (newInstances) => {
 
 ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	isDockerAvailable: await isDockerAvailable(),
+	containerSolution: getContainerSolution(),
 }));
 
 ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {

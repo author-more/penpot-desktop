@@ -1,38 +1,40 @@
 <sl-dialog id="instance-creator" label="Instance creator">
-	<sl-alert id="warning-alert" variant="warning">
-		<sl-icon slot="icon" library="lucide" name="circle-alert"></sl-icon>
-		<strong>Docker is required for local instance</strong><br />
-		To run a self-hosted, local instance of the app, Docker is required. Please
-		install Docker by following the steps outlined in the official
-		documentation. You can choose between installing Docker Desktop for a
-		user-friendly experience or Docker Engine for a more customizable setup.
-		<ul>
-			<li>
-				<a
-					href="https://docs.docker.com/desktop/"
-					target="_blank"
-					rel="noopener noreferrer"
-					>Docker Desktop</a
-				>
-				(Mac, Linux, Windows)
-			</li>
-			<li>
-				<a
-					href="https://docs.docker.com/engine/install/"
-					target="_blank"
-					rel="noopener noreferrer"
-					>Docker Engine</a
-				>+
-				<a
-					href="https://docs.docker.com/compose/"
-					target="_blank"
-					rel="noopener noreferrer"
-					>Docker Compose</a
-				>
-				(Linux)
-			</li>
-		</ul>
-	</sl-alert>
+	<alerts-holder>
+		<sl-alert id="warning-alert" variant="warning">
+			<sl-icon slot="icon" library="lucide" name="circle-alert"></sl-icon>
+			<strong>Docker is required for local instance</strong><br />
+			To run a self-hosted, local instance of the app, Docker is required.
+			Please install Docker by following the steps outlined in the official
+			documentation. You can choose between installing Docker Desktop for a
+			user-friendly experience or Docker Engine for a more customizable setup.
+			<ul>
+				<li>
+					<a
+						href="https://docs.docker.com/desktop/"
+						target="_blank"
+						rel="noopener noreferrer"
+						>Docker Desktop</a
+					>
+					(Mac, Linux, Windows)
+				</li>
+				<li>
+					<a
+						href="https://docs.docker.com/engine/install/"
+						target="_blank"
+						rel="noopener noreferrer"
+						>Docker Engine</a
+					>+
+					<a
+						href="https://docs.docker.com/compose/"
+						target="_blank"
+						rel="noopener noreferrer"
+						>Docker Compose</a
+					>
+					(Linux)
+				</li>
+			</ul>
+		</sl-alert>
+	</alerts-holder>
 
 	<div class="columns columns-2">
 		<div class="info-section">

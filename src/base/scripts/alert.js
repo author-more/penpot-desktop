@@ -5,6 +5,8 @@ import {
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 
 /**
+ * @typedef {'primary' | 'success' | 'neutral' | 'warning' | 'danger'} Variant
+ *
  * @typedef {Object} Content
  * @property {string} heading
  * @property {string} message
@@ -12,20 +14,39 @@ import { getIncludedElement, typedQuerySelector } from "./dom.js";
  * @typedef {Object} Options
  * @property {number} duration
  * @property {boolean} closable
- *
- * @param {'primary' | 'success' | 'neutral' | 'warning' | 'danger'} variant
- * @param {Content} param1
- * @param {Partial<Options>} param2
+ * @property {boolean} open
  */
-export async function showAlert(
+
+/**
+ * @param {Variant} variant
+ * @param {Content} content
+ * @param {Partial<Options>} options
+ */
+export async function showAlert(variant, content, options = {}) {
+	const alert = await createAlert(variant, content, options);
+
+	if (!alert) {
+		return;
+	}
+
+	document.body.append(alert);
+	alert.toast();
+}
+
+/**
+ * @param {Variant} variant
+ * @param {Content} content
+ * @param {Partial<Options>} options
+ */
+export async function createAlert(
 	variant = "primary",
 	{ heading, message },
-	{ duration = Infinity, closable = false } = {},
+	{ duration = Infinity, open = false, closable = false } = {},
 ) {
 	const { alertTemplate } = await getAlertElements();
 
 	if (!alertTemplate) {
-		return;
+		return null;
 	}
 
 	const alert = document.importNode(alertTemplate.content, true);
@@ -54,13 +75,13 @@ export async function showAlert(
 
 	const alertEl = typedQuerySelector("sl-alert", SlAlert, alert);
 	if (alertEl) {
-		alertEl.setAttribute("variant", variant);
-		alertEl.setAttribute("duration", duration.toString());
-		alertEl.setAttribute("closable", closable.toString());
-
-		document.body.append(alert);
-		alertEl.toast();
+		alertEl.variant = variant;
+		alertEl.duration = duration;
+		alertEl.closable = closable;
+		alertEl.open = open;
 	}
+
+	return alertEl;
 }
 
 async function getAlertElements() {

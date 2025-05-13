@@ -16,7 +16,8 @@ import {
 	disableSettingsFocusTrap,
 	enableSettingsFocusTrap,
 } from "./settings.js";
-import { showAlert } from "./alert.js";
+import { createAlert, showAlert } from "./alert.js";
+import { CONTAINER_SOLUTIONS } from "../../shared/platform.js";
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
@@ -72,8 +73,30 @@ function addInstance() {
  * @param {SlDialog} creator
  */
 async function openInstanceCreator(creator) {
-	const { warningAlert, form } = getInstanceCreatorElements();
-	const { isDockerAvailable } = await window.api.instance.getSetupInfo();
+	const { alertsHolder, warningAlert, form } = getInstanceCreatorElements();
+	const { isDockerAvailable, containerSolution } =
+		await window.api.instance.getSetupInfo();
+
+	alertsHolder?.replaceChildren();
+
+	const isFlatpak = containerSolution === CONTAINER_SOLUTIONS.FLATPAK;
+	if (isFlatpak) {
+		const sandboxAlert = await createAlert(
+			"primary",
+			{
+				heading: "Isolated environment",
+				message:
+					"Penpot Desktop is running in a Flatpak container which is isolated from other applications and has limited access to the operating system. For that reason, it is unable to create a local instance in Docker.",
+			},
+			{
+				closable: false,
+				open: true,
+			},
+		);
+		if (sandboxAlert) {
+			alertsHolder?.prepend(sandboxAlert);
+		}
+	}
 
 	if (warningAlert && !isDockerAvailable) {
 		warningAlert.show();
@@ -289,6 +312,10 @@ async function getInstanceSettingsElements() {
 }
 
 function getInstanceCreatorElements() {
+	const alertsHolder = typedQuerySelector(
+		"#instance-creator alerts-holder",
+		HTMLElement,
+	);
 	const warningAlert = typedQuerySelector(
 		"#instance-creator #warning-alert",
 		SlAlert,
@@ -296,7 +323,7 @@ function getInstanceCreatorElements() {
 	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
 	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
 
-	return { warningAlert, form, buttonSubmit };
+	return { alertsHolder, warningAlert, form, buttonSubmit };
 }
 
 /**

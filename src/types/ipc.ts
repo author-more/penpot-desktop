@@ -1,11 +1,13 @@
 import type { NativeTheme } from "electron";
 import { Settings } from "../process/settings.js";
+import { getContainerSolution } from "../process/platform.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
 	instance: {
 		getSetupInfo: () => Promise<{
 			isDockerAvailable: boolean;
+			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
 		create: (instance: Record<string, unknown>) => Promise<string>;
 		register: (instance: Partial<Settings["instances"][number]>) => void;
