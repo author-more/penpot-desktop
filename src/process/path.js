@@ -29,12 +29,15 @@ export async function getCommandPath(command) {
  * @returns
  */
 async function getCommandByShell(command) {
-	const cmd = isWindows() ? `where ${command}` : `command -v ${command}`;
+	const cmd = isWindows()
+		? `where "$path:${command}"`
+		: `command -v ${command}`;
 
 	try {
 		const { stdout } = await exec(cmd);
 		if (stdout) {
-			return stdout.trim();
+			const path = isWindows() ? stdout.split("\r")[0] : stdout;
+			return path.trim();
 		}
 
 		return null;
