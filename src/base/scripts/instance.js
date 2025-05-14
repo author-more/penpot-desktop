@@ -1,7 +1,6 @@
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
-	SlAlert,
 	SlButton,
 	SlColorPicker,
 	SlDialog,
@@ -16,7 +15,8 @@ import {
 	disableSettingsFocusTrap,
 	enableSettingsFocusTrap,
 } from "./settings.js";
-import { showAlert } from "./alert.js";
+import { createAlert, showAlert } from "./alert.js";
+import { CONTAINER_SOLUTIONS } from "../../shared/platform.js";
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
@@ -72,11 +72,50 @@ function addInstance() {
  * @param {SlDialog} creator
  */
 async function openInstanceCreator(creator) {
-	const { warningAlert, form } = getInstanceCreatorElements();
-	const { isDockerAvailable } = await window.api.instance.getSetupInfo();
+	const { alertsHolder, form } = getInstanceCreatorElements();
+	const { isDockerAvailable, containerSolution } =
+		await window.api.instance.getSetupInfo();
 
-	if (warningAlert && !isDockerAvailable) {
-		warningAlert.show();
+	alertsHolder?.replaceChildren();
+
+	const isFlatpak = containerSolution === CONTAINER_SOLUTIONS.FLATPAK;
+	if (isFlatpak) {
+		const alert = await createAlert(
+			"primary",
+			{
+				heading: "Isolated environment",
+				message:
+					"Penpot Desktop is running in a Flatpak container which is isolated from other applications and has limited access to the operating system. For that reason, it is unable to create a local instance in Docker.",
+			},
+			{
+				closable: false,
+				open: true,
+			},
+		);
+		if (alert) {
+			alertsHolder?.append(alert);
+		}
+	}
+
+	if (!isDockerAvailable) {
+		const alert = await createAlert(
+			"warning",
+			{
+				heading: "Docker is required for local instance",
+				message:
+					"To run a self-hosted, local instance of the app, Docker is required. Please install Docker by following the steps outlined in the official documentation. You can choose between installing Docker Desktop for a user-friendly experience or Docker Engine for a more customizable setup.",
+				links: [
+					["Get Docker", "https://docs.docker.com/get-started/get-docker/"],
+				],
+			},
+			{
+				closable: false,
+				open: true,
+			},
+		);
+		if (alert) {
+			alertsHolder?.append(alert);
+		}
 	}
 
 	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
@@ -289,14 +328,14 @@ async function getInstanceSettingsElements() {
 }
 
 function getInstanceCreatorElements() {
-	const warningAlert = typedQuerySelector(
-		"#instance-creator #warning-alert",
-		SlAlert,
+	const alertsHolder = typedQuerySelector(
+		"#instance-creator alerts-holder",
+		HTMLElement,
 	);
 	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
 	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
 
-	return { warningAlert, form, buttonSubmit };
+	return { alertsHolder, form, buttonSubmit };
 }
 
 /**

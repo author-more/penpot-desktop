@@ -20,9 +20,7 @@ const ALLOWED_EXTERNAL_URLS = Object.freeze([
 	"https://www.youtube.com/c/Penpot", // Tutorials
 	"https://github.com/penpot/penpot",
 	// Local instance instructions
-	"https://docs.docker.com/desktop/",
-	"https://docs.docker.com/engine/install/",
-	"https://docs.docker.com/compose/",
+	"https://docs.docker.com/get-started/get-docker/",
 ]);
 
 app.on("web-contents-created", (event, contents) => {
