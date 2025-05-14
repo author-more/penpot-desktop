@@ -1,7 +1,6 @@
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
-	SlAlert,
 	SlButton,
 	SlColorPicker,
 	SlDialog,
@@ -73,7 +72,7 @@ function addInstance() {
  * @param {SlDialog} creator
  */
 async function openInstanceCreator(creator) {
-	const { alertsHolder, warningAlert, form } = getInstanceCreatorElements();
+	const { alertsHolder, form } = getInstanceCreatorElements();
 	const { isDockerAvailable, containerSolution } =
 		await window.api.instance.getSetupInfo();
 
@@ -81,7 +80,7 @@ async function openInstanceCreator(creator) {
 
 	const isFlatpak = containerSolution === CONTAINER_SOLUTIONS.FLATPAK;
 	if (isFlatpak) {
-		const sandboxAlert = await createAlert(
+		const alert = await createAlert(
 			"primary",
 			{
 				heading: "Isolated environment",
@@ -93,13 +92,30 @@ async function openInstanceCreator(creator) {
 				open: true,
 			},
 		);
-		if (sandboxAlert) {
-			alertsHolder?.prepend(sandboxAlert);
+		if (alert) {
+			alertsHolder?.append(alert);
 		}
 	}
 
-	if (warningAlert && !isDockerAvailable) {
-		warningAlert.show();
+	if (!isDockerAvailable) {
+		const alert = await createAlert(
+			"warning",
+			{
+				heading: "Docker is required for local instance",
+				message:
+					"To run a self-hosted, local instance of the app, Docker is required. Please install Docker by following the steps outlined in the official documentation. You can choose between installing Docker Desktop for a user-friendly experience or Docker Engine for a more customizable setup.",
+				links: [
+					["Get Docker", "https://docs.docker.com/get-started/get-docker/"],
+				],
+			},
+			{
+				closable: false,
+				open: true,
+			},
+		);
+		if (alert) {
+			alertsHolder?.append(alert);
+		}
 	}
 
 	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
@@ -316,14 +332,10 @@ function getInstanceCreatorElements() {
 		"#instance-creator alerts-holder",
 		HTMLElement,
 	);
-	const warningAlert = typedQuerySelector(
-		"#instance-creator #warning-alert",
-		SlAlert,
-	);
 	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
 	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
 
-	return { alertsHolder, warningAlert, form, buttonSubmit };
+	return { alertsHolder, form, buttonSubmit };
 }
 
 /**

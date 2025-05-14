@@ -6,10 +6,12 @@ import { getIncludedElement, typedQuerySelector } from "./dom.js";
 
 /**
  * @typedef {'primary' | 'success' | 'neutral' | 'warning' | 'danger'} Variant
+ * @typedef {[label: string, url: string]} Link
  *
  * @typedef {Object} Content
  * @property {string} heading
  * @property {string} message
+ * @property {Array<Link> =} links
  *
  * @typedef {Object} Options
  * @property {number} duration
@@ -40,7 +42,7 @@ export async function showAlert(variant, content, options = {}) {
  */
 export async function createAlert(
 	variant = "primary",
-	{ heading, message },
+	{ heading, message, links = [] },
 	{ duration = Infinity, open = false, closable = false } = {},
 ) {
 	const { alertTemplate } = await getAlertElements();
@@ -72,6 +74,18 @@ export async function createAlert(
 	if (messageEl) {
 		messageEl.innerText = message;
 	}
+
+	const alertLinksEl = alert.querySelector("alert-links");
+	const linkItems = links.map(([label, url]) => {
+		const anchorEl = document.createElement("a");
+		anchorEl.innerText = label;
+		anchorEl.href = url;
+		anchorEl.target = "_blank";
+		anchorEl.rel = "noopener noreferrer";
+
+		return anchorEl;
+	});
+	alertLinksEl?.replaceChildren(...linkItems);
 
 	const alertEl = typedQuerySelector("sl-alert", SlAlert, alert);
 	if (alertEl) {
