@@ -160,10 +160,16 @@ async function handleInstanceCreation(event) {
 		updateInstanceList();
 	} catch (error) {
 		if (error instanceof Error) {
-			showAlert("danger", {
-				heading: "Failed to create an instance",
-				message: error.message,
-			});
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to create an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
 		}
 	}
 
