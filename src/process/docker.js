@@ -29,8 +29,8 @@ export async function isDockerAvailable() {
 	}
 
 	try {
-		await exec(`${dockerPath} --version`);
-		await exec(`${dockerPath} compose version`);
+		await exec(`"${dockerPath}" --version`);
+		await exec(`"${dockerPath}" compose version`);
 
 		return true;
 	} catch (error) {
@@ -71,7 +71,7 @@ export async function composeUp(
 		},
 		"",
 	);
-	const dockerComposeCommand = `${dockerPath} compose -p ${containerNamePrefix} -f '${dockerComposeFilePath}' up -d`;
+	const dockerComposeCommand = `"${dockerPath}" compose -p ${containerNamePrefix} -f "${dockerComposeFilePath}" up -d`;
 
 	try {
 		const optionEnv = {
