@@ -53,6 +53,16 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+				<release version="v0.14.1" date="2025-05-15">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.14.1</url>
+            <description>
+								<p>Fixes</p>
+								<ul>
+										<li>Fixed instance creator to handle an isolated environment.</li>
+										<li>[Windows] Fixed instance creator commands to run correct paths.</li>
+								</ul>
+            </description>
+        </release>
 				<release version="v0.14.0" date="2025-05-09">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.14.0</url>
             <description>
