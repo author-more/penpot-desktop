@@ -37,7 +37,7 @@
 		"@shoelace-style/shoelace": "^2.20.1",
 		"@vscode/sudo-prompt": "^9.3.1",
 		"electron-tabs": "^1.0.1",
-		"electron-updater": "^6.3.9",
+		"electron-updater": "^6.6.2",
 		"electron-window-state": "^5.0.3",
 		"lucide-static": "^0.511.0",
 		"zod": "^3.24.4"
@@ -47,7 +47,7 @@
 		"@commitlint/config-conventional": "^19.8.1",
 		"@eslint/js": "^9.27.0",
 		"electron": "^36.2.1",
-		"electron-builder": "^25.1.8",
+		"electron-builder": "^26.0.12",
 		"eslint": "^9.27.0",
 		"globals": "^16.1.0",
 		"lint-staged": "^16.0.0",
