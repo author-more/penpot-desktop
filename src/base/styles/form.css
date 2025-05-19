@@ -17,3 +17,9 @@ sl-checkbox {
 		margin-top: var(--sl-spacing-small);
 	}
 }
+
+sl-select {
+	&::part(form-control-help-text) {
+		margin-top: var(--sl-spacing-x-small);
+	}
+}

@@ -4,7 +4,8 @@ import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
 import { deepFreeze } from "../tools/object.js";
-import { CONFIG_SETTINGS_TITLE_BAR_TYPES, settings } from "./settings.js";
+import { settings } from "./settings.js";
+import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {

@@ -5,13 +5,14 @@ import { z, ZodError } from "zod";
 import { DEFAULT_INSTANCE } from "../shared/instance.js";
 import { getMainWindow } from "./window.js";
 import { HSLA_REGEXP } from "../tools/color.js";
+import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
 
 const CONFIG_SETTINGS_NAME = "settings";
-const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze(["theme", "instances"]);
-export const CONFIG_SETTINGS_TITLE_BAR_TYPES = Object.freeze({
-	NATIVE: "native",
-	OVERLAY: "overlay",
-});
+const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
+	"theme",
+	"titleBarType",
+	"instances",
+]);
 
 const titleBarTypes = Object.values(CONFIG_SETTINGS_TITLE_BAR_TYPES);
 
