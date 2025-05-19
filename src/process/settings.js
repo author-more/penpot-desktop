@@ -8,9 +8,19 @@ import { HSLA_REGEXP } from "../tools/color.js";
 
 const CONFIG_SETTINGS_NAME = "settings";
 const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze(["theme", "instances"]);
+export const CONFIG_SETTINGS_TITLE_BAR_TYPES = Object.freeze({
+	NATIVE: "native",
+	OVERLAY: "overlay",
+});
+
+const titleBarTypes = Object.values(CONFIG_SETTINGS_TITLE_BAR_TYPES);
 
 const settingsSchema = z.object({
 	theme: z.enum(["light", "dark", "system", "tab"]).default("system"),
+	titleBarType: z
+		.enum([titleBarTypes[0], ...titleBarTypes.slice(1)])
+		.optional()
+		.default(CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY),
 	instances: z
 		.array(
 			z
