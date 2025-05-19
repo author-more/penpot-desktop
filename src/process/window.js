@@ -27,6 +27,8 @@ const FLAGS = Object.freeze({
 	FOCUS: "is-focused",
 });
 
+const titleBarType = settings.titleBarType;
+
 /** @type {import("electron").BrowserWindow} */
 let mainWindow;
 
@@ -53,7 +55,7 @@ export const MainWindow = {
 			vibrancy: "sidebar",
 			// Titlebar
 			trafficLightPosition: { x: 16, y: 12 }, // for macOS
-			...(settings.titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY && {
+			...(titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY && {
 				titleBarStyle: "hidden",
 				titleBarOverlay: TITLEBAR_OVERLAY.BASE,
 				frame: false,
@@ -109,7 +111,7 @@ export const MainWindow = {
 		ipcMain.on("set-theme", (_event, themeId) => {
 			nativeTheme.themeSource = themeId;
 
-			if (settings.titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
+			if (titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
 				mainWindow.setTitleBarOverlay?.({
 					...TITLEBAR_OVERLAY.BASE,
 					...(nativeTheme.shouldUseDarkColors
