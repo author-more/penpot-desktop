@@ -4,6 +4,8 @@ import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
 import { deepFreeze } from "../tools/object.js";
+import { settings } from "./settings.js";
+import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {
@@ -24,6 +26,8 @@ const FLAGS = Object.freeze({
 	FULL_SCREEN: "is-full-screen",
 	FOCUS: "is-focused",
 });
+
+const titleBarType = settings.titleBarType;
 
 /** @type {import("electron").BrowserWindow} */
 let mainWindow;
@@ -50,12 +54,14 @@ export const MainWindow = {
 			transparent: global.transparent,
 			vibrancy: "sidebar",
 			// Titlebar
-			titleBarStyle: "hidden",
 			trafficLightPosition: { x: 16, y: 12 }, // for macOS
-			titleBarOverlay: TITLEBAR_OVERLAY.BASE,
+			...(titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY && {
+				titleBarStyle: "hidden",
+				titleBarOverlay: TITLEBAR_OVERLAY.BASE,
+				frame: false,
+			}),
 			// Other Options
 			autoHideMenuBar: true,
-			frame: false,
 			icon: global.AppIcon,
 			webPreferences: {
 				preload: path.join(app.getAppPath(), "src/process/preload.mjs"),
@@ -105,12 +111,14 @@ export const MainWindow = {
 		ipcMain.on("set-theme", (_event, themeId) => {
 			nativeTheme.themeSource = themeId;
 
-			mainWindow.setTitleBarOverlay?.({
-				...TITLEBAR_OVERLAY.BASE,
-				...(nativeTheme.shouldUseDarkColors
-					? TITLEBAR_OVERLAY.DARK
-					: TITLEBAR_OVERLAY.LIGHT),
-			});
+			if (titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
+				mainWindow.setTitleBarOverlay?.({
+					...TITLEBAR_OVERLAY.BASE,
+					...(nativeTheme.shouldUseDarkColors
+						? TITLEBAR_OVERLAY.DARK
+						: TITLEBAR_OVERLAY.LIGHT),
+				});
+			}
 		});
 
 		mainWindow.on("enter-full-screen", () => {

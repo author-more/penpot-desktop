@@ -5,12 +5,23 @@ import { z, ZodError } from "zod";
 import { DEFAULT_INSTANCE } from "../shared/instance.js";
 import { getMainWindow } from "./window.js";
 import { HSLA_REGEXP } from "../tools/color.js";
+import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
 
 const CONFIG_SETTINGS_NAME = "settings";
-const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze(["theme", "instances"]);
+const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
+	"theme",
+	"titleBarType",
+	"instances",
+]);
+
+const titleBarTypes = Object.values(CONFIG_SETTINGS_TITLE_BAR_TYPES);
 
 const settingsSchema = z.object({
 	theme: z.enum(["light", "dark", "system", "tab"]).default("system"),
+	titleBarType: z
+		.enum([titleBarTypes[0], ...titleBarTypes.slice(1)])
+		.optional()
+		.default(CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY),
 	instances: z
 		.array(
 			z

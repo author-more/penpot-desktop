@@ -7,6 +7,7 @@ import { initInstance } from "./instance.js";
 import { initSettings } from "./settings.js";
 import { initTheme } from "./theme.js";
 import { initToggles } from "./toggles.js";
+import { initTitleBarType } from "./titleBar.js";
 
 window.addEventListener("DOMContentLoaded", () => {
 	initTabs();
@@ -14,6 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	initTheme();
 	initToggles();
 	initSettings();
+	initTitleBarType();
 });
 
 window.api.onSetFlag((flag, value) => {
