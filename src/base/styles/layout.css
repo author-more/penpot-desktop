@@ -5,12 +5,14 @@
 
 	--tab-nav-spacing-left: calc(var(--controls-width) + var(--top-bar-gap));
 
-	&[platform="linux"] {
-		--tab-nav-spacing-right: 170px;
-	}
+	&[title-bar-type="overlay"] {
+		&[platform="linux"] {
+			--tab-nav-spacing-right: 170px;
+		}
 
-	&[platform="win32"] {
-		--tab-nav-spacing-right: 210px;
+		&[platform="win32"] {
+			--tab-nav-spacing-right: 210px;
+		}
 	}
 
 	&[platform="darwin"] {
@@ -30,7 +32,8 @@
 		left: var(--darwin-traffic-lights-width);
 	}
 
-	&[is-full-screen="true"] {
+	&[is-full-screen="true"],
+	&[title-bar-type="native"] {
 		.controls {
 			left: 0;
 		}

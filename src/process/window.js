@@ -25,6 +25,7 @@ const FLAGS = Object.freeze({
 	PLATFORM: "platform",
 	FULL_SCREEN: "is-full-screen",
 	FOCUS: "is-focused",
+	TITLE_BAR_TYPE: "title-bar-type",
 });
 
 const titleBarType = settings.titleBarType;
@@ -73,6 +74,10 @@ export const MainWindow = {
 			mainWindow.webContents.send("set-flag", [
 				FLAGS.PLATFORM,
 				process.platform,
+			]);
+			mainWindow.webContents.send("set-flag", [
+				FLAGS.TITLE_BAR_TYPE,
+				titleBarType,
 			]);
 		});
 
