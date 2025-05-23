@@ -53,6 +53,16 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+				<release version="v0.15.1" date="2025-05-23">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.15.1</url>
+            <description>
+								<p>Fixes</p>
+								<ul>
+										<li>Fixed top bar spacing with native title bar enabled.</li>
+										<li>[Linux] Fixed the app to run with Gnome.</li>
+								</ul>
+            </description>
+        </release>
 				<release version="v0.15.0" date="2025-05-20">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.15.0</url>
             <description>
