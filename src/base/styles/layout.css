@@ -21,7 +21,8 @@
 				var(--top-bar-gap)
 		);
 
-		&[is-full-screen="true"] {
+		&[is-full-screen="true"],
+		&[title-bar-type="native"] {
 			--tab-nav-spacing-left: calc(var(--controls-width) + var(--top-bar-gap));
 		}
 	}
