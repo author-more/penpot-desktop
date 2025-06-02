@@ -85,9 +85,10 @@ window.onload = function () {
 };
 
 // Theme
-window.addEventListener("DOMContentLoaded", () =>
-	onClassChange(document.body, () => dispatchThemeUpdate()),
-);
+window.addEventListener("DOMContentLoaded", () => {
+	onClassChange(document.body, () => dispatchThemeUpdate());
+	prepareUI();
+});
 
 ipcRenderer.on("theme-request-update", () => dispatchThemeUpdate());
 
@@ -118,4 +119,63 @@ function onClassChange(node, callback) {
 function dispatchThemeUpdate() {
 	const isLightTheme = document.body.classList.contains("light");
 	ipcRenderer.sendToHost("theme-update", isLightTheme ? "light" : "dark");
+}
+
+async function prepareUI() {
+	const dashboardHeaderElement = await getElement(
+		"header.main_ui_dashboard_projects__dashboard-header",
+		{
+			maxRetries: 5,
+		},
+	);
+
+	if (dashboardHeaderElement) {
+		const firstHeaderButton = dashboardHeaderElement.querySelector("button");
+
+		// Push header buttons to the right
+		dashboardHeaderElement.style.justifyContent = "flex-start";
+		dashboardHeaderElement.style.gap = "0.5rem";
+		firstHeaderButton.style.marginLeft = "auto";
+
+		const buttonElement = document.createElement("button");
+		buttonElement.innerText = "Download ALL projects";
+		buttonElement.classList.add(
+			"main_ui_dashboard_projects__btn-secondary",
+			"main_ui_dashboard_projects__btn-small",
+		);
+		dashboardHeaderElement.append(buttonElement);
+	}
+}
+
+/**
+ *
+ * @typedef {Object} Options
+ * @property {number} maxRetries
+ *
+ * @param {string} selector
+ * @param {Options} options
+ *
+ * @returns {HTMLElement | null}
+ */
+function getElement(selector, { maxRetries = 1 } = {}) {
+	let retriesCount = 0;
+
+	return new Promise((resolve) => {
+		const queryElement = () => {
+			const hasRetries = retriesCount <= maxRetries;
+
+			setTimeout(() => {
+				const element = document.querySelector(selector);
+
+				if (!element && hasRetries) {
+					retriesCount++;
+					return queryElement();
+				}
+
+				return resolve(element);
+			}, 250);
+		};
+
+		queryElement();
+	});
 }
