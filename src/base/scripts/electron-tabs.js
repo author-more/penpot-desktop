@@ -1,4 +1,5 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
+import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
@@ -174,6 +175,13 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 			const [theme] = event.args;
 
 			handleInTabThemeUpdate(theme);
+		}
+
+		const isFileSave = event.channel === FILE_EVENTS.SAVE;
+		if (isFileSave) {
+			const [files] = event.args;
+
+			window.api.file.save(files);
 		}
 	});
 	webview.addEventListener("page-title-updated", () => {

@@ -156,8 +156,78 @@ async function prepareUI() {
 			"main_ui_dashboard_projects__btn-secondary",
 			"main_ui_dashboard_projects__btn-small",
 		);
+		buttonElement.addEventListener("click", () => exportProjects());
+
 		dashboardHeaderElement.append(buttonElement);
 	}
+}
+
+async function exportProjects() {
+	const allProjectsRes = await fetch("/api/rpc/command/get-all-projects", {
+		headers: {
+			Accept: "application/json",
+		},
+	});
+	const projects = await allProjectsRes.json();
+	const hasProjects = !!projects?.length;
+
+	if (!hasProjects) {
+		return;
+	}
+
+	const projectsWithFiles = await Promise.all(
+		projects.map(async ({ id, name }) => {
+			const projectFilesRes = await fetch(
+				"/api/rpc/command/get-project-files",
+				{
+					method: "POST",
+					body: JSON.stringify({ projectId: id }),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+				},
+			);
+
+			return {
+				name,
+				files: await projectFilesRes.json(),
+			};
+		}),
+	);
+	const hasFiles = !!projectsWithFiles?.some(({ files }) => !!files?.length);
+
+	if (!hasFiles) {
+		return;
+	}
+
+	const files = await Promise.all(
+		projectsWithFiles.flatMap(({ name: projectName, files: projectFiles }) => {
+			return projectFiles.map(async ({ id, name }) => {
+				const fileRes = await fetch("/api/rpc/command/export-binfile", {
+					method: "POST",
+					body: JSON.stringify({
+						fileId: id,
+						includeLibraries: true,
+						embedAssets: false,
+					}),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/octet-stream",
+					},
+				});
+				const arrayBuffer = await fileRes.arrayBuffer();
+
+				return {
+					name,
+					projectName,
+					data: arrayBuffer,
+				};
+			});
+		}),
+	);
+
+	ipcRenderer.sendToHost("file:save", files);
 }
 
 /**
