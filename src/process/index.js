@@ -3,6 +3,7 @@ import electronUpdater from "electron-updater";
 import { MainWindow } from "./window.js";
 
 await import("./instance.js");
+await import("./file.js");
 await import("./navigation.js");
 
 app.enableSandbox();

@@ -29,6 +29,9 @@ contextBridge.exposeInMainWorld(
 			remove: (id) => ipcRenderer.send("instance:remove", id),
 			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
 		},
+		file: {
+			export: (file) => ipcRenderer.invoke("file:export", file),
+		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);
 		},
