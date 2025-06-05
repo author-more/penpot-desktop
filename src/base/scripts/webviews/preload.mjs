@@ -3,6 +3,30 @@
 
 const { ipcRenderer } = require("electron");
 
+/**
+ * @typedef {Object} PenpotProject
+ * @property {string} id - The unique identifier of the penpot project.
+ * @property {string} teamId - The unique identifier of the team associated with the penpot project.
+ * @property {string} createdAt - The date and time the penpot project was created.
+ * @property {string} modifiedAt - The date and time the penpot project was last modified.
+ * @property {boolean} isDefault - Whether the penpot project is the default penpot project for the team.
+ * @property {string} name - The name of the penpot project.
+ * @property {string} teamName - The name of the team associated with the penpot project.
+ * @property {boolean} isDefaultTeam - Whether the team associated with the penpot project is the default team.
+ *
+ * @typedef {Object} PenpotFile
+ * @property {string} teamId - The unique identifier of the team associated with the penpot file.
+ * @property {string} name - The name of the penpot file.
+ * @property {number} revn - The revision number of the penpot file.
+ * @property {string} modifiedAt - The date and time the penpot file was last modified.
+ * @property {number} vern - The version number of the penpot file.
+ * @property {string} id - The unique identifier of the penpot file.
+ * @property {string} thumbnailId - The unique identifier of the thumbnail for the penpot file.
+ * @property {boolean} isShared - Whether the penpot file is shared.
+ * @property {string} projectId - The unique identifier of the penpot project the penpot file is associated with.
+ * @property {string} createdAt - The date and time the penpot file was created.
+ */
+
 const BUTTON_DOWNLOAD_PROJECTS_ID = "download-projects";
 
 // Set the title of the tab name
@@ -152,6 +176,14 @@ async function prepareUI() {
 			"main_ui_dashboard_projects__btn-secondary",
 			"main_ui_dashboard_projects__btn-small",
 		);
+		buttonElement.addEventListener("click", async () => {
+			const { status } = await ipcRenderer.invoke("file:prepare-path");
+			const isPathPrepared = status === "success";
+
+			if (isPathPrepared) {
+				exportProjects();
+			}
+		});
 
 		// Push header buttons to the right
 		dashboardHeaderElement.style.justifyContent = "flex-start";
@@ -163,6 +195,103 @@ async function prepareUI() {
 		}
 
 		dashboardHeaderElement.append(buttonElement);
+	}
+}
+
+async function exportProjects() {
+	try {
+		const allProjectsRes = await fetch("/api/rpc/command/get-all-projects", {
+			headers: {
+				Accept: "application/json",
+			},
+		});
+
+		if (!allProjectsRes.ok) {
+			throw new Error("Failed to fetch the projects.");
+		}
+
+		/** @type {Array<PenpotProject>} */
+		const projects = await allProjectsRes.json();
+		const hasProjects = !!projects?.length;
+
+		if (!hasProjects) {
+			return;
+		}
+
+		const projectsWithFiles = await Promise.all(
+			projects.map(async ({ id, name }) => {
+				const projectFilesRes = await fetch(
+					"/api/rpc/command/get-project-files",
+					{
+						method: "POST",
+						body: JSON.stringify({ projectId: id }),
+						headers: {
+							"Content-Type": "application/json",
+							Accept: "application/json",
+						},
+					},
+				);
+
+				if (!projectFilesRes.ok) {
+					throw new Error("Failed to fetch the project files.");
+				}
+
+				return {
+					name,
+					files: /** @type {Array<PenpotFile>} */ (
+						await projectFilesRes.json()
+					),
+				};
+			}),
+		);
+		const hasFiles = !!projectsWithFiles?.some(({ files }) => !!files?.length);
+
+		if (!hasFiles) {
+			return;
+		}
+
+		const files = await Promise.all(
+			projectsWithFiles.flatMap(
+				({ name: projectName, files: projectFiles }) => {
+					return projectFiles.map(async ({ id, name }) => {
+						const fileRes = await fetch("/api/rpc/command/export-binfile", {
+							method: "POST",
+							body: JSON.stringify({
+								fileId: id,
+								includeLibraries: true,
+								embedAssets: false,
+							}),
+							headers: {
+								"Content-Type": "application/json",
+								Accept: "application/octet-stream",
+							},
+						});
+
+						if (!fileRes.ok) {
+							throw new Error("Failed to fetch the bin file.");
+						}
+
+						const arrayBuffer = await fileRes.arrayBuffer();
+
+						return {
+							name,
+							projectName,
+							data: arrayBuffer,
+						};
+					});
+				},
+			),
+		);
+
+		ipcRenderer.sendToHost("file:export", files);
+	} catch (error) {
+		ipcRenderer.sendToHost("error", {
+			heading: "Projects download failed",
+			message:
+				error instanceof Error
+					? error.message
+					: "Something went wrong while exporting the projects",
+		});
 	}
 }
 

@@ -14,6 +14,15 @@ export type Api = {
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
 	};
+	file: {
+		// Unexposed method used between the webview preload and the main process
+		// preparePath: (
+		// 	projectName: string,
+		// ) => Promise<{ status: "success" | "fail" }>;
+		export: (
+			files: { name: string; projectName: string; data: ArrayBuffer }[],
+		) => Promise<{ status: "success" | "fail" }>;
+	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 	setSetting: <S extends keyof Settings>(
