@@ -14,6 +14,9 @@ export type Api = {
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
 	};
+	file: {
+		save: (file: { name: string; data: ArrayBuffer }) => void;
+	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 	setSetting: <S extends keyof Settings>(

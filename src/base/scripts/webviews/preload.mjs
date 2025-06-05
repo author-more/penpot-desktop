@@ -143,7 +143,59 @@ async function prepareUI() {
 			"main_ui_dashboard_projects__btn-secondary",
 			"main_ui_dashboard_projects__btn-small",
 		);
+		buttonElement.addEventListener("click", () => exportProjects());
+
 		dashboardHeaderElement.append(buttonElement);
+	}
+}
+
+async function exportProjects() {
+	const allProjectsRes = await fetch("/api/rpc/command/get-all-projects", {
+		headers: {
+			Accept: "application/json",
+		},
+	});
+	const projects = await allProjectsRes.json();
+
+	const filesByProject = await Promise.all(
+		projects.map(async ({ id }) => {
+			const projectFilesRes = await fetch(
+				"/api/rpc/command/get-project-files",
+				{
+					method: "POST",
+					body: JSON.stringify({ projectId: id }),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+				},
+			);
+
+			return await projectFilesRes.json();
+		}),
+	);
+
+	for (const projectFiles of filesByProject) {
+		projectFiles.forEach(async ({ id, name }) => {
+			const fileRes = await fetch("/api/rpc/command/export-binfile", {
+				method: "POST",
+				body: JSON.stringify({
+					fileId: id,
+					includeLibraries: true,
+					embedAssets: false,
+				}),
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/octet-stream",
+				},
+			});
+			const arrayBuffer = await fileRes.arrayBuffer();
+
+			ipcRenderer.sendToHost("file:save", {
+				name,
+				data: arrayBuffer,
+			});
+		});
 	}
 }
 
