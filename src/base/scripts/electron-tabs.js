@@ -1,6 +1,8 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
+import { ERROR_CODES, isAppError, isErrorCode } from "../../tools/error.js";
+import { showAlert } from "./alert.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
@@ -169,7 +171,25 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		event.preventDefault();
 		window.api.send("openTabMenu", tab.id);
 	});
-	webview.addEventListener("ipc-message", (event) => {
+	webview.addEventListener("ipc-message", async (event) => {
+		const isError = event.channel === "error";
+		if (isError) {
+			const [{ heading, message }] = event.args;
+
+			showAlert(
+				"danger",
+				{
+					heading,
+					message,
+				},
+				{
+					closable: true,
+				},
+			);
+
+			return;
+		}
+
 		const isThemeUpdate = event.channel === THEME_TAB_EVENTS.UPDATE;
 		if (isThemeUpdate) {
 			const [theme] = event.args;
@@ -181,7 +201,42 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		if (isFileSave) {
 			const [files] = event.args;
 
-			window.api.file.save(files);
+			try {
+				const { status } = await window.api.file.save(files);
+
+				if (status === "success") {
+					showAlert(
+						"success",
+						{
+							heading: "Projects saved",
+							message: "Projects have been saved successfully.",
+						},
+						{
+							duration: 3000,
+						},
+					);
+				}
+			} catch (error) {
+				const isError = error instanceof Error;
+				const isValidationError =
+					isAppError(error) &&
+					isErrorCode(error, ERROR_CODES.FAILED_VALIDATION);
+				const message =
+					isError || isValidationError
+						? error.message
+						: "Something went wrong during the saving of the files.";
+
+				showAlert(
+					"danger",
+					{
+						heading: "Failed to save projects",
+						message,
+					},
+					{
+						closable: true,
+					},
+				);
+			}
 		}
 	});
 	webview.addEventListener("page-title-updated", () => {

@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import { createWriteStream } from "node:fs";
 import { getMainWindow } from "./window.js";
 import { z } from "zod";
+import { AppError, ERROR_CODES } from "../tools/error.js";
 
 const filesSchema = z.array(
 	z.object({
@@ -13,24 +14,41 @@ const filesSchema = z.array(
 	}),
 );
 
-ipcMain.on(FILE_EVENTS.SAVE, async (_event, files) => {
-	const { filePath } = await dialog.showSaveDialog(getMainWindow());
+ipcMain.handle(FILE_EVENTS.SAVE, async (_event, files) => {
 	const { success: isValidBackup, data: filesValid } =
 		filesSchema.safeParse(files);
 
-	if (!filePath || !isValidBackup) {
-		return;
+	if (!isValidBackup) {
+		throw new AppError(
+			ERROR_CODES.FAILED_VALIDATION,
+			"Files bundle failed validation.",
+		);
 	}
 
-	const archive = new JSZip();
+	const { canceled, filePath } = await dialog.showSaveDialog(getMainWindow());
+	if (canceled || !filePath) {
+		return { status: canceled };
+	}
 
-	filesValid.forEach(({ name, projectName, data }) => {
-		const path = `${projectName}/${name}.penpot`;
+	try {
+		const archive = new JSZip();
 
-		archive.file(path, data);
-	});
+		filesValid.forEach(({ name, projectName, data }) => {
+			const path = `${projectName}/${name}.penpot`;
 
-	archive
-		.generateNodeStream({ streamFiles: true })
-		.pipe(createWriteStream(filePath));
+			archive.file(path, data);
+		});
+
+		return new Promise((resolve) => {
+			archive
+				.generateNodeStream({ streamFiles: true })
+				.pipe(createWriteStream(filePath))
+				.on("finish", () => resolve({ status: "success" }));
+		});
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Failed to save the projects.";
+
+		throw new AppError(ERROR_CODES.FAILED_PROJECTS_SAVE, message);
+	}
 });

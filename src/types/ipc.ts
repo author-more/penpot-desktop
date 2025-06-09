@@ -17,7 +17,7 @@ export type Api = {
 	file: {
 		save: (
 			files: { name: string; projectName: string; data: ArrayBuffer }[],
-		) => void;
+		) => Promise<{ status: "success" | "canceled" }>;
 	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;

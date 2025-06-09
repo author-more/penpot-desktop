@@ -30,7 +30,7 @@ contextBridge.exposeInMainWorld(
 			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
 		},
 		file: {
-			save: (file) => ipcRenderer.send("file:save", file),
+			save: (file) => ipcRenderer.invoke("file:save", file),
 		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);
