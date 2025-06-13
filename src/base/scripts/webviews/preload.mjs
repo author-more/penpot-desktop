@@ -169,81 +169,119 @@ async function prepareUI() {
 	}
 }
 
+/**
+ * Retrieve projects with files and send the bin files to the main process for export.
+ */
 async function exportProjects() {
 	try {
-		const allProjectsRes = await fetch("/api/rpc/command/get-all-projects", {
-			headers: {
-				Accept: "application/json",
-			},
-		});
-		const projects = await allProjectsRes.json();
-		const hasProjects = !!projects?.length;
+		const projectsWithFiles = await getProjectsWithFiles();
+		const hasExports = !!projectsWithFiles?.length;
 
-		if (!hasProjects) {
+		if (!hasExports) {
 			return;
 		}
 
-		const projectsWithFiles = await Promise.all(
-			projects.map(async ({ id, name }) => {
-				const projectFilesRes = await fetch(
-					"/api/rpc/command/get-project-files",
-					{
-						method: "POST",
-						body: JSON.stringify({ projectId: id }),
-						headers: {
-							"Content-Type": "application/json",
-							Accept: "application/json",
-						},
-					},
-				);
-
-				return {
+		const filesToExport = projectsWithFiles.flatMap(
+			({ name: projectName, files: projectFiles }) => {
+				return projectFiles.map(({ id, name }) => ({
+					id,
 					name,
-					files: await projectFilesRes.json(),
-				};
-			}),
+					projectName,
+				}));
+			},
 		);
-		const hasFiles = !!projectsWithFiles?.some(({ files }) => !!files?.length);
+		const exportBatches = splitArrayIntoBatches(filesToExport, 3);
 
-		if (!hasFiles) {
-			return;
+		const files = [];
+		for (const batch of exportBatches) {
+			const batchFiles = await Promise.all(
+				batch.map(async ({ id, name, projectName }) => ({
+					name,
+					projectName,
+					data: await getBinFileById(id),
+				})),
+			);
+
+			files.push(...batchFiles);
 		}
-
-		const files = await Promise.all(
-			projectsWithFiles.flatMap(
-				({ name: projectName, files: projectFiles }) => {
-					return projectFiles.map(async ({ id, name }) => {
-						const fileRes = await fetch("/api/rpc/command/export-binfile", {
-							method: "POST",
-							body: JSON.stringify({
-								fileId: id,
-								includeLibraries: true,
-								embedAssets: false,
-							}),
-							headers: {
-								"Content-Type": "application/json",
-								Accept: "application/octet-stream",
-							},
-						});
-						const arrayBuffer = await fileRes.arrayBuffer();
-
-						return {
-							name,
-							projectName,
-							data: arrayBuffer,
-						};
-					});
-				},
-			),
-		);
 
 		ipcRenderer.sendToHost("file:save", files);
 	} catch (error) {
 		ipcRenderer.sendToHost("error", {
 			heading: "Failed to download projects",
-			message: error.message,
+			message:
+				error instanceof Error
+					? error.message
+					: "Something went wrong while exporting projects",
 		});
 	}
+}
+
+/**
+ * Retrieves all projects with their associated files.
+ *
+ * @returns {Promise<Array<{ name: string, files: Array<{ id: number, name: string }>>> | undefined}
+ */
+async function getProjectsWithFiles() {
+	const allProjectsRes = await fetch("/api/rpc/command/get-all-projects", {
+		headers: {
+			Accept: "application/json",
+		},
+	});
+	const projects = await allProjectsRes.json();
+	const hasProjects = !!projects?.length;
+
+	if (!hasProjects) {
+		return;
+	}
+
+	const projectsWithFiles = await Promise.all(
+		projects.map(async ({ id, name }) => {
+			const projectFilesRes = await fetch(
+				"/api/rpc/command/get-project-files",
+				{
+					method: "POST",
+					body: JSON.stringify({ projectId: id }),
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+				},
+			);
+
+			return {
+				name,
+				files: await projectFilesRes.json(),
+			};
+		}),
+	);
+
+	return projectsWithFiles.filter(({ files }) => !!files?.length);
+}
+
+/**
+ * Get a bin file by ID.
+ *
+ * @param {string} id - The ID of the bin file to get.
+
+ * @returns {Promise<ArrayBuffer>} The bin file as an ArrayBuffer.
+ */
+async function getBinFileById(id) {
+	const fileRes = await fetch("/api/rpc/command/export-binfile", {
+		method: "POST",
+		body: JSON.stringify({
+			fileId: id,
+			includeLibraries: true,
+			embedAssets: false,
+		}),
+		headers: {
+			"Content-Type": "application/json",
+			Accept: "application/octet-stream",
+		},
+	});
+	const arrayBuffer = await fileRes.arrayBuffer();
+
+	return arrayBuffer;
 }
 
 /**
@@ -277,4 +315,25 @@ function getElement(selector, { maxRetries = 1 } = {}) {
 
 		queryElement();
 	});
+}
+
+/**
+ * Splits an array into batches of a specified size.
+ *
+ * @param {Array<unknown>} wholeArray - The array to be split.
+ * @param {number} batchSize - The size of each batch.
+ *
+ * @returns {Array<unknown>[]} An array of arrays where each sub-array contains elements from the original array.
+ */
+function splitArrayIntoBatches(wholeArray, batchSize) {
+	return wholeArray.reduce((batches, item, index) => {
+		const batchIndex = Math.floor(index / batchSize);
+
+		if (!batches[batchIndex]) {
+			batches[batchIndex] = [];
+		}
+		batches[batchIndex].push(item);
+
+		return batches;
+	}, []);
 }
