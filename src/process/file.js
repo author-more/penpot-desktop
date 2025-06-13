@@ -14,6 +14,23 @@ const filesSchema = z.array(
 	}),
 );
 
+/**
+ * @type {string | null}
+ */
+let exportPath;
+
+ipcMain.handle(FILE_EVENTS.PREPARE_PATH, async () => {
+	const { canceled, filePath } = await dialog.showSaveDialog(getMainWindow());
+
+	if (canceled || !filePath) {
+		return { status: "fail" };
+	}
+
+	exportPath = filePath;
+
+	return { status: "success" };
+});
+
 ipcMain.handle(FILE_EVENTS.SAVE, async (_event, files) => {
 	const { success: isValidBackup, data: filesValid } =
 		filesSchema.safeParse(files);
@@ -23,11 +40,6 @@ ipcMain.handle(FILE_EVENTS.SAVE, async (_event, files) => {
 			ERROR_CODES.FAILED_VALIDATION,
 			"Files bundle failed validation.",
 		);
-	}
-
-	const { canceled, filePath } = await dialog.showSaveDialog(getMainWindow());
-	if (canceled || !filePath) {
-		return { status: canceled };
 	}
 
 	try {
@@ -40,10 +52,18 @@ ipcMain.handle(FILE_EVENTS.SAVE, async (_event, files) => {
 		});
 
 		return new Promise((resolve) => {
+			if (!exportPath) {
+				throw new Error("Export path is not set.");
+			}
+
 			archive
 				.generateNodeStream({ streamFiles: true })
-				.pipe(createWriteStream(filePath))
-				.on("finish", () => resolve({ status: "success" }));
+				.pipe(createWriteStream(exportPath))
+				.on("finish", () => {
+					exportPath = null;
+
+					resolve({ status: "success" });
+				});
 		});
 	} catch (error) {
 		const message =

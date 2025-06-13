@@ -156,7 +156,14 @@ async function prepareUI() {
 			"main_ui_dashboard_projects__btn-secondary",
 			"main_ui_dashboard_projects__btn-small",
 		);
-		buttonElement.addEventListener("click", () => exportProjects());
+		buttonElement.addEventListener("click", async () => {
+			const { status } = await ipcRenderer.invoke("file:prepare-path");
+			const isPathPrepared = status === "success";
+
+			if (isPathPrepared) {
+				exportProjects();
+			}
+		});
 
 		dashboardHeaderElement.append(buttonElement);
 	}
