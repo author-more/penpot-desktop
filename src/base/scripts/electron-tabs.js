@@ -1,5 +1,5 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
-import { FILE_EVENTS } from "../../shared/file.js";
+import { FILE_EVENTS, isArrayOfFiles } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { ERROR_CODES, isAppError, isErrorCode } from "../../tools/error.js";
 import { showAlert } from "./alert.js";
@@ -199,12 +199,12 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 
 		const isFileExport = event.channel === FILE_EVENTS.EXPORT;
 		if (isFileExport) {
-			const [files] = event.args;
+			const [files, failedExports] = event.args;
 
 			try {
 				const { status } = await window.api.file.export(files);
 
-				if (status === "success") {
+				if (status === "success" && failedExports.length === 0) {
 					showAlert(
 						"success",
 						{
@@ -213,6 +213,26 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 						},
 						{
 							duration: 3000,
+						},
+					);
+					return;
+				}
+
+				if (status === "success" && failedExports.length > 0) {
+					const fileList =
+						isArrayOfFiles(failedExports) &&
+						failedExports
+							.map(({ name, projectName }) => `${projectName}/${name}`)
+							.join("\n");
+
+					showAlert(
+						"warning",
+						{
+							heading: "Projects saved with issues",
+							message: `Projects have been exported, but some files failed to download: \n ${fileList}`,
+						},
+						{
+							closable: true,
 						},
 					);
 				}
