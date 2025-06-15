@@ -221,20 +221,40 @@ async function exportProjects() {
 		);
 		const exportBatches = splitArrayIntoBatches(filesToExport, 3);
 
-		const files = [];
+		const fileExports = [];
 		for (const batch of exportBatches) {
-			const batchFiles = await Promise.all(
-				batch.map(async ({ id, name, projectName }) => ({
-					name,
-					projectName,
-					data: await getBinFileById(id),
-				})),
+			const batchFiles = await Promise.allSettled(
+				batch.map(async ({ id, name, projectName }) => {
+					const fileDetails = {
+						name,
+						projectName,
+					};
+
+					try {
+						return {
+							...fileDetails,
+							data: await getBinFileById(id),
+						};
+					} catch (error) {
+						return Promise.reject(fileDetails);
+					}
+				}),
 			);
 
-			files.push(...batchFiles);
+			fileExports.push(...batchFiles);
 		}
 
-		ipcRenderer.sendToHost("file:export", files);
+		const exportsWithFiles = [];
+		const failedExports = [];
+		for (const fileExport of fileExports) {
+			if (fileExport.status === "fulfilled") {
+				exportsWithFiles.push(fileExport.value);
+			} else {
+				failedExports.push(fileExport.reason);
+			}
+		}
+
+		ipcRenderer.sendToHost("file:export", exportsWithFiles, failedExports);
 	} catch (error) {
 		ipcRenderer.sendToHost("error", {
 			heading: "Projects download failed",
