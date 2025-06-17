@@ -5,6 +5,11 @@ import {
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 
 /**
+ * @typedef {Object} AlertConfiguration
+ * @property {Variant} variant
+ * @property {Content} content
+ * @property {Partial<Options> =} options
+ *
  * @typedef {'primary' | 'success' | 'neutral' | 'warning' | 'danger'} Variant
  * @typedef {[label: string, url: string]} Link
  *
