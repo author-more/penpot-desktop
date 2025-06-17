@@ -203,38 +203,39 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 
 			try {
 				const { status } = await window.api.file.export(files);
+				const isSuccess = status === "success";
+				const hasFailedExports = failedExports.length > 0;
+				const isFullSuccess = isSuccess && !hasFailedExports;
+				const isPartialSuccess = isSuccess && hasFailedExports;
 
-				if (status === "success" && failedExports.length === 0) {
-					showAlert(
-						"success",
-						{
-							heading: "Projects saved",
-							message: "The projects have been saved successfully.",
-						},
-						{
-							duration: 3000,
-						},
-					);
-				}
+				const fileList =
+					isPartialSuccess &&
+					isArrayOfFiles(failedExports) &&
+					failedExports
+						.map(({ name, projectName }) => `${projectName}/${name}`)
+						.join("\n");
+				const alertType = isFullSuccess ? "success" : "warning";
+				const alertHeading = isFullSuccess
+					? "Projects saved successfully"
+					: "Projects saved with issues";
+				const alertMessage = isFullSuccess
+					? "The projects have been saved successfully."
+					: `Projects have been exported, but some files failed to download${typeof fileList === "string" ? `: \n ${fileList}` : ". Couldn't retrieve the list of files."}`;
 
-				if (status === "success" && failedExports.length > 0) {
-					const fileList =
-						isArrayOfFiles(failedExports) &&
-						failedExports
-							.map(({ name, projectName }) => `${projectName}/${name}`)
-							.join("\n");
-
-					showAlert(
-						"warning",
-						{
-							heading: "Projects saved with issues",
-							message: `Projects have been exported, but some files failed to download: \n ${fileList}`,
-						},
-						{
-							closable: true,
-						},
-					);
-				}
+				showAlert(
+					alertType,
+					{
+						heading: alertHeading,
+						message: alertMessage,
+					},
+					isFullSuccess
+						? {
+								duration: 3000,
+							}
+						: {
+								closable: true,
+							},
+				);
 			} catch (error) {
 				const isError = error instanceof Error;
 				const isValidationError =
