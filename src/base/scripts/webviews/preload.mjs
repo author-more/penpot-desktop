@@ -29,6 +29,9 @@ const { ipcRenderer } = require("electron");
 
 const BUTTON_DOWNLOAD_PROJECTS_ID = "download-projects";
 
+// Disabled button's label has low contrast and it's hard to read the progress updates. Instead of disabling the button, the functionality is disabled through the flag.
+let isExportInProgress = false;
+
 // Set the title of the tab name
 /// Instead of the tab name being "PROJECT_NAME - Penpot", this script will remove the " - Penpot" portion.
 function SetTitleToDash() {
@@ -125,6 +128,7 @@ navigation.addEventListener("navigate", (event) => {
 });
 
 ipcRenderer.on("theme-request-update", () => dispatchThemeUpdate());
+ipcRenderer.on("file:export-finish", () => cleanUpUI());
 
 /**
  * Observes a node and executes a callback on a class change.
@@ -176,12 +180,28 @@ async function prepareUI() {
 			"main_ui_dashboard_projects__btn-secondary",
 			"main_ui_dashboard_projects__btn-small",
 		);
+		buttonElement.style.minWidth = "200px";
 		buttonElement.addEventListener("click", async () => {
+			if (isExportInProgress) {
+				return;
+			}
+
 			const { status } = await ipcRenderer.invoke("file:prepare-path");
 			const isPathPrepared = status === "success";
 
 			if (isPathPrepared) {
-				exportProjects();
+				isExportInProgress = true;
+
+				buttonElement.innerText = `Downloading... (0%)`;
+
+				exportProjects({
+					onProgress: (current, max) => {
+						const progress = Math.round((current / max) * 100);
+
+						buttonElement.innerText = `Downloading... (${progress}%)`;
+						buttonElement.style.cursor = "wait";
+					},
+				});
 			}
 		});
 
@@ -198,10 +218,27 @@ async function prepareUI() {
 	}
 }
 
+async function cleanUpUI() {
+	const downloadButton = document?.querySelector(
+		`#${BUTTON_DOWNLOAD_PROJECTS_ID}`,
+	);
+
+	if (downloadButton instanceof HTMLButtonElement) {
+		downloadButton.style.cursor = "pointer";
+		downloadButton.innerText = `Download ALL projects`;
+	}
+
+	isExportInProgress = false;
+}
+
 /**
  * Retrieve projects with files and send the bin files to the main process for export.
+ * @param {Object} options
+ * @param {(current: number, max:number) => void} options.onProgress
  */
-async function exportProjects() {
+async function exportProjects({ onProgress }) {
+	let fileExportCount = 0;
+
 	try {
 		const projectsWithFiles = await getProjectsWithFiles();
 		const hasProjectsWithFiles = !!projectsWithFiles?.length;
@@ -231,10 +268,14 @@ async function exportProjects() {
 					};
 
 					try {
-						return {
+						return Promise.resolve({
 							...fileDetails,
 							data: await getBinFileById(id),
-						};
+						}).finally(() => {
+							fileExportCount++;
+
+							onProgress(fileExportCount, filesToExport.length);
+						});
 					} catch (error) {
 						return Promise.reject(fileDetails);
 					}

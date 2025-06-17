@@ -215,7 +215,6 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 							duration: 3000,
 						},
 					);
-					return;
 				}
 
 				if (status === "success" && failedExports.length > 0) {
@@ -257,6 +256,8 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 					},
 				);
 			}
+
+			webview.send("file:export-finish");
 		}
 	});
 	webview.addEventListener("page-title-updated", () => {
