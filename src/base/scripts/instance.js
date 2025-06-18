@@ -73,34 +73,31 @@ function addInstance() {
  */
 async function openInstanceCreator(creator) {
 	const { alertsHolder, form } = getInstanceCreatorElements();
-	const { isDockerAvailable, containerSolution } =
-		await window.api.instance.getSetupInfo();
 
 	alertsHolder?.replaceChildren();
 
-	const isFlatpak = containerSolution === CONTAINER_SOLUTIONS.FLATPAK;
-	if (isFlatpak) {
-		const alert = await createAlert(
-			"primary",
-			{
-				heading: "Isolated environment",
-				message:
-					"Penpot Desktop is running in a Flatpak container which is isolated from other applications and has limited access to the operating system. For that reason, it is unable to create a local instance in Docker.",
-			},
-			{
-				closable: false,
-				open: true,
-			},
-		);
-		if (alert) {
-			alertsHolder?.append(alert);
-		}
+	const alert = await getCreatorAlert();
+
+	if (alert) {
+		alertsHolder?.append(alert);
 	}
 
-	if (!isDockerAvailable) {
-		const alert = await createAlert(
-			"warning",
-			{
+	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
+	await Promise.all([
+		customElements.whenDefined("sl-input"),
+		customElements.whenDefined("sl-checkbox"),
+	]);
+	form?.addEventListener("submit", handleInstanceCreation);
+
+	creator.show();
+}
+
+async function getCreatorAlert() {
+	/** @type { Record<string, import("./alert.js").AlertConfiguration> }*/
+	const alertConfigurations = {
+		docker: {
+			variant: "warning",
+			content: {
 				heading: "Docker is required for local instance",
 				message:
 					"To run a self-hosted, local instance of the app, Docker is required. Please install Docker by following the steps outlined in the official documentation. You can choose between installing Docker Desktop for a user-friendly experience or Docker Engine for a more customizable setup.",
@@ -108,22 +105,42 @@ async function openInstanceCreator(creator) {
 					["Get Docker", "https://docs.docker.com/get-started/get-docker/"],
 				],
 			},
-			{
+		},
+		flatpak: {
+			variant: "primary",
+			content: {
+				heading: "Isolated environment",
+				message:
+					"Penpot Desktop is running in a Flatpak container which is isolated from other applications and has limited access to the operating system. For that reason, it is unable to create a local instance in Docker.",
+			},
+		},
+	};
+
+	const getAlertConfiguration = async () => {
+		const { isDockerAvailable, containerSolution } =
+			await window.api.instance.getSetupInfo();
+		const isFlatpak = containerSolution === CONTAINER_SOLUTIONS.FLATPAK;
+
+		if (isFlatpak) {
+			return alertConfigurations.flatpak;
+		}
+		if (!isDockerAvailable) {
+			return alertConfigurations.docker;
+		}
+	};
+	const alertConfiguration = await getAlertConfiguration();
+
+	if (alertConfiguration) {
+		const { variant, content, options } = alertConfiguration;
+		return await createAlert(
+			variant,
+			content,
+			options || {
 				closable: false,
 				open: true,
 			},
 		);
-		if (alert) {
-			alertsHolder?.append(alert);
-		}
 	}
-
-	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
-	await customElements.whenDefined("sl-input");
-	await customElements.whenDefined("sl-checkbox");
-	form?.addEventListener("submit", handleInstanceCreation);
-
-	creator.show();
 }
 
 /**
