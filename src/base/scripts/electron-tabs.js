@@ -1,10 +1,10 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
-import { FILE_EVENTS, isArrayOfFiles } from "../../shared/file.js";
+import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
-import { ERROR_CODES, isAppError, isErrorCode } from "../../tools/error.js";
 import { showAlert } from "./alert.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
+import { handleFileExport } from "./file.js";
 import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
 
 /**
@@ -201,62 +201,7 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		if (isFileExport) {
 			const [files, failedExports] = event.args;
 
-			try {
-				const { status } = await window.api.file.export(files);
-				const isSuccess = status === "success";
-				const hasFailedExports = failedExports.length > 0;
-				const isFullSuccess = isSuccess && !hasFailedExports;
-				const isPartialSuccess = isSuccess && hasFailedExports;
-
-				const fileList =
-					isPartialSuccess &&
-					isArrayOfFiles(failedExports) &&
-					failedExports
-						.map(({ name, projectName }) => `${projectName}/${name}`)
-						.join("\n");
-				const alertType = isFullSuccess ? "success" : "warning";
-				const alertHeading = isFullSuccess
-					? "Projects saved successfully"
-					: "Projects saved with issues";
-				const alertMessage = isFullSuccess
-					? "The projects have been saved successfully."
-					: `Projects have been exported, but some files failed to download${typeof fileList === "string" ? `: \n ${fileList}` : ". Couldn't retrieve the list of files."}`;
-
-				showAlert(
-					alertType,
-					{
-						heading: alertHeading,
-						message: alertMessage,
-					},
-					isFullSuccess
-						? {
-								duration: 3000,
-							}
-						: {
-								closable: true,
-							},
-				);
-			} catch (error) {
-				const isError = error instanceof Error;
-				const isValidationError =
-					isAppError(error) &&
-					isErrorCode(error, ERROR_CODES.FAILED_VALIDATION);
-				const message =
-					isError || isValidationError
-						? error.message
-						: "Something went wrong during the saving of the files.";
-
-				showAlert(
-					"danger",
-					{
-						heading: "Failed to save the projects",
-						message,
-					},
-					{
-						closable: true,
-					},
-				);
-			}
+			await handleFileExport(files, failedExports);
 
 			webview.send("file:export-finish");
 		}
