@@ -7,10 +7,12 @@ export const FILE_EVENTS = Object.freeze({
 });
 
 /**
- * @typedef {Object} File
+ * @typedef {Object} FileInfo
  * @property {string} name - The name of the file.
  * @property {string} projectName - The name of the project.
- * @property {ArrayBuffer =} data - The file data.
+ *
+ * JSDoc doesn't support Object extension: https://github.com/jsdoc/jsdoc/issues/1199
+ * @typedef {FileInfo & {data: ArrayBuffer}} File
  */
 
 /**
@@ -19,11 +21,17 @@ export const FILE_EVENTS = Object.freeze({
  * @returns {obj is File}
  */
 export function isFile(obj) {
+	return isFileInfo(obj) && "data" in obj && obj.data instanceof ArrayBuffer;
+}
+
+/**
+ * @param {Object} obj
+ *
+ * @returns {obj is FileInfo}
+ */
+export function isFileInfo(obj) {
 	return (
-		!!obj &&
-		typeof obj === "object" &&
-		Object.hasOwn(obj, "name") &&
-		Object.hasOwn(obj, "projectName")
+		!!obj && typeof obj === "object" && "name" in obj && "projectName" in obj
 	);
 }
 
@@ -34,4 +42,13 @@ export function isFile(obj) {
  */
 export function isArrayOfFiles(arr) {
 	return Array.isArray(arr) && arr.every(isFile);
+}
+
+/**
+ * @param {Array<Object>} arr
+ *
+ * @returns {arr is Array<FileInfo>}
+ */
+export function isArrayOfFileInfos(arr) {
+	return Array.isArray(arr) && arr.every(isFileInfo);
 }
