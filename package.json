@@ -40,7 +40,7 @@
 		"electron-updater": "^6.6.2",
 		"electron-window-state": "^5.0.3",
 		"jszip": "^3.10.1",
-		"lucide-static": "^0.516.0",
+		"lucide-static": "^0.523.0",
 		"zod": "^3.25.67"
 	},
 	"devDependencies": {
