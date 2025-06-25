@@ -1,6 +1,7 @@
 import type { NativeTheme } from "electron";
 import { Settings } from "../process/settings.js";
 import { getContainerSolution } from "../process/platform.js";
+import { File } from "../shared/file.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
@@ -13,6 +14,13 @@ export type Api = {
 		register: (instance: Partial<Settings["instances"][number]>) => void;
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
+	};
+	file: {
+		// Unexposed method used between the webview preload and the main process
+		// preparePath: (
+		// 	projectName: string,
+		// ) => Promise<{ status: "success" | "fail" }>;
+		export: (files: File[]) => Promise<{ status: "success" | "fail" }>;
 	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;

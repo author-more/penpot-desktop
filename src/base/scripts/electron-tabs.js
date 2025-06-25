@@ -1,7 +1,10 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
+import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
+import { showAlert } from "./alert.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
+import { handleFileExport } from "./file.js";
 import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
 
 /**
@@ -168,12 +171,39 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		event.preventDefault();
 		window.api.send("openTabMenu", tab.id);
 	});
-	webview.addEventListener("ipc-message", (event) => {
+	webview.addEventListener("ipc-message", async (event) => {
+		const isError = event.channel === "error";
+		if (isError) {
+			const [{ heading, message }] = event.args;
+
+			showAlert(
+				"danger",
+				{
+					heading,
+					message,
+				},
+				{
+					closable: true,
+				},
+			);
+
+			return;
+		}
+
 		const isThemeUpdate = event.channel === THEME_TAB_EVENTS.UPDATE;
 		if (isThemeUpdate) {
 			const [theme] = event.args;
 
 			handleInTabThemeUpdate(theme);
+		}
+
+		const isFileExport = event.channel === FILE_EVENTS.EXPORT;
+		if (isFileExport) {
+			const [files, failedExports] = event.args;
+
+			await handleFileExport(files, failedExports);
+
+			webview.send("file:export-finish");
 		}
 	});
 	webview.addEventListener("page-title-updated", () => {
