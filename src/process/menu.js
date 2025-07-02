@@ -1,5 +1,6 @@
 import { app, Menu, shell } from "electron";
 import { getMainWindow } from "./window.js";
+import { showDiagnostics } from "./diagnostics.js";
 
 /**
  * @typedef {import("electron").MenuItemConstructorOptions} MenuItemConstructorOptions
@@ -126,6 +127,13 @@ export function setAppMenu() {
 					mainWindow.webContents.executeJavaScript(
 						`document.querySelector("body > #include-tabs > tab-group").shadowRoot.querySelector("div > div > webview.visible").openDevTools()`,
 					);
+				},
+			},
+			{
+				label: "Toggle Diagnostics",
+				accelerator: "CmdOrCtrl+Shift+Y",
+				click: () => {
+					showDiagnostics(mainWindow);
 				},
 			},
 			{ type: "separator" },
