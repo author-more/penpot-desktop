@@ -9,6 +9,8 @@ import { initTheme } from "./theme.js";
 import { initToggles } from "./toggles.js";
 import { initTitleBarType } from "./titleBar.js";
 
+import "./devtools.js";
+
 window.addEventListener("DOMContentLoaded", () => {
 	initTabs();
 	initInstance();

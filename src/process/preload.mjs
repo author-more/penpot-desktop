@@ -32,6 +32,13 @@ contextBridge.exposeInMainWorld(
 		file: {
 			export: (file) => ipcRenderer.invoke("file:export", file),
 		},
+		diagnostics: {
+			onToggle: (callback) => {
+				ipcRenderer.on("diagnostics:toggle", (_event, diagnosticsData) =>
+					callback(diagnosticsData),
+				);
+			},
+		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);
 		},
