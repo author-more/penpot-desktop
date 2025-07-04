@@ -14,12 +14,13 @@
 	</head>
 	<body>
 		<drag></drag>
-		<sl-include
-			id="include-controls"
-			src="./components/controls.html"
-		></sl-include>
-		<sl-include src="./components/splash.html"></sl-include>
-		<sl-include id="include-tabs" src="./components/tabs.html"></sl-include>
+		<top-bar
+			><sl-include
+				id="include-controls"
+				src="./components/controls.html"
+			></sl-include>
+			<tab-group id="tabs"></tab-group>
+		</top-bar>
 		<sl-include
 			id="include-settings"
 			src="./components/settings.html"

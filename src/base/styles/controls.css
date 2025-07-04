@@ -1,5 +1,5 @@
 .controls {
-	position: fixed;
+	position: relative;
 	z-index: 5;
 	top: 0px;
 	left: 0px;

@@ -1,0 +1,13 @@
+top-bar {
+	position: relative;
+	z-index: 5;
+
+	display: flex;
+	gap: 0.5rem;
+
+	height: 40px;
+
+	& tab-group {
+		-webkit-app-region: no-drag;
+	}
+}
