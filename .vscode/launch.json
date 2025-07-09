@@ -1,0 +1,26 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Debug Main Process",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+			"windows": {
+				"runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+			},
+			"args": ["."],
+			"outputCapture": "std"
+		},
+		{
+			"name": "Attach to Main Process",
+			"type": "node",
+			"request": "attach",
+			"localRoot": "${workspaceFolder}",
+			"port": 9229,
+			"skipFiles": ["<node_internals>/**"],
+			"restart": true
+		}
+	]
+}

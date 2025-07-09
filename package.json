@@ -25,6 +25,7 @@
 		"build": "electron-builder --config build/electron-builder.yml",
 		"build:arm": "electron-builder --config build/electron-builder.yml --arm64",
 		"dev": "electron .",
+		"dev:debug": "electron . --inspect",
 		"format": "prettier . --write",
 		"format:open": "prettier --write --ignore-unknown",
 		"format:check": "prettier . --check",
