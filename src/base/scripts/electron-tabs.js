@@ -292,7 +292,7 @@ async function handleTabMenuAction({ command, tabId }) {
 				direction = 0;
 		}
 
-		if (tabGroup && pivotPosition) {
+		if (tabGroup) {
 			closeTabs(tabGroup, pivotPosition, direction);
 		}
 	}
