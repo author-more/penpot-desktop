@@ -1,0 +1,84 @@
+name: Build
+description: Build Application
+
+inputs:
+  build-os:
+    description: target OS for building Application
+    required: true
+  artifacts-paths:
+    description: paths to files to keep from artifacts
+    required: true
+    default: |
+      dist/latest*.yml
+      dist/*.exe
+      dist/*.AppImage
+      dist/*.rpm
+      dist/*.deb
+      dist/*.dmg
+      dist/*.zip
+      dist/*.blockmap
+  github-token:
+    description: GitHub token
+    required: true
+  dependencies-bot-name:
+    description: name of dependency bot (dependabot)
+    required: true
+    default: "dependabot[bot]"
+
+runs:
+  using: composite
+
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    # Cache npm dependencies, creates a new cache on new versions of package-lock.json
+    - name: Cache npm dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: node-${{ inputs.build-os }}-${{ hashFiles('**/package-lock.json') }}
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Validate commit messages - last push commit
+      if: github.event_name == 'push' && github.event.pusher.name != inputs.dependencies-bot-name
+      shell: bash
+      run: npx commitlint --last --verbose
+
+    - name: Validate commit messages - PR's commits
+      if: github.event_name == 'pull_request' && github.event.pull_request.user.login != inputs.dependencies-bot-name
+      shell: bash
+      run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
+
+    - name: Run code checks
+      shell: bash
+      run: npm run check
+
+    # Cache build result, creates a new cache on new commit hash
+    - name: Cache Build files
+      uses: actions/cache@v4
+      with:
+        key: build-${{ inputs.build-os }}-${{ github.event.head_commit.id || github.event.pull_request.head.sha }}
+        path: dist/
+
+    - name: Build
+      shell: bash
+      run: |
+        if [ "${{ github.head_ref || github.ref_name }}" = "main" ]; then
+          npm run build -- --x64 --arm64
+        else
+          npm run build -- --x64 --arm64 --publish=never
+        fi
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+
+    - name: Save artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ inputs.build-os }}
+        path: ${{ inputs.artifacts-paths }}
+        retention-days: 1
