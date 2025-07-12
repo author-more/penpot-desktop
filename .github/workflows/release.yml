@@ -1,0 +1,91 @@
+name: Release
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+permissions:
+  # Required for Electron Builder to create and update releases on Github
+  contents: write
+
+jobs:
+  build:
+    # New release is created only on merge of a branch with 'chore/release' on the 'main' branch
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'chore/release')
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/build
+        with:
+          build-os: ${{ matrix.os }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get release date and version
+        run: |
+          echo "RELEASE_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=$(echo ${{ github.ref_name || github.head_ref }} | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")" >> $GITHUB_ENV
+
+      - name: Get current latest release
+        uses: pozetroninc/github-action-get-latest-release@v0.8.0
+        id: latest-release
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          excludes: prerelease, draft
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: build-*
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Filtering and renaming for easier understanding of the platforms/architectures for final users
+      - name: Rename artifacts
+        shell: bash
+        run: |
+          mkdir -p release
+          mv dist/*.aarch64.rpm    release/penpot-desktop_linux_arm64.rpm
+          mv dist/*.x86_64.rpm     release/penpot-desktop_linux_x64.rpm
+          mv dist/*_arm64.deb      release/penpot-desktop_linux_arm64.deb
+          mv dist/*_amd64.deb      release/penpot-desktop_linux_x64.deb
+          mv dist/*-arm64.AppImage release/PenpotDesktop_linux_arm64.AppImage
+          mv dist/*.AppImage       release/PenpotDesktop_linux_x64.AppImage
+          mv dist/*-arm64-mac.zip  release/PenpotDesktop_macos_arm64.app.zip
+          mv dist/*-mac.zip        release/PenpotDesktop_macos_x64.app.zip
+          mv dist/*-arm64.dmg      release/PenpotDesktop_macos_arm64.dmg
+          mv dist/*.dmg            release/PenpotDesktop_macos_x64.dmg
+          mv dist/*.exe            release/PenpotDesktop_windows_x64.exe
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "v${{ env.RELEASE_VERSION }} (${{ env.RELEASE_DATE }})"
+          tag_name: v${{ env.RELEASE_VERSION }}
+          prerelease: true
+          make_latest: true
+          files: release/*
+          body: |
+            ### **Features**
+            - ...
+
+            ### **Fixed**
+            - ...
+
+            ### **Full Changelog: [${{ steps.latest-release.outputs.release }} ... ${{ env.RELEASE_VERSION }}](https://github.com/${{ github.repository }}/commits/${{ steps.latest-release.outputs.release }}...${{ env.RELEASE_VERSION }})**
