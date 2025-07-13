@@ -69,7 +69,7 @@ export const MainWindow = {
 				webviewTag: true,
 			},
 		});
-		mainWindow.loadFile("src/base/index.html");
+		mainWindow.loadFile(path.join(app.getAppPath(), "src/base/index.html"));
 		mainWindow.on("ready-to-show", () => {
 			mainWindow.webContents.send("set-flag", [
 				FLAGS.PLATFORM,
