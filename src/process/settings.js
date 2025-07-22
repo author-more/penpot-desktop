@@ -26,11 +26,8 @@ const settingsSchema = z.object({
 		.array(
 			z
 				.object({
-					id: z
-						.string()
-						.uuid()
-						.default(() => crypto.randomUUID()),
-					origin: z.string().url().default(DEFAULT_INSTANCE.origin),
+					id: z.uuid().default(() => crypto.randomUUID()),
+					origin: z.url().default(DEFAULT_INSTANCE.origin),
 					label: z.string().default("Your instance"),
 					color: z
 						.string()
@@ -52,7 +49,7 @@ const settingsSchema = z.object({
 						.default(DEFAULT_INSTANCE.color),
 					isDefault: z.boolean().default(false),
 				})
-				.default({}),
+				.prefault({}),
 		)
 		.default([]),
 });
