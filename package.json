@@ -42,7 +42,7 @@
 		"electron-window-state": "^5.0.3",
 		"jszip": "^3.10.1",
 		"lucide-static": "^0.525.0",
-		"zod": "^4.0.5"
+		"zod": "^4.0.9"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.8.1",
