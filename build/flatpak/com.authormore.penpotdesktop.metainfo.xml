@@ -53,6 +53,24 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+        <release version="v0.17.0" date="2025-07-24">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.17.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added a diagnostics dialog.</li>
+                </ul>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed closing of other tabs when done from the first tab.</li>
+                </ul>
+                <p>Internal</p>
+                <ul>
+                    <li>[Local instances] Migrated to Valkey for web socket notifications.</li>
+                    <li>Added main process debugging setup.</li>
+                </ul>
+            </description>
+        </release>
 				<release version="v0.16.0" date="2025-06-25">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.16.0</url>
             <description>
