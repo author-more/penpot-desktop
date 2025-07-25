@@ -6,55 +6,20 @@ permissions:
   # Required for Electron Builder to create and update releases on Github
   contents: write
 
-env:
-  DEPENDENCIES_BOT_NAME: "dependabot[bot]"
-
 jobs:
   build:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
-    runs-on: ${{ matrix.os}}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+
+      - uses: ./.github/actions/build
         with:
-          node-version: 22
-      - name: Install dependencies
-        run: npm ci
-      - name: Validate commit messages - last push commit
-        if: github.event_name == 'push' && github.event.pusher.name != env.DEPENDENCIES_BOT_NAME
-        run: npx commitlint --last --verbose
-      - name: Validate commit messages - PR's commits
-        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != env.DEPENDENCIES_BOT_NAME
-        run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
-      - name: Run code checks
-        run: npm run check
-      - name: Build
-        shell: bash
-        run: |
-          if [ "${{ github.head_ref || github.ref_name }}" = "main" ]; then
-            npm run build -- --x64 --arm64
-          else
-            npm run build -- --x64 --arm64 --publish=never
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Save artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}
-          path: |
-            dist/latest*.yml
-            dist/*.exe
-            dist/*.AppImage
-            dist/*.dmg
-            dist/*.rpm
-            dist/*.deb
-            dist/*.zip
-            dist/*.blockmap
-          retention-days: 1
+          build-os: ${{ matrix.os }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
