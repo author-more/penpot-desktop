@@ -14,7 +14,8 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
 	testDir: "./tests",
 	/* Run tests in files in parallel */
-	fullyParallel: true,
+	// Tests check if configuration file has been written correctly. Since they currently use the same file, it causes race conditions in assertions when run in parallel.
+	fullyParallel: false,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	/* Retry on CI only */
