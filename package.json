@@ -32,7 +32,8 @@
 		"lint": "eslint .",
 		"lint:open": "eslint",
 		"compile:check": "tsc --noEmit",
-		"check": "npm run format:check && npm run lint && tsc"
+		"check": "npm run format:check && npm run lint && tsc",
+		"test": "playwright test"
 	},
 	"dependencies": {
 		"@shoelace-style/shoelace": "^2.20.1",
@@ -48,6 +49,8 @@
 		"@commitlint/cli": "^19.8.1",
 		"@commitlint/config-conventional": "^19.8.1",
 		"@eslint/js": "^9.31.0",
+		"@playwright/test": "^1.54.1",
+		"@types/node": "^24.0.13",
 		"electron": "^37.2.3",
 		"electron-builder": "^26.0.12",
 		"eslint": "^9.31.0",

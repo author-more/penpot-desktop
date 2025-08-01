@@ -11,3 +11,9 @@ node_modules/
 dist/
 build/flatpak/.flatpak-builder
 build/flatpak/build
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

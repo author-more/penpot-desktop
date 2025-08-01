@@ -1,5 +1,7 @@
+import { isCI } from "../tools/process.js";
+
 export const DEFAULT_INSTANCE = Object.freeze({
-	origin: "https://design.penpot.app",
+	origin: isCI() ? "http://localhost:9008" : "https://design.penpot.app",
 	label: "Official",
 	color: "hsla(0, 0%, 0%, 0)",
 	isDefault: false,
