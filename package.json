@@ -48,16 +48,16 @@
 	"devDependencies": {
 		"@commitlint/cli": "^19.8.1",
 		"@commitlint/config-conventional": "^19.8.1",
-		"@eslint/js": "^9.31.0",
-		"@playwright/test": "^1.54.1",
-		"@types/node": "^24.0.13",
+		"@eslint/js": "^9.32.0",
+		"@playwright/test": "^1.54.2",
+		"@types/node": "^24.1.0",
 		"electron": "^37.2.3",
 		"electron-builder": "^26.0.12",
-		"eslint": "^9.31.0",
+		"eslint": "^9.32.0",
 		"globals": "^16.3.0",
 		"lint-staged": "^16.1.2",
 		"prettier": "3.6.2",
-		"typescript": "^5.8.3",
+		"typescript": "^5.9.2",
 		"typescript-eslint": "^8.38.0"
 	}
 }
