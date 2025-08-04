@@ -10,6 +10,8 @@ It provides you with access to the functionality of the browser version of Penpo
 - versatile dark-light mode setup,
 - tab interface for easy navigation between projects,
 - ability to connect to different instances e.g. officially hosted, local for offline work,
+- local instance creator, based on the official Docker setup,
+- batch export of projects,
 - and more are coming.
 
 ## Quick Links
