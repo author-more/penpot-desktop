@@ -10,6 +10,8 @@ It provides you with access to the functionality of the browser version of Penpo
 - versatile dark-light mode setup,
 - tab interface for easy navigation between projects,
 - ability to connect to different instances e.g. officially hosted, local for offline work,
+- local instance creator, based on the official Docker setup,
+- batch export of projects,
 - and more are coming.
 
 ## Quick Links
@@ -23,12 +25,14 @@ It provides you with access to the functionality of the browser version of Penpo
 
 1. Ensure the environment meets the following requirements:
    - Supported OS:
-     - Windows 10 or newer
+     - Windows
      - macOS
      - Linux
-   - [NodeJS](https://nodejs.org/) v20
-   - [Python](https://www.python.org/)
+   - [NodeJS](https://nodejs.org/)
    - [Git](https://git-scm.com/) (optional)
+
+   For the detailed list of requirements, see the [prerequisites in Electron documentation](https://www.electronjs.org/docs/latest/tutorial/tutorial-prerequisites).
+
 1. Clone the repository or download the source code.
 1. Navigate to the project's directory.
 1. Run `npm ci` to install packages.
