@@ -5,6 +5,7 @@ import {
 	SlColorPicker,
 	SlDialog,
 	SlIconButton,
+	SlInput,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
@@ -87,9 +88,46 @@ async function openInstanceCreator(creator) {
 		customElements.whenDefined("sl-input"),
 		customElements.whenDefined("sl-checkbox"),
 	]);
+	await prepareTagInput();
+
 	form?.addEventListener("submit", handleInstanceCreation);
 
 	creator.show();
+}
+
+async function prepareTagInput() {
+	const { form } = getInstanceCreatorElements();
+	const tagInput =
+		form && typedQuerySelector("sl-input[name='tag']", SlInput, form);
+	const isTagListSet = tagInput?.shadowRoot
+		?.querySelector('[part="input"]')
+		?.hasAttribute("list");
+
+	if (!tagInput || isTagListSet) {
+		return;
+	}
+
+	const { dockerTags } = await window.api.instance.getSetupInfo();
+	const tagOptionElements = dockerTags.map((tag) => {
+		const option = document.createElement("option");
+		option.value = tag;
+		option.textContent = tag;
+
+		return option;
+	});
+	const dataListElement = document.createElement("datalist");
+
+	dataListElement.id = "tags";
+	dataListElement?.replaceChildren(...tagOptionElements);
+
+	// The Shoelace's sl-input doesn't support `datalist`, because of the shadow DOM boundaries. As a workaround, we append it in the shadow root of the sl-input web component.
+	// See https://github.com/shoelace-style/shoelace/pull/485
+	tagInput?.shadowRoot
+		?.querySelector('[part="base"]')
+		?.appendChild(dataListElement);
+	tagInput?.shadowRoot
+		?.querySelector('[part="input"]')
+		?.setAttribute("list", "tags");
 }
 
 async function getCreatorAlert() {

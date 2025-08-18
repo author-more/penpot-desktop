@@ -6,12 +6,14 @@ import {
 	getGPUDiagnostics,
 	getSystemDiagnostics,
 } from "../process/diagnostics.js";
+import { Tag } from "../process/docker.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
 	instance: {
 		getSetupInfo: () => Promise<{
 			isDockerAvailable: boolean;
+			dockerTags: Tag["name"][];
 			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
 		create: (instance: Record<string, unknown>) => Promise<string>;
