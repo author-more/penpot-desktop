@@ -2,7 +2,12 @@ import { app, ipcMain, shell } from "electron";
 import { join } from "node:path";
 import { settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
-import { composeUp, isDockerAvailable } from "./docker.js";
+import {
+	composeUp,
+	DOCKER_REPOSITORIES,
+	getAvailableTags,
+	isDockerAvailable,
+} from "./docker.js";
 
 import { z, ZodError } from "zod";
 import { findAvailablePort } from "./server.js";
@@ -26,13 +31,20 @@ const checkboxSchema = z
 	.optional()
 	.transform((value) => Boolean(value));
 
+const dockerTag = z.union([
+	z.literal(["latest", "main"]),
+	z.string().regex(/^\d+\.\d+\.\d+$/),
+]);
+
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
+	tag: dockerTag,
 	enableElevatedAccess: checkboxSchema,
 	enableInstanceTelemetry: checkboxSchema,
 });
 export const localInstanceConfig = z.object({
 	dockerId: z.string(),
+	tag: dockerTag.default("latest"),
 	ports: z.object({
 		frontend: z.number().min(0).max(65535),
 		mailcatch: z.number().min(0).max(65535),
@@ -48,8 +60,13 @@ export const localInstances = observe(instancesConfig, (newInstances) => {
 	writeConfig(CONFIG_INSTANCES_NAME, newInstances);
 });
 
+const penpotDockerRepositoryAvailableTags = await getAvailableTags(
+	DOCKER_REPOSITORIES.FRONTEND,
+);
+
 ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	isDockerAvailable: await isDockerAvailable(),
+	dockerTags: penpotDockerRepositoryAvailableTags,
 	containerSolution: getContainerSolution(),
 }));
 
@@ -85,13 +102,13 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		throw new Error(message);
 	}
 
-	const { label, enableElevatedAccess, enableInstanceTelemetry } =
+	const { label, tag, enableElevatedAccess, enableInstanceTelemetry } =
 		validInstance;
 	const id = crypto.randomUUID();
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
-		await composeUp(containerNameId, ports, {
+		await composeUp(containerNameId, tag, ports, {
 			isSudoEnabled: enableElevatedAccess,
 			isInstanceTelemetryEnabled: enableInstanceTelemetry,
 		});
@@ -106,6 +123,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		localInstances[id] = {
 			...localInstances[id],
 			dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
+			tag,
 			ports,
 			isInstanceTelemetryEnabled: enableInstanceTelemetry,
 		};

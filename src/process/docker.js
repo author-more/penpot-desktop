@@ -11,12 +11,59 @@ import { isLinux } from "./platform.js";
 const exec = promisify(child_process.exec);
 
 /**
+ * @typedef {Object} TagImage
+ * @property {string} architecture
+ * @property {string} features
+ * @property {string|null} variant
+ * @property {string} digest
+ * @property {string} os
+ * @property {string} os_features
+ * @property {string|null} os_version
+ * @property {number} size
+ * @property {string} status
+ * @property {string} last_pulled
+ * @property {string} last_pushed
+ */
+
+/**
+ * @typedef {Object} Tag
+ * @property {number} creator
+ * @property {number} id
+ * @property {TagImage[]} images
+ * @property {string} last_updated
+ * @property {number} last_updater
+ * @property {string} last_updater_username
+ * @property {string} name
+ * @property {number} repository
+ * @property {number} full_size
+ * @property {boolean} v2
+ * @property {string} tag_status
+ * @property {string} tag_last_pulled
+ * @property {string} tag_last_pushed
+ * @property {string} media_type
+ * @property {string} content_type
+ * @property {string} digest
+ */
+
+/**
+ * @typedef {Object} Tags
+ * @property {number} count
+ * @property {string|null} next
+ * @property {string|null} previous
+ * @property {Tag[]} results
+ */
+
+/**
  * @typedef {import("zod").z.infer<typeof import("./instance.js").localInstanceConfig>} LocalInstanceConfig
  *
  * @typedef {Object} CommandOptions
  * @property {boolean =} isSudoEnabled
  * @property {boolean =} isInstanceTelemetryEnabled
  */
+
+export const DOCKER_REPOSITORIES = Object.freeze({
+	FRONTEND: "penpotapp/frontend",
+});
 
 const sudoOptions = {
 	name: "Penpot Desktop",
@@ -39,16 +86,59 @@ export async function isDockerAvailable() {
 }
 
 /**
+ * Retrieves the list of available Docker tags.
+ *
+ * @param {string} repository
+ */
+export async function getAvailableTags(repository) {
+	const res = await fetch(
+		`https://hub.docker.com/v2/repositories/${repository}/tags`,
+	);
+
+	if (!res.ok) {
+		return [];
+	}
+
+	const { results } = /** @type {Tags}*/ (await res.json());
+	const tags = results.map(({ name }) => name);
+
+	return tags;
+}
+
+/**
+ * Checks if a specific Docker tag is available.
+ *
+ * @param {string} repository
+ * @param {string} tag
+ */
+export async function isTagAvailable(repository, tag) {
+	const res = await fetch(
+		`https://hub.docker.com/v2/repositories/${repository}/tags/${tag}`,
+	);
+
+	if (!res.ok) {
+		return false;
+	}
+
+	const { tag_status } = /** @type {Tag}*/ (await res.json());
+	const isActive = tag_status === "active";
+
+	return isActive;
+}
+
+/**
  * Creates and starts containers
  *
  * @typedef {LocalInstanceConfig["ports"]} ContainerPorts
  *
  * @param {string} containerNamePrefix
+ * @param {Tag["name"]} tag
  * @param {ContainerPorts} ports
  * @param {CommandOptions} options
  */
 export async function composeUp(
 	containerNamePrefix,
+	tag,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
 	{ isSudoEnabled, isInstanceTelemetryEnabled } = {},
 ) {
@@ -56,10 +146,18 @@ export async function composeUp(
 		throw new AppError(ERROR_CODES.MISSING_DOCKER, "Docker command not found.");
 	}
 
+	if (!(await isTagAvailable(DOCKER_REPOSITORIES.FRONTEND, tag))) {
+		throw new AppError(
+			ERROR_CODES.DOCKER_TAG_UNAVAILABLE,
+			`Tag ${tag} is not available.`,
+		);
+	}
+
 	const dockerComposeFilePath = await deployComposeFile();
 	const instanceTelemetryFlag = `${isInstanceTelemetryEnabled ? "enable" : "disable"}-telemetry`;
 
 	const envVariables = {
+		PENPOT_VERSION: `${tag}`,
 		PENPOT_DESKTOP_FRONTEND_PORT: `${frontendPort}`,
 		PENPOT_DESKTOP_MAILCATCH_PORT: `${mailcatchPort}`,
 		PENPOT_DESKTOP_FLAGS: `${instanceTelemetryFlag}`,
