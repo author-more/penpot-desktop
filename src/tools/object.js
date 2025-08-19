@@ -1,11 +1,11 @@
 /**
  * Deep freeze an object.
  *
- * @template {object} T
+ * @template T
  *
  * @param {T} obj
  *
- * @returns {Readonly<T>}
+ * @returns {T extends object ? Readonly<T> : T}
  */
 export function deepFreeze(obj) {
 	const isObject = typeof obj === "object";
@@ -19,7 +19,9 @@ export function deepFreeze(obj) {
 		Object.freeze(obj);
 	}
 
-	return obj;
+	return /** @type {typeof obj extends object ? Readonly<typeof obj> : typeof obj} */ (
+		obj
+	);
 }
 
 /**
