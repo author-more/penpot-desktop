@@ -53,6 +53,19 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+        <release version="v0.18.0" date="2025-08-20">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.18.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added Penpot version support to the local instances creator.</li>
+                </ul>
+                <p>Internal</p>
+                <ul>
+                    <li>Added automated tests.</li>
+                </ul>
+            </description>
+        </release>
         <release version="v0.17.0" date="2025-07-24">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.17.0</url>
             <description>
