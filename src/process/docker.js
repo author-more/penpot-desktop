@@ -91,20 +91,23 @@ export async function isDockerAvailable() {
  * @param {string} repository
  */
 export async function getAvailableTags(repository) {
-	const res = await fetch(
-		`https://hub.docker.com/v2/repositories/${repository}/tags`,
-	);
+	try {
+		const res = await fetch(
+			`https://hub.docker.com/v2/repositories/${repository}/tags`,
+		);
 
-	if (!res.ok) {
+		if (!res.ok) {
+			return [];
+		}
+
+		const { results } = /** @type {Tags}*/ (await res.json());
+		const tags = results.map(({ name }) => name);
+
+		return tags;
+	} catch (error) {
 		return [];
 	}
-
-	const { results } = /** @type {Tags}*/ (await res.json());
-	const tags = results.map(({ name }) => name);
-
-	return tags;
 }
-
 /**
  * Checks if a specific Docker tag is available.
  *
@@ -112,18 +115,22 @@ export async function getAvailableTags(repository) {
  * @param {string} tag
  */
 export async function isTagAvailable(repository, tag) {
-	const res = await fetch(
-		`https://hub.docker.com/v2/repositories/${repository}/tags/${tag}`,
-	);
+	try {
+		const res = await fetch(
+			`https://hub.docker.com/v2/repositories/${repository}/tags/${tag}`,
+		);
 
-	if (!res.ok) {
+		if (!res.ok) {
+			return false;
+		}
+
+		const { tag_status } = /** @type {Tag}*/ (await res.json());
+		const isActive = tag_status === "active";
+
+		return isActive;
+	} catch (error) {
 		return false;
 	}
-
-	const { tag_status } = /** @type {Tag}*/ (await res.json());
-	const isActive = tag_status === "active";
-
-	return isActive;
 }
 
 /**
