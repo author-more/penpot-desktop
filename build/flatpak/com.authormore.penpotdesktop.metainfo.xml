@@ -53,6 +53,15 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+        <release version="v0.18.1" date="2025-08-22">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.18.1</url>
+            <description>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed Docker tag checks to handle offline environment.</li>
+                </ul>
+            </description>
+        </release>
         <release version="v0.18.0" date="2025-08-20">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.18.0</url>
             <description>
