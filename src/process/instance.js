@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
 import {
-	composeUp,
+	compose,
 	DOCKER_REPOSITORIES,
 	getAvailableTags,
 	isDockerAvailable,
@@ -112,7 +112,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
-		await composeUp(containerNameId, tag, ports, {
+		await compose("up", containerNameId, tag, ports, {
 			isSudoEnabled: enableElevatedAccess,
 			isInstanceTelemetryEnabled: enableInstanceTelemetry,
 		});
@@ -162,6 +162,19 @@ ipcMain.on(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
 		instance.isDefault = instance.id === id ? true : false;
 		return instance;
 	});
+});
+
+ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id) => {
+	const localInstance = localInstances[id];
+	if (localInstance) {
+		const { dockerId, tag, ports, isInstanceTelemetryEnabled } = localInstance;
+		await compose("pull", dockerId, tag, ports, {
+			isInstanceTelemetryEnabled,
+		});
+		await compose("up", dockerId, tag, ports, {
+			isInstanceTelemetryEnabled,
+		});
+	}
 });
 
 /**

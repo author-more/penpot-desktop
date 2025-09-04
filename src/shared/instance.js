@@ -16,4 +16,5 @@ export const INSTANCE_EVENTS = Object.freeze({
 	REGISTER: "instance:register",
 	REMOVE: "instance:remove",
 	SET_DEFAULT: "instance:setDefault",
+	UPDATE: "instance:update",
 });

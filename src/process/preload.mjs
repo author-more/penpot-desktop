@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld(
 			register: (instance) => ipcRenderer.send("instance:register", instance),
 			remove: (id) => ipcRenderer.send("instance:remove", id),
 			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
+			update: (id) => ipcRenderer.invoke("instance:update", id),
 		},
 		file: {
 			export: (file) => ipcRenderer.invoke("file:export", file),

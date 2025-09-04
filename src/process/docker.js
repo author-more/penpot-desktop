@@ -138,12 +138,14 @@ export async function isTagAvailable(repository, tag) {
  *
  * @typedef {LocalInstanceConfig["ports"]} ContainerPorts
  *
+ * @param {"up" | "pull"} command
  * @param {string} containerNamePrefix
  * @param {Tag["name"]} tag
  * @param {ContainerPorts} ports
  * @param {CommandOptions} options
  */
-export async function composeUp(
+export async function compose(
+	command,
 	containerNamePrefix,
 	tag,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
@@ -176,7 +178,8 @@ export async function composeUp(
 		},
 		"",
 	);
-	const dockerComposeCommand = `"${dockerPath}" compose -p ${containerNamePrefix} -f "${dockerComposeFilePath}" up -d`;
+	const commandString = command === "up" ? "up -d" : "pull";
+	const dockerComposeCommand = `"${dockerPath}" compose -p ${containerNamePrefix} -f "${dockerComposeFilePath}" ${commandString}`;
 
 	try {
 		const optionEnv = {
@@ -200,7 +203,9 @@ export async function composeUp(
 		}
 	} catch (error) {
 		const message =
-			error instanceof Error ? error.message : "Failed to set up an instance.";
+			error instanceof Error
+				? error.message
+				: `Failed to run Docker's compose ${command} command.`;
 
 		throw new AppError(ERROR_CODES.DOCKER_FAILED_SETUP, message);
 	}

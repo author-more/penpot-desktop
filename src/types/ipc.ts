@@ -20,6 +20,7 @@ export type Api = {
 		register: (instance: Partial<Settings["instances"][number]>) => void;
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
+		update: (id: string) => Promise<void>;
 	};
 	file: {
 		// Unexposed method used between the webview preload and the main process

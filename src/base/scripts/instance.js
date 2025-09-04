@@ -233,6 +233,41 @@ async function handleInstanceCreation(event) {
 }
 
 /**
+ * Handles instance update.
+ *
+ * @param {string} id
+ */
+async function handleInstanceUpdate(id) {
+	try {
+		await window.api.instance.update(id);
+
+		showAlert(
+			"success",
+			{
+				heading: "Instance updated",
+				message: "Local instance has been updated successfully.",
+			},
+			{
+				duration: 3000,
+			},
+		);
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to update an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
+}
+
+/**
  * Fill instance list with instance items.
  */
 async function updateInstanceList() {
@@ -336,6 +371,14 @@ function createInstancePanel(instance, template) {
 						window.api.instance.setDefault(id);
 						hideContextMenu();
 						updateInstanceList();
+						enableSettingsFocusTrap();
+					},
+				},
+				{
+					label: "Update",
+					onClick: async () => {
+						handleInstanceUpdate(id);
+						hideContextMenu();
 						enableSettingsFocusTrap();
 					},
 				},
