@@ -1,6 +1,8 @@
 import "./shoelace.js";
 import "../../../node_modules/electron-tabs/dist/electron-tabs.js";
+
 import "../components/editableText.js";
+import "../components/instanceCreator.js";
 
 import { initTabs } from "./electron-tabs.js";
 import { initInstance } from "./instance.js";
