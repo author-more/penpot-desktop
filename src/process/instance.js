@@ -43,7 +43,11 @@ export const instanceCreateFormSchema = z.object({
 	enableInstanceTelemetry: checkboxSchema,
 });
 export const localInstanceConfig = z.object({
-	dockerId: z.string(),
+	dockerId: z.string().transform((value) => {
+		const hasPrefixDuplicate = value.startsWith("pd-pd");
+
+		return hasPrefixDuplicate ? value.replace(/^pd-pd/, "pd") : value;
+	}),
 	tag: dockerTag.default("latest"),
 	ports: z.object({
 		frontend: z.number().min(0).max(65535),
@@ -122,7 +126,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 		localInstances[id] = {
 			...localInstances[id],
-			dockerId: `${CONTAINER_ID_PREFIX}-${containerNameId}`,
+			dockerId: containerNameId,
 			tag,
 			ports,
 			isInstanceTelemetryEnabled: enableInstanceTelemetry,
