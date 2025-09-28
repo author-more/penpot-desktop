@@ -25,6 +25,7 @@ import {
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
+ * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
  */
 
 export async function initInstance() {
@@ -71,20 +72,37 @@ async function prepareInstanceCreator() {
 		const customEvent = /** @type  {InstanceCreationEvent} */ (event);
 		handleInstanceCreation(customEvent, instanceCreator);
 	});
+	instanceCreator?.addEventListener(INSTANCE_CREATOR_EVENTS.UPDATE, (event) => {
+		const customEvent = /** @type  {InstanceUpdateEvent} */ (event);
+		handleInstanceUpdate(customEvent, instanceCreator);
+	});
 	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
 		instanceCreatorDialog.hide(),
 	);
 }
 
-function addInstance() {
+/**
+ * @param {Event} event
+ */
+function addInstance(event) {
+	event.preventDefault();
+
 	registerInstance({
 		id: crypto.randomUUID(),
 	});
 	updateInstanceList();
 }
 
-async function openInstanceCreator() {
-	const { alertsHolder, instanceCreatorDialog } =
+/**
+ * Opens the instance creator dialog.
+ *
+ * @param {Event | null} [event]
+ * @param {string} [id]
+ */
+async function openInstanceCreator(event, id) {
+	event?.preventDefault();
+
+	const { alertsHolder, instanceCreatorDialog, instanceCreator } =
 		await getInstanceCreatorElements();
 
 	alertsHolder?.replaceChildren();
@@ -93,6 +111,14 @@ async function openInstanceCreator() {
 	if (alert) {
 		alertsHolder?.append(alert);
 	}
+
+	if (!instanceCreator) {
+		return;
+	}
+
+	const instanceConfig = id ? await window.api.instance.getConfig(id) : null;
+
+	instanceCreator.instance = instanceConfig;
 
 	instanceCreatorDialog?.show();
 }
@@ -195,11 +221,17 @@ async function handleInstanceCreation(event, instanceCreator) {
 /**
  * Handles instance update.
  *
- * @param {string} id
+ * @param {InstanceUpdateEvent} event
+ * @param {InstanceCreator} instanceCreator
  */
-async function handleInstanceUpdate(id) {
+async function handleInstanceUpdate(event, instanceCreator) {
+	event.preventDefault();
+
+	instanceCreator.loading = true;
+
+	const { id, ...detail } = event.detail;
 	try {
-		await window.api.instance.update(id);
+		await window.api.instance.update(id, detail);
 
 		showAlert(
 			"success",
@@ -225,6 +257,8 @@ async function handleInstanceUpdate(id) {
 			);
 		}
 	}
+
+	instanceCreator.loading = false;
 }
 
 /**
@@ -335,9 +369,9 @@ function createInstancePanel(instance, template) {
 					},
 				},
 				{
-					label: "Update",
+					label: "Edit",
 					onClick: async () => {
-						handleInstanceUpdate(id);
+						openInstanceCreator(null, id);
 						hideContextMenu();
 						enableSettingsFocusTrap();
 					},

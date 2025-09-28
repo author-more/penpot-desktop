@@ -18,6 +18,7 @@ import { observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
 
 /**
+ * @typedef {z.infer<typeof localInstanceConfig>} LocalInstance
  * @typedef {z.infer<typeof instancesConfigSchema>} LocalInstances
  */
 
@@ -36,12 +37,17 @@ const dockerTag = z.union([
 	z.string().regex(/^\d+\.\d+\.\d+$/),
 ]);
 
+export const instanceIdSchema = z.uuid();
+
 export const instanceCreateFormSchema = z.object({
 	label: z.string().trim().min(1),
 	tag: dockerTag,
 	enableElevatedAccess: checkboxSchema,
 	enableInstanceTelemetry: checkboxSchema,
 });
+
+const instanceUpdateSchema = instanceCreateFormSchema.omit({ label: true });
+
 export const localInstanceConfig = z.object({
 	dockerId: z.string().transform((value) => {
 		const hasPrefixDuplicate = value.startsWith("pd-pd");
@@ -55,7 +61,7 @@ export const localInstanceConfig = z.object({
 	}),
 	isInstanceTelemetryEnabled: z.boolean(),
 });
-const instancesConfigSchema = z
+export const instancesConfigSchema = z
 	.record(z.string(), localInstanceConfig)
 	.default({});
 
@@ -73,6 +79,23 @@ ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	dockerTags: penpotDockerRepositoryAvailableTags,
 	containerSolution: getContainerSolution(),
 }));
+
+ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
+	const isValidId = instanceIdSchema.safeParse(id);
+	if (!isValidId.success) {
+		return null;
+	}
+
+	const instance = settings.instances.find((instance) => instance.id === id);
+	const localInstance = localInstances[id];
+	if (!instance || !localInstance) {
+		return null;
+	}
+
+	const { label } = instance;
+	const { tag, isInstanceTelemetryEnabled } = localInstance;
+	return { id, label, tag, isInstanceTelemetryEnabled };
+});
 
 ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	let validInstance;
@@ -164,15 +187,48 @@ ipcMain.on(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
 	});
 });
 
-ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id) => {
-	const localInstance = localInstances[id];
-	if (localInstance) {
-		const { dockerId, tag, ports, isInstanceTelemetryEnabled } = localInstance;
+ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
+	let validInstance;
+
+	try {
+		instanceIdSchema.parse(id);
+		validInstance = instanceUpdateSchema.parse(instance);
+	} catch (error) {
+		let message;
+
+		if (error instanceof ZodError) {
+			message = "Invalid input.";
+		}
+
+		console.error(`[ERROR] [instance:update]: ${message}`);
+
+		throw new Error(message);
+	}
+
+	if (localInstances[id]) {
+		const {
+			tag: newTag,
+			enableInstanceTelemetry,
+			enableElevatedAccess,
+		} = validInstance;
+
+		localInstances[id] = {
+			...localInstances[id],
+			tag: newTag,
+			isInstanceTelemetryEnabled: enableInstanceTelemetry,
+		};
+
+		const { dockerId, tag, ports, isInstanceTelemetryEnabled } =
+			localInstances[id];
+		const isSudoEnabled = enableElevatedAccess;
+
 		await compose("pull", dockerId, tag, ports, {
 			isInstanceTelemetryEnabled,
+			isSudoEnabled,
 		});
 		await compose("up", dockerId, tag, ports, {
 			isInstanceTelemetryEnabled,
+			isSudoEnabled,
 		});
 	}
 });

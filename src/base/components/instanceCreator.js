@@ -1,5 +1,6 @@
 import {
 	SlButton,
+	SlCheckbox,
 	SlInput,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { typedQuerySelector } from "../scripts/dom.js";
@@ -12,10 +13,17 @@ import { typedQuerySelector } from "../scripts/dom.js";
  * @property {string} [tag]
  * @property {string} [enableInstanceTelemetry]
  * @property {string} [enableElevatedAccess]
+ *
+ * @typedef {Object} ExistingInstanceDetails
+ * @property {string} id
+ * @property {InstanceCreationDetails["label"]} label
+ * @property {InstanceCreationDetails["tag"]} tag
+ * @property {boolean} isInstanceTelemetryEnabled
  */
 
 export const INSTANCE_CREATOR_EVENTS = Object.freeze({
 	CREATE: "instance-creator:create",
+	UPDATE: "instance-creator:update",
 	CLOSE: "instance-creator:close",
 });
 
@@ -25,6 +33,8 @@ export class InstanceCreator extends HTMLElement {
 
 		/** @type {DockerTag[] | null} */
 		this._dockerTags = null;
+		/** @type { ExistingInstanceDetails | null} */
+		this._instance = null;
 		/** @type {HTMLFormElement | null} */
 		this._form = null;
 		/** @type {SlInput | null} */
@@ -166,6 +176,16 @@ export class InstanceCreator extends HTMLElement {
 		this.prepareTagInput(this._tagInput, this._dockerTags);
 	}
 
+	get instance() {
+		return this._instance;
+	}
+
+	set instance(instance) {
+		this._instance = instance;
+
+		this.render();
+	}
+
 	get loading() {
 		return this._submitButton?.hasAttribute("loading") || false;
 	}
@@ -212,6 +232,37 @@ export class InstanceCreator extends HTMLElement {
 			SlButton,
 			this.shadowRoot,
 		);
+
+		if (this._instance) {
+			const labelInput = typedQuerySelector(
+				"sl-input[name='label']",
+				SlInput,
+				this.shadowRoot,
+			);
+			const telemetryCheckbox = typedQuerySelector(
+				"sl-checkbox[name='enableInstanceTelemetry']",
+				SlCheckbox,
+				this.shadowRoot,
+			);
+
+			if (labelInput && this._instance.label) {
+				labelInput.value = this._instance.label;
+				labelInput.disabled = true;
+			}
+			if (this._tagInput && this._instance.tag) {
+				this._tagInput.value = this._instance.tag;
+			}
+			if (
+				telemetryCheckbox &&
+				Object.hasOwn(this._instance, "isInstanceTelemetryEnabled")
+			) {
+				telemetryCheckbox.checked = this._instance.isInstanceTelemetryEnabled;
+			}
+
+			if (this._submitButton) {
+				this._submitButton.textContent = "Update";
+			}
+		}
 
 		this._form?.addEventListener("submit", this);
 		this._closeButton?.addEventListener("click", this);
@@ -280,10 +331,17 @@ export class InstanceCreator extends HTMLElement {
 		const formData = new FormData(form);
 		/** @type {InstanceCreationDetails} */
 		const detail = Object.fromEntries(formData.entries());
+		const { id: instanceId } = this._instance || {};
+		const eventName = instanceId
+			? INSTANCE_CREATOR_EVENTS.UPDATE
+			: INSTANCE_CREATOR_EVENTS.CREATE;
 
 		this.dispatchEvent(
-			new CustomEvent(INSTANCE_CREATOR_EVENTS.CREATE, {
-				detail,
+			new CustomEvent(eventName, {
+				detail: {
+					...detail,
+					...(instanceId && { id: instanceId }),
+				},
 				bubbles: true,
 				composed: true,
 			}),
@@ -297,6 +355,8 @@ export class InstanceCreator extends HTMLElement {
 				composed: true,
 			}),
 		);
+
+		this._instance = null;
 	}
 }
 
