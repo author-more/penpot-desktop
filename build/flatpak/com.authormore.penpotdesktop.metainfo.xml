@@ -53,6 +53,20 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+        <release version="v0.19.0" date="2025-10-03">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.19.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added local instance update support.</li>
+                </ul>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed the local instance's container ID in the config to match the one used for containers.</li>
+                    <li>[macOS] Fixed the application to not trigger system-wide lag on macOS 26.</li>
+                </ul>
+            </description>
+        </release>
         <release version="v0.18.1" date="2025-08-22">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.18.1</url>
             <description>
