@@ -7,6 +7,7 @@ import {
 	getSystemDiagnostics,
 } from "../process/diagnostics.js";
 import { Tag } from "../process/docker.js";
+import { AllInstances, LocalInstance } from "../process/instance.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
@@ -16,8 +17,17 @@ export type Api = {
 			dockerTags: Tag["name"][];
 			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
-		create: (instance: Record<string, unknown>) => Promise<string>;
+		getAll: () => Promise<AllInstances>;
+		getConfig: (
+			id: string,
+		) => Promise<
+			| (Pick<Settings["instances"][number], "id" | "label"> &
+					Pick<LocalInstance, "tag" | "isInstanceTelemetryEnabled">)
+			| null
+		>;
 		register: (instance: Partial<Settings["instances"][number]>) => void;
+		create: (instance: Record<string, unknown>) => Promise<string>;
+		update: (id: string, instance: Record<string, unknown>) => Promise<void>;
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
 	};

@@ -72,10 +72,10 @@
 			<li><a id="open-credits" href="#">Credits</a></li>
 		</ul>
 	</div>
-	<sl-include
-		id="include-instance-creator"
-		src="components/instanceCreator.html"
-	></sl-include>
+	<sl-dialog id="instance-creator-dialog" label="Instance creator">
+		<alerts-holder></alerts-holder>
+		<instance-creator></instance-creator>
+	</sl-dialog>
 </sl-drawer>
 
 <template id="template-instance-panel">

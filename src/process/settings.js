@@ -6,6 +6,7 @@ import { DEFAULT_INSTANCE } from "../shared/instance.js";
 import { getMainWindow } from "./window.js";
 import { HSLA_REGEXP } from "../tools/color.js";
 import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
+import { instanceIdSchema } from "./instance.js";
 
 const CONFIG_SETTINGS_NAME = "settings";
 const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
@@ -26,7 +27,7 @@ const settingsSchema = z.object({
 		.array(
 			z
 				.object({
-					id: z.uuid().default(() => crypto.randomUUID()),
+					id: instanceIdSchema.default(() => crypto.randomUUID()),
 					origin: z.url().default(DEFAULT_INSTANCE.origin),
 					label: z.string().default("Your instance"),
 					color: z

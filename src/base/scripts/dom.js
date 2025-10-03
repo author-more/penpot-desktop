@@ -79,9 +79,24 @@ export async function getIncludedElement(selector, includeSelector, type) {
  */
 export function typedQuerySelector(selector, type, parent = document) {
 	const element = parent?.querySelector(selector);
-	if (element instanceof type) {
+	if (isInstanceOf(element, type)) {
 		return element;
 	}
 
 	return null;
+}
+
+/**
+ * Checks if the subject is an instance of the specified type.
+ *
+ * @template S
+ * @template T
+ *
+ * @param {S} subject - The element to check.
+ * @param {Class<T>} type - The constructor function of the type to check against.
+ *
+ * @returns {subject is T}
+ */
+export function isInstanceOf(subject, type) {
+	return subject instanceof type;
 }

@@ -5,7 +5,6 @@ import {
 	SlColorPicker,
 	SlDialog,
 	SlIconButton,
-	SlInput,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
@@ -18,13 +17,20 @@ import {
 } from "./settings.js";
 import { createAlert, showAlert } from "./alert.js";
 import { CONTAINER_SOLUTIONS } from "../../shared/platform.js";
+import {
+	INSTANCE_CREATOR_EVENTS,
+	InstanceCreator,
+} from "../components/instanceCreator.js";
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
+ * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
+ * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
+ * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
  */
 
 export async function initInstance() {
-	const instances = await window.api.getSetting("instances");
+	const instances = await window.api.instance.getAll();
 
 	const { id, origin, color } =
 		instances.find(({ isDefault }) => isDefault) || instances[0];
@@ -40,29 +46,48 @@ export async function initInstance() {
 
 	updateInstanceList();
 	prepareInstanceControls();
+	prepareInstanceCreator();
 }
 
 async function prepareInstanceControls() {
-	const {
-		instanceButtonAdd,
-		instanceButtonOpenCreator,
-		instanceButtonCloseCreator,
-		instanceCreator,
-	} = await getInstanceSettingsElements();
+	const { instanceButtonAdd, instanceButtonOpenCreator } =
+		await getInstanceSettingsElements();
 
 	instanceButtonAdd?.addEventListener("click", addInstance);
-
-	if (instanceCreator) {
-		instanceButtonOpenCreator?.addEventListener("click", () =>
-			openInstanceCreator(instanceCreator),
-		);
-		instanceButtonCloseCreator?.addEventListener("click", () =>
-			instanceCreator.hide(),
-		);
-	}
+	instanceButtonOpenCreator?.addEventListener("click", openInstanceCreator);
 }
 
-function addInstance() {
+async function prepareInstanceCreator() {
+	const { instanceCreatorDialog, instanceCreator } =
+		await getInstanceCreatorElements();
+
+	if (!instanceCreatorDialog || !instanceCreator) {
+		return;
+	}
+
+	const { dockerTags } = await window.api.instance.getSetupInfo();
+
+	instanceCreator.dockerTags = dockerTags;
+
+	instanceCreator?.addEventListener(INSTANCE_CREATOR_EVENTS.CREATE, (event) => {
+		const customEvent = /** @type  {InstanceCreationEvent} */ (event);
+		handleInstanceCreation(customEvent, instanceCreator);
+	});
+	instanceCreator?.addEventListener(INSTANCE_CREATOR_EVENTS.UPDATE, (event) => {
+		const customEvent = /** @type  {InstanceUpdateEvent} */ (event);
+		handleInstanceUpdate(customEvent, instanceCreator);
+	});
+	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
+		instanceCreatorDialog.hide(),
+	);
+}
+
+/**
+ * @param {Event} event
+ */
+function addInstance(event) {
+	event.preventDefault();
+
 	registerInstance({
 		id: crypto.randomUUID(),
 	});
@@ -70,64 +95,33 @@ function addInstance() {
 }
 
 /**
- * @param {SlDialog} creator
+ * Opens the instance creator dialog.
+ *
+ * @param {Event | null} [event]
+ * @param {string} [id]
  */
-async function openInstanceCreator(creator) {
-	const { alertsHolder, form } = getInstanceCreatorElements();
+async function openInstanceCreator(event, id) {
+	event?.preventDefault();
+
+	const { alertsHolder, instanceCreatorDialog, instanceCreator } =
+		await getInstanceCreatorElements();
 
 	alertsHolder?.replaceChildren();
 
 	const alert = await getCreatorAlert();
-
 	if (alert) {
 		alertsHolder?.append(alert);
 	}
 
-	// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
-	await Promise.all([
-		customElements.whenDefined("sl-input"),
-		customElements.whenDefined("sl-checkbox"),
-	]);
-	await prepareTagInput();
-
-	form?.addEventListener("submit", handleInstanceCreation);
-
-	creator.show();
-}
-
-async function prepareTagInput() {
-	const { form } = getInstanceCreatorElements();
-	const tagInput =
-		form && typedQuerySelector("sl-input[name='tag']", SlInput, form);
-	const isTagListSet = tagInput?.shadowRoot
-		?.querySelector('[part="input"]')
-		?.hasAttribute("list");
-
-	if (!tagInput || isTagListSet) {
+	if (!instanceCreator) {
 		return;
 	}
 
-	const { dockerTags } = await window.api.instance.getSetupInfo();
-	const tagOptionElements = dockerTags.map((tag) => {
-		const option = document.createElement("option");
-		option.value = tag;
-		option.textContent = tag;
+	const instanceConfig = id ? await window.api.instance.getConfig(id) : null;
 
-		return option;
-	});
-	const dataListElement = document.createElement("datalist");
+	instanceCreator.instance = instanceConfig;
 
-	dataListElement.id = "tags";
-	dataListElement?.replaceChildren(...tagOptionElements);
-
-	// The Shoelace's sl-input doesn't support `datalist`, because of the shadow DOM boundaries. As a workaround, we append it in the shadow root of the sl-input web component.
-	// See https://github.com/shoelace-style/shoelace/pull/485
-	tagInput?.shadowRoot
-		?.querySelector('[part="base"]')
-		?.appendChild(dataListElement);
-	tagInput?.shadowRoot
-		?.querySelector('[part="input"]')
-		?.setAttribute("list", "tags");
+	instanceCreatorDialog?.show();
 }
 
 async function getCreatorAlert() {
@@ -184,22 +178,16 @@ async function getCreatorAlert() {
 /**
  * Handles instance creation from form submission.
  *
- * @param {SubmitEvent} event
+ * @param {InstanceCreationEvent} event
+ * @param {InstanceCreator} instanceCreator
  */
-async function handleInstanceCreation(event) {
+async function handleInstanceCreation(event, instanceCreator) {
 	event.preventDefault();
 
-	const { form, buttonSubmit } = getInstanceCreatorElements();
-
-	if (!form) {
-		return;
-	}
-
-	buttonSubmit?.setAttribute("loading", "true");
+	instanceCreator.loading = true;
 
 	try {
-		const data = new FormData(form);
-		const instance = Object.fromEntries(data.entries());
+		const instance = event.detail;
 		await window.api.instance.create(instance);
 
 		showAlert(
@@ -228,8 +216,50 @@ async function handleInstanceCreation(event) {
 		}
 	}
 
-	form.reset();
-	buttonSubmit?.removeAttribute("loading");
+	instanceCreator.loading = false;
+}
+
+/**
+ * Handles instance update.
+ *
+ * @param {InstanceUpdateEvent} event
+ * @param {InstanceCreator} instanceCreator
+ */
+async function handleInstanceUpdate(event, instanceCreator) {
+	event.preventDefault();
+
+	instanceCreator.loading = true;
+
+	const { id, ...detail } = event.detail;
+	try {
+		await window.api.instance.update(id, detail);
+
+		showAlert(
+			"success",
+			{
+				heading: "Instance updated",
+				message: "Local instance has been updated successfully.",
+			},
+			{
+				duration: 3000,
+			},
+		);
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to update an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
+
+	instanceCreator.loading = false;
 }
 
 /**
@@ -243,7 +273,7 @@ async function updateInstanceList() {
 		return;
 	}
 
-	const instances = await window.api.getSetting("instances");
+	const instances = await window.api.instance.getAll();
 	const instancePanels = instances
 		.map((instance) => createInstancePanel(instance, instancePanelTemplate))
 		.filter(isNonNull);
@@ -254,7 +284,7 @@ async function updateInstanceList() {
 /**
  * Creates an instance panel element.
  *
- * @param {Instances[number]} instance
+ * @param {AllInstances[number]} instance
  * @param {HTMLTemplateElement} template
  */
 function createInstancePanel(instance, template) {
@@ -321,7 +351,7 @@ function createInstancePanel(instance, template) {
 	const panelElement = typedQuerySelector(".panel", HTMLElement, instancePanel);
 	if (panelElement) {
 		panelElement.addEventListener("contextmenu", async () => {
-			const { id, origin, color } = instance;
+			const { id, origin, color, isLocal } = instance;
 
 			await disableSettingsFocusTrap();
 
@@ -339,6 +369,18 @@ function createInstancePanel(instance, template) {
 						enableSettingsFocusTrap();
 					},
 				},
+				...(isLocal
+					? [
+							{
+								label: "Edit",
+								onClick: async () => {
+									openInstanceCreator(null, id);
+									hideContextMenu();
+									enableSettingsFocusTrap();
+								},
+							},
+						]
+					: []),
 			]);
 		});
 	}
@@ -367,36 +409,32 @@ async function getInstanceSettingsElements() {
 		"#include-settings",
 		SlButton,
 	);
-	const instanceButtonCloseCreator = await getIncludedElement(
-		"#instance-close-creator",
-		["#include-settings", "#include-instance-creator"],
-		SlButton,
-	);
-	const instanceCreator = await getIncludedElement(
-		"#instance-creator",
-		["#include-settings", "#include-instance-creator"],
-		SlDialog,
-	);
 
 	return {
 		instanceList,
 		instancePanelTemplate,
 		instanceButtonAdd,
 		instanceButtonOpenCreator,
-		instanceButtonCloseCreator,
-		instanceCreator,
 	};
 }
 
-function getInstanceCreatorElements() {
+async function getInstanceCreatorElements() {
 	const alertsHolder = typedQuerySelector(
-		"#instance-creator alerts-holder",
+		"#instance-creator-dialog alerts-holder",
 		HTMLElement,
 	);
-	const form = typedQuerySelector("#instance-creator-form", HTMLFormElement);
-	const buttonSubmit = typedQuerySelector("#instance-submit-creator", SlButton);
+	const instanceCreatorDialog = await getIncludedElement(
+		"#instance-creator-dialog",
+		["#include-settings"],
+		SlDialog,
+	);
+	const instanceCreator = await getIncludedElement(
+		"instance-creator",
+		["#include-settings"],
+		InstanceCreator,
+	);
 
-	return { alertsHolder, form, buttonSubmit };
+	return { alertsHolder, instanceCreatorDialog, instanceCreator };
 }
 
 /**
