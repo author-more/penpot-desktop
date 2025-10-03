@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld(
 		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
+			getAll: () => ipcRenderer.invoke("instance:get-all"),
 			getConfig: (id) => ipcRenderer.invoke("instance:get-config", id),
 			register: (instance) => ipcRenderer.send("instance:register", instance),
 			create: (instance) => ipcRenderer.invoke("instance:create", instance),

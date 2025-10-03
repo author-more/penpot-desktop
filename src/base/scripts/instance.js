@@ -24,12 +24,13 @@ import {
 
 /**
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
+ * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
  */
 
 export async function initInstance() {
-	const instances = await window.api.getSetting("instances");
+	const instances = await window.api.instance.getAll();
 
 	const { id, origin, color } =
 		instances.find(({ isDefault }) => isDefault) || instances[0];
@@ -272,7 +273,7 @@ async function updateInstanceList() {
 		return;
 	}
 
-	const instances = await window.api.getSetting("instances");
+	const instances = await window.api.instance.getAll();
 	const instancePanels = instances
 		.map((instance) => createInstancePanel(instance, instancePanelTemplate))
 		.filter(isNonNull);
@@ -283,7 +284,7 @@ async function updateInstanceList() {
 /**
  * Creates an instance panel element.
  *
- * @param {Instances[number]} instance
+ * @param {AllInstances[number]} instance
  * @param {HTMLTemplateElement} template
  */
 function createInstancePanel(instance, template) {
@@ -350,7 +351,7 @@ function createInstancePanel(instance, template) {
 	const panelElement = typedQuerySelector(".panel", HTMLElement, instancePanel);
 	if (panelElement) {
 		panelElement.addEventListener("contextmenu", async () => {
-			const { id, origin, color } = instance;
+			const { id, origin, color, isLocal } = instance;
 
 			await disableSettingsFocusTrap();
 
@@ -368,14 +369,18 @@ function createInstancePanel(instance, template) {
 						enableSettingsFocusTrap();
 					},
 				},
-				{
-					label: "Edit",
-					onClick: async () => {
-						openInstanceCreator(null, id);
-						hideContextMenu();
-						enableSettingsFocusTrap();
-					},
-				},
+				...(isLocal
+					? [
+							{
+								label: "Edit",
+								onClick: async () => {
+									openInstanceCreator(null, id);
+									hideContextMenu();
+									enableSettingsFocusTrap();
+								},
+							},
+						]
+					: []),
 			]);
 		});
 	}

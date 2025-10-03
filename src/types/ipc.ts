@@ -7,7 +7,7 @@ import {
 	getSystemDiagnostics,
 } from "../process/diagnostics.js";
 import { Tag } from "../process/docker.js";
-import { LocalInstance } from "../process/instance.js";
+import { AllInstances, LocalInstance } from "../process/instance.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
@@ -17,6 +17,7 @@ export type Api = {
 			dockerTags: Tag["name"][];
 			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
+		getAll: () => Promise<AllInstances>;
 		getConfig: (
 			id: string,
 		) => Promise<

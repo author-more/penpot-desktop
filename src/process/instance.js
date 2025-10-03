@@ -18,6 +18,8 @@ import { observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
 
 /**
+ * @typedef {(import("./settings.js").Settings['instances'][number] & { isLocal: boolean})[]} AllInstances
+ *
  * @typedef {z.infer<typeof localInstanceConfig>} LocalInstance
  * @typedef {z.infer<typeof instancesConfigSchema>} LocalInstances
  */
@@ -79,6 +81,19 @@ ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	dockerTags: penpotDockerRepositoryAvailableTags,
 	containerSolution: getContainerSolution(),
 }));
+
+ipcMain.handle(INSTANCE_EVENTS.GET_ALL, async () => {
+	const instances = settings.instances.map((instance) => {
+		const isLocal = !!localInstances[instance.id];
+
+		return {
+			...instance,
+			isLocal,
+		};
+	});
+
+	return instances;
+});
 
 ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
 	const isValidId = instanceIdSchema.safeParse(id);
