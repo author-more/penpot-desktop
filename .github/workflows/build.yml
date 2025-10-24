@@ -42,10 +42,37 @@ jobs:
           else
             npm run test
           fi
-      - name: Build
+      - name: Build macOS with signing & notarization
+        if: ${{ matrix.os == 'macos-latest' && github.event_name == 'push' && github.ref_name == 'main' }}
+        timeout-minutes: 15
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+
+          # @electron/notarize (used by electron-builder) requires the API key to be stored in a file
+          mkdir -p "$HOME/keys"
+          KEY_FILE="$HOME/keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8"
+          printf "%s" "${{ secrets.APPLE_API_KEY }}" | base64 --decode > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          # Clean up the key file
+          trap 'rm -f -- "${KEY_FILE:-}"' EXIT INT TERM
+
+          export APPLE_API_KEY="$KEY_FILE"
+
+          npm run build -- --x64 --arm64
+      - name: Build base
+        if: ${{ !(matrix.os == 'macos-latest' && github.event_name == 'push' && github.ref_name == 'main') }}
+        timeout-minutes: 15
         shell: bash
         run: |
-          if [ "${{ github.head_ref || github.ref_name }}" = "main" ]; then
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref_name }}" = "main" ]; then
             npm run build -- --x64 --arm64
           else
             npm run build -- --x64 --arm64 --publish=never
