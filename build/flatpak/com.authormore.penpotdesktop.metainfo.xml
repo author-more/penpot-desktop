@@ -53,6 +53,15 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v0.20.0" date="2025-10-24">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.20.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>[macOS] Added signing and notarisation of the macOS builds.</li>
+                </ul>
+            </description>
+        </release>
         <release version="v0.19.0" date="2025-10-03">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.19.0</url>
             <description>
