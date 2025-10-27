@@ -14,6 +14,8 @@ It provides you with access to the functionality of the browser version of Penpo
 - batch export of projects,
 - and more are coming.
 
+📡 Penpot Desktop loads the Penpot web application like a browser does. For offline use, the built-in [local instance creator](https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting#instance-creator) can set up and run a local Penpot instance via Docker (per the official self‑hosting guide).
+
 ## Quick Links
 
 - [Penpot](https://penpot.app/) - The official website for Penpot.
