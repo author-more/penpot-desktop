@@ -198,7 +198,8 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		}
 
 		const isFileChange = event.channel === FILE_EVENTS.CHANGE;
-		if (isFileChange) {
+		const isAutoReloadEnabled = await window.api.getSetting("enableAutoReload");
+		if (isFileChange && isAutoReloadEnabled) {
 			const [fileId] = event.args;
 			const tabGroup = await getTabGroup();
 			const tabs = tabGroup?.getTabs() || [];

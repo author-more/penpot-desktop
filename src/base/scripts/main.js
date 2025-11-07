@@ -10,6 +10,7 @@ import { initSettings } from "./settings.js";
 import { initTheme } from "./theme.js";
 import { initToggles } from "./toggles.js";
 import { initTitleBarType } from "./titleBar.js";
+import { initViewMode } from "./viewMode.js";
 
 import "./devtools.js";
 
@@ -20,6 +21,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	initToggles();
 	initSettings();
 	initTitleBarType();
+	initViewMode();
 });
 
 window.api.onSetFlag((flag, value) => {
