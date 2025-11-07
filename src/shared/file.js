@@ -4,6 +4,7 @@
 export const FILE_EVENTS = Object.freeze({
 	PREPARE_PATH: "file:prepare-path",
 	EXPORT: "file:export",
+	CHANGE: "file:change",
 });
 
 /**

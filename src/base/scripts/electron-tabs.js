@@ -197,6 +197,23 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 			handleInTabThemeUpdate(theme);
 		}
 
+		const isFileChange = event.channel === FILE_EVENTS.CHANGE;
+		if (isFileChange) {
+			const [fileId] = event.args;
+			const tabGroup = await getTabGroup();
+			const tabs = tabGroup?.getTabs() || [];
+
+			for (const tab of tabs) {
+				const webview = /** @type {WebviewTag} */ (tab.webview);
+				const tabUrl = new URL(webview.src);
+				const isViewModeTab =
+					tabUrl.hash.startsWith("#/view") && tabUrl.hash.includes(fileId);
+				if (isViewModeTab) {
+					webview.reload();
+				}
+			}
+		}
+
 		const isFileExport = event.channel === FILE_EVENTS.EXPORT;
 		if (isFileExport) {
 			const [files, failedExports] = event.args;

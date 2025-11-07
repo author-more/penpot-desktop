@@ -31,6 +31,8 @@ const BUTTON_DOWNLOAD_PROJECTS_ID = "download-projects";
 
 // Disabled button's label has low contrast and it's hard to read the progress updates. Instead of disabling the button, the functionality is disabled through the flag.
 let isExportInProgress = false;
+/** @type {MutationObserver['disconnect'][]} */
+let fileStatusObserverDisconnects = [];
 
 // Set the title of the tab name
 /// Instead of the tab name being "PROJECT_NAME - Penpot", this script will remove the " - Penpot" portion.
@@ -120,10 +122,18 @@ window.addEventListener("DOMContentLoaded", () => {
 // @ts-expect-error
 navigation.addEventListener("navigate", (event) => {
 	const url = new URL(event.destination.url);
+	const search = extractSearchFromHash(url.hash);
+	const searchParams = new URLSearchParams(search);
+	const fileId = searchParams.get("file-id");
 	const isDashboard = url.hash.startsWith("#/dashboard");
+	const isWorkspace = url.hash.startsWith("#/workspace");
 
 	if (isDashboard) {
 		prepareUI();
+	}
+
+	if (isWorkspace && fileId) {
+		trackProjectStatus(fileId);
 	}
 });
 
@@ -133,22 +143,44 @@ ipcRenderer.on("file:export-finish", () => cleanUpUI());
 /**
  * Observes a node and executes a callback on a class change.
  *
+ * @typedef {Object} Options
+ * @property {string|null} [className] - The class name to watch for.
+ *
  * @param {Parameters<MutationObserver["observe"]>[0]} node
  * @param {function} callback
+ * @param {Options} options
  */
-function onClassChange(node, callback) {
+function onClassChange(
+	node,
+	callback,
+	{ className } = {
+		className: null,
+	},
+) {
 	const observer = new MutationObserver((mutations) => {
-		const hasClassChanged = mutations.some(
-			({ type, attributeName }) =>
-				type === "attributes" && attributeName === "class",
-		);
+		for (const mutation of mutations) {
+			if (!className) {
+				callback();
+				continue;
+			}
 
-		if (hasClassChanged) {
-			callback();
+			const { target, oldValue } = mutation;
+			const hadClass = oldValue?.includes(className);
+			const hasClass = target.classList.contains(className);
+
+			if (!hadClass && hasClass) {
+				callback();
+			}
 		}
 	});
 
-	observer.observe(node, { attributes: true });
+	observer.observe(node, {
+		attributes: true,
+		attributeOldValue: true,
+		attributeFilter: ["class"],
+	});
+
+	return observer.disconnect.bind(observer);
 }
 
 /**
@@ -216,6 +248,36 @@ async function prepareUI() {
 
 		dashboardHeaderElement.append(buttonElement);
 	}
+}
+
+/**
+ * Tracks the project save status and notifies the host on changes.
+ *
+ * @param {string} fileId
+ */
+async function trackProjectStatus(fileId) {
+	fileStatusObserverDisconnects.forEach((disconnect) => disconnect());
+	fileStatusObserverDisconnects = [];
+
+	const saveIndicator = await getElement(
+		".main_ui_workspace_left_header__status-notification",
+		{ maxRetries: 5 },
+	);
+
+	if (!saveIndicator) {
+		return;
+	}
+
+	const classChangeHandlerDebounced = debounce(() => {
+		ipcRenderer.sendToHost("file:change", fileId);
+	}, 100);
+
+	const disconnectObserver = onClassChange(
+		saveIndicator,
+		classChangeHandlerDebounced,
+		{ className: "main_ui_workspace_left_header__saved-status" },
+	);
+	fileStatusObserverDisconnects.push(disconnectObserver);
 }
 
 async function cleanUpUI() {
@@ -448,4 +510,31 @@ function splitArrayIntoBatches(wholeArray, batchSize) {
 		},
 		[],
 	);
+}
+
+/**
+ * Delays the execution of a function until after a specified delay has passed since the last time it was invoked.
+ *
+ * @param {Function} fn
+ * @param {number} delay
+ *
+ * @returns {Function}
+ */
+
+function debounce(fn, delay) {
+	/** @type {ReturnType<typeof setTimeout>} */
+	let timer;
+
+	/**
+	 * @param  {unknown[]} args
+	 */
+	return function (...args) {
+		clearTimeout(timer);
+		timer = setTimeout(() => fn.apply(this, args), delay);
+	};
+}
+
+function extractSearchFromHash(hash) {
+	const match = hash.match(/\?([^#]*)$/);
+	return match ? `?${match[1]}` : "";
 }
