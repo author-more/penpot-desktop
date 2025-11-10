@@ -1,6 +1,7 @@
 import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
+import { isViewModeUrl } from "../../tools/penpot.js";
 import { showAlert } from "./alert.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
@@ -201,17 +202,24 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		const isAutoReloadEnabled = await window.api.getSetting("enableAutoReload");
 		if (isFileChange && isAutoReloadEnabled) {
 			const [fileId] = event.args;
+			if (!fileId) {
+				return;
+			}
+
+			window.api.file.change(fileId);
+
 			const tabGroup = await getTabGroup();
 			const tabs = tabGroup?.getTabs() || [];
-
-			for (const tab of tabs) {
+			const viewModeTab = tabs.find((tab) => {
 				const webview = /** @type {WebviewTag} */ (tab.webview);
 				const tabUrl = new URL(webview.src);
-				const isViewModeTab =
-					tabUrl.hash.startsWith("#/view") && tabUrl.hash.includes(fileId);
-				if (isViewModeTab) {
-					webview.reload();
-				}
+				const isViewModeTab = isViewModeUrl(tabUrl, fileId);
+
+				return isViewModeTab;
+			});
+
+			if (viewModeTab) {
+				/** @type {WebviewTag} */ (viewModeTab.webview).reload();
 			}
 		}
 

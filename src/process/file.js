@@ -1,10 +1,11 @@
-import { dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog, ipcMain } from "electron";
 import { FILE_EVENTS } from "../shared/file.js";
 import JSZip from "jszip";
 import { createWriteStream } from "node:fs";
 import { getMainWindow } from "./window.js";
 import { z } from "zod";
 import { AppError, ERROR_CODES } from "../tools/error.js";
+import { isViewModeUrl } from "../tools/penpot.js";
 
 const filesSchema = z.array(
 	z.object({
@@ -13,6 +14,8 @@ const filesSchema = z.array(
 		data: z.instanceof(ArrayBuffer),
 	}),
 );
+
+const fileIdSchema = z.string();
 
 /**
  * @type {string | null}
@@ -76,4 +79,23 @@ ipcMain.handle(FILE_EVENTS.EXPORT, async (_event, files) => {
 
 		throw new AppError(ERROR_CODES.FAILED_EXPORT, message);
 	}
+});
+
+ipcMain.on(FILE_EVENTS.CHANGE, (_event, fileId) => {
+	const { success: isValidFileId, data: fileIdValid } =
+		fileIdSchema.safeParse(fileId);
+
+	if (!isValidFileId) {
+		return;
+	}
+
+	const windows = BrowserWindow.getAllWindows();
+	const viewModeWindow = windows.find((window) => {
+		const url = window.webContents.getURL();
+		const windowURL = new URL(url);
+
+		return isViewModeUrl(windowURL, fileIdValid);
+	});
+
+	viewModeWindow?.reload();
 });

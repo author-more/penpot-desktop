@@ -4,6 +4,7 @@ import { join } from "path";
 import { toMultiline } from "./string.js";
 import { getMainWindow } from "./window.js";
 import { settings } from "./settings.js";
+import { isViewModeUrl } from "../tools/penpot.js";
 
 // Covered origins and URLs are scoped to the Penpot web app (e.g. links in the Menu > Help & info).
 const ALLOWED_INTERNAL_ORIGINS = Object.freeze([
@@ -37,8 +38,7 @@ app.on("web-contents-created", (event, contents) => {
 		const isAllowedNavigation = isAllowedOrigin || isAllowedExternal;
 
 		if (isAllowedOrigin) {
-			const isView = parsedUrl.hash.startsWith("#/view");
-			if (isView && settings.enableViewModeWindow) {
+			if (isViewModeUrl(parsedUrl) && settings.enableViewModeWindow) {
 				return {
 					action: "allow",
 					overrideBrowserWindowOptions: { autoHideMenuBar: true },

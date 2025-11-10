@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld(
 		},
 		file: {
 			export: (file) => ipcRenderer.invoke("file:export", file),
+			change: (fileId) => ipcRenderer.send("file:change", fileId),
 		},
 		diagnostics: {
 			onToggle: (callback) => {
