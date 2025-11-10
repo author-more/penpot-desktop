@@ -37,6 +37,14 @@ app.on("web-contents-created", (event, contents) => {
 		const isAllowedNavigation = isAllowedOrigin || isAllowedExternal;
 
 		if (isAllowedOrigin) {
+			const isView = parsedUrl.hash.startsWith("#/view");
+			if (isView && settings.enableViewModeWindow) {
+				return {
+					action: "allow",
+					overrideBrowserWindowOptions: { autoHideMenuBar: true },
+				};
+			}
+
 			mainWindow.webContents.send("open-tab", parsedUrl.href);
 		} else {
 			console.warn(
