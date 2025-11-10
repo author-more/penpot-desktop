@@ -13,6 +13,7 @@ const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
 	"theme",
 	"titleBarType",
 	"instances",
+	"enableAutoReload",
 ]);
 
 const titleBarTypes = Object.values(CONFIG_SETTINGS_TITLE_BAR_TYPES);
@@ -23,6 +24,7 @@ const settingsSchema = z.object({
 		.enum([titleBarTypes[0], ...titleBarTypes.slice(1)])
 		.optional()
 		.default(CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY),
+	enableAutoReload: z.boolean().default(false),
 	instances: z
 		.array(
 			z
