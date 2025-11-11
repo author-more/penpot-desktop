@@ -37,6 +37,7 @@ export type Api = {
 		// 	projectName: string,
 		// ) => Promise<{ status: "success" | "fail" }>;
 		export: (files: File[]) => Promise<{ status: "success" | "fail" }>;
+		change: (fileId: string) => void;
 	};
 	diagnostics: {
 		onToggle: (

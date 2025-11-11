@@ -14,6 +14,7 @@ const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
 	"titleBarType",
 	"instances",
 	"enableAutoReload",
+	"enableViewModeWindow",
 ]);
 
 const titleBarTypes = Object.values(CONFIG_SETTINGS_TITLE_BAR_TYPES);
@@ -25,6 +26,7 @@ const settingsSchema = z.object({
 		.optional()
 		.default(CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY),
 	enableAutoReload: z.boolean().default(false),
+	enableViewModeWindow: z.boolean().default(false),
 	instances: z
 		.array(
 			z
