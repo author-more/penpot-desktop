@@ -53,14 +53,16 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
-				<release version="v0.21.0" date="2025-11-12">
-						<url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.21.0</url>
-						<p>Features</p>
-						<ul>
-							<li>Added option to open view mode in a window.</li>
-							<li>Added auto-reload option for view mode.</li>
-						</ul>
-				</release>
+		    <release version="v0.21.0" date="2025-11-12">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.21.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added option to open view mode in a window.</li>
+                    <li>Added auto-reload option for view mode.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.20.0" date="2025-10-24">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.20.0</url>
             <description>
