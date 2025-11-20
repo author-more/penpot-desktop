@@ -2,11 +2,6 @@ productName: "Penpot Desktop"
 appId: "com.authormore.penpotdesktop"
 asar: true
 
-# Update Server
-# publish:
-#   provider: "generic"
-#   url: "https://sudovanilla.org/distribute/applications/penpot-desktop/latest/"
-
 # macOS
 mac:
   darkModeSupport: true
@@ -15,9 +10,6 @@ mac:
   target:
     - "dmg" # Installer
     - "zip" # Required for auto updater
-
-# dmg:
-#   sign: true
 
 # Windows
 win:
