@@ -1,5 +1,6 @@
 productName: "Penpot Desktop"
 appId: "com.authormore.penpotdesktop"
+artifactName: "${name}-${arch}.${ext}"
 asar: true
 
 # macOS
@@ -18,7 +19,6 @@ win:
 
 nsis:
   shortcutName: "Penpot Desktop"
-  artifactName: "Penpot Desktop - Setup.exe"
   oneClick: false
   displayLanguageSelector: true
   allowElevation: false
