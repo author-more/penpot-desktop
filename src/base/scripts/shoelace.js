@@ -5,5 +5,5 @@ import { registerIconLibrary } from "../../../node_modules/@shoelace-style/shoel
 setBasePath("../../node_modules/@shoelace-style/shoelace/cdn");
 
 registerIconLibrary("lucide", {
-	resolver: (name) => `../../node_modules/lucide-static/icons/${name}.svg`,
+	resolver: (name) => `./assets/icons/lucide/${name}.svg`,
 });
