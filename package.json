@@ -42,8 +42,8 @@
 		"electron-updater": "^6.6.2",
 		"electron-window-state": "^5.0.3",
 		"jszip": "^3.10.1",
-		"lucide-static": "^0.546.0",
-		"zod": "^4.1.12"
+		"lucide-static": "^0.554.0",
+		"zod": "^4.1.13"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^20.1.0",
