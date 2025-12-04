@@ -41,14 +41,18 @@ const dockerTag = z.union([
 
 export const instanceIdSchema = z.uuid();
 
-export const instanceCreateFormSchema = z.object({
+export const instanceFormSchema = z.object({
 	label: z.string().trim().min(1),
-	tag: dockerTag,
-	enableElevatedAccess: checkboxSchema,
-	enableInstanceTelemetry: checkboxSchema,
+	color: z.string(),
+	origin: z.string().optional(),
+	localInstance: z
+		.object({
+			tag: dockerTag,
+			enableElevatedAccess: checkboxSchema,
+			enableInstanceTelemetry: checkboxSchema,
+		})
+		.optional(),
 });
-
-const instanceUpdateSchema = instanceCreateFormSchema.omit({ label: true });
 
 export const localInstanceConfig = z.object({
 	dockerId: z.string().transform((value) => {
@@ -102,14 +106,23 @@ ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
 	}
 
 	const instance = settings.instances.find((instance) => instance.id === id);
-	const localInstance = localInstances[id];
-	if (!instance || !localInstance) {
+	if (!instance) {
 		return null;
 	}
 
-	const { label } = instance;
-	const { tag, isInstanceTelemetryEnabled } = localInstance;
-	return { id, label, tag, isInstanceTelemetryEnabled };
+	const localInstance = localInstances[id];
+	const isLocal = !!localInstance;
+	const { tag, isInstanceTelemetryEnabled } = localInstance || {};
+
+	return {
+		...instance,
+		...(isLocal && {
+			localInstance: {
+				tag,
+				isInstanceTelemetryEnabled,
+			},
+		}),
+	};
 });
 
 ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
@@ -117,7 +130,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	let ports = {};
 
 	try {
-		validInstance = instanceCreateFormSchema.parse(instance);
+		validInstance = instanceFormSchema.parse(instance);
 		ports.frontend = await findAvailablePort([
 			DEFAULT_FRONTEND_CONTAINER_PORT,
 			DEFAULT_FRONTEND_CONTAINER_PORT + 9,
@@ -144,16 +157,28 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		throw new Error(message);
 	}
 
-	const { label, tag, enableElevatedAccess, enableInstanceTelemetry } =
-		validInstance;
+	const { label, localInstance } = validInstance;
 	const id = crypto.randomUUID();
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
-		await compose("up", containerNameId, tag, ports, {
-			isSudoEnabled: enableElevatedAccess,
-			isInstanceTelemetryEnabled: enableInstanceTelemetry,
-		});
+		if (localInstance) {
+			const { tag, enableElevatedAccess, enableInstanceTelemetry } =
+				localInstance;
+
+			await compose("up", containerNameId, tag, ports, {
+				isSudoEnabled: enableElevatedAccess,
+				isInstanceTelemetryEnabled: enableInstanceTelemetry,
+			});
+
+			localInstances[id] = {
+				...localInstances[id],
+				dockerId: containerNameId,
+				tag,
+				ports,
+				isInstanceTelemetryEnabled: enableInstanceTelemetry,
+			};
+		}
 
 		registerInstance({
 			...DEFAULT_INSTANCE,
@@ -161,14 +186,6 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 			label,
 			origin: `http://localhost:${ports.frontend}`,
 		});
-
-		localInstances[id] = {
-			...localInstances[id],
-			dockerId: containerNameId,
-			tag,
-			ports,
-			isInstanceTelemetryEnabled: enableInstanceTelemetry,
-		};
 
 		return id;
 	} catch (error) {
@@ -207,7 +224,7 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 
 	try {
 		instanceIdSchema.parse(id);
-		validInstance = instanceUpdateSchema.parse(instance);
+		validInstance = instanceFormSchema.parse(instance);
 	} catch (error) {
 		let message;
 
@@ -220,12 +237,19 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 		throw new Error(message);
 	}
 
-	if (localInstances[id]) {
+	const { localInstance, ...instanceCore } = validInstance;
+
+	const existingSettings =
+		settings.instances.find(({ id: existingId }) => id === existingId) ||
+		DEFAULT_INSTANCE;
+	registerInstance({ ...existingSettings, ...instanceCore, id });
+
+	if (localInstance && localInstances[id]) {
 		const {
 			tag: newTag,
 			enableInstanceTelemetry,
 			enableElevatedAccess,
-		} = validInstance;
+		} = localInstance;
 
 		localInstances[id] = {
 			...localInstances[id],

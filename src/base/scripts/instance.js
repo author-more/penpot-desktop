@@ -27,6 +27,7 @@ import {
  * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
+ * @typedef {CustomEvent<{id?: string}>} InstanceDeleteEvent
  */
 
 export async function initInstance() {
@@ -80,6 +81,16 @@ async function prepareInstanceCreator() {
 	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
 		instanceCreatorDialog.hide(),
 	);
+	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.DELETE, (event) => {
+		const {
+			detail: { id },
+		} = /** @type  {InstanceDeleteEvent} */ (event);
+		if (id) {
+			window.api.instance.remove(id);
+			updateInstanceList();
+			instanceCreatorDialog.hide();
+		}
+	});
 }
 
 /**
@@ -106,22 +117,27 @@ async function openInstanceCreator(event, id) {
 	const { alertsHolder, instanceCreatorDialog, instanceCreator } =
 		await getInstanceCreatorElements();
 
-	alertsHolder?.replaceChildren();
-
-	const alert = await getCreatorAlert();
-	if (alert) {
-		alertsHolder?.append(alert);
-	}
-
-	if (!instanceCreator) {
+	if (!instanceCreatorDialog || !instanceCreator) {
 		return;
 	}
 
+	const alert = await getCreatorAlert();
 	const instanceConfig = id ? await window.api.instance.getConfig(id) : null;
+	const isLocalInstanceCreator =
+		!instanceConfig?.id || instanceConfig?.localInstance;
+
+	alertsHolder?.replaceChildren();
+	if (alert && isLocalInstanceCreator) {
+		alertsHolder?.append(alert);
+	}
 
 	instanceCreator.instance = instanceConfig;
 
-	instanceCreatorDialog?.show();
+	instanceCreatorDialog.label = !instanceConfig?.id
+		? "Instance creator"
+		: "Instance settings";
+	instanceCreatorDialog.style = `--width: ${isLocalInstanceCreator ? "75" : "30"}vw;`;
+	instanceCreatorDialog.show();
 }
 
 async function getCreatorAlert() {
@@ -233,12 +249,13 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	const { id, ...detail } = event.detail;
 	try {
 		await window.api.instance.update(id, detail);
+		updateInstanceList();
 
 		showAlert(
 			"success",
 			{
 				heading: "Instance updated",
-				message: "Local instance has been updated successfully.",
+				message: "Instance has been updated successfully.",
 			},
 			{
 				duration: 3000,
@@ -288,7 +305,7 @@ async function updateInstanceList() {
  * @param {HTMLTemplateElement} template
  */
 function createInstancePanel(instance, template) {
-	const { id, origin, label, color, isDefault } = { ...instance };
+	const { id, origin, label, color } = { ...instance };
 	const instancePanel = document.importNode(template.content, true);
 
 	if (!instancePanel || !isParentNode(instancePanel)) {
@@ -341,17 +358,15 @@ function createInstancePanel(instance, template) {
 		instancePanel,
 	);
 	if (buttonDeleteEl) {
-		buttonDeleteEl.disabled = isDefault;
 		buttonDeleteEl.addEventListener("click", () => {
-			window.api.instance.remove(id);
-			updateInstanceList();
+			openInstanceCreator(null, id);
 		});
 	}
 
 	const panelElement = typedQuerySelector(".panel", HTMLElement, instancePanel);
 	if (panelElement) {
 		panelElement.addEventListener("contextmenu", async () => {
-			const { id, origin, color, isLocal } = instance;
+			const { id, origin, color } = instance;
 
 			await disableSettingsFocusTrap();
 
@@ -369,18 +384,6 @@ function createInstancePanel(instance, template) {
 						enableSettingsFocusTrap();
 					},
 				},
-				...(isLocal
-					? [
-							{
-								label: "Edit",
-								onClick: async () => {
-									openInstanceCreator(null, id);
-									hideContextMenu();
-									enableSettingsFocusTrap();
-								},
-							},
-						]
-					: []),
 			]);
 		});
 	}

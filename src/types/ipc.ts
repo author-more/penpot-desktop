@@ -18,11 +18,13 @@ export type Api = {
 			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
 		getAll: () => Promise<AllInstances>;
-		getConfig: (
-			id: string,
-		) => Promise<
-			| (Pick<Settings["instances"][number], "id" | "label"> &
-					Pick<LocalInstance, "tag" | "isInstanceTelemetryEnabled">)
+		getConfig: (id: string) => Promise<
+			| (Settings["instances"][number] & {
+					localInstance?: Pick<
+						LocalInstance,
+						"tag" | "isInstanceTelemetryEnabled"
+					>;
+			  })
 			| null
 		>;
 		register: (instance: Partial<Settings["instances"][number]>) => void;

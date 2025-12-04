@@ -21,6 +21,11 @@
 		--button-background-color-primary: var(--la-primary);
 		--button-background-color-primary-hover: var(--la-tertiary);
 
+		--button-color-danger: var(--lf-secondary);
+		--button-color-danger-hover: var(--lb-secondary);
+		--button-background-color-danger: transparent;
+		--button-background-color-danger-hover: var(--error-500);
+
 		--link-color: var(--la-primary);
 		--link-color-hover: var(--lb-secondary);
 		--link-background-color-hover: var(--la-primary);
@@ -65,6 +70,11 @@
 		--button-color-primary-hover: var(--db-secondary);
 		--button-background-color-primary: var(--da-primary);
 		--button-background-color-primary-hover: var(--da-tertiary);
+
+		--button-color-danger: var(--db-secondary);
+		--button-color-danger-hover: var(--db-secondary);
+		--button-background-color-danger: var(--error-500);
+		--button-background-color-danger-hover: var(--error-700);
 
 		--link-color: var(--da-primary);
 		--link-color-hover: var(--db-secondary);
@@ -135,6 +145,11 @@ sl-icon-button {
 		background-color: var(--button-background-color-primary);
 	}
 
+	&[variant="danger"]::part(base) {
+		color: var(--button-color-danger);
+		background-color: var(--button-background-color-danger);
+	}
+
 	&:not([disabled]):hover,
 	&:active {
 		&::part(base) {
@@ -144,6 +159,11 @@ sl-icon-button {
 		&[variant="primary"]::part(base) {
 			color: var(--button-color-primary-hover);
 			background-color: var(--button-background-color-primary-hover);
+		}
+
+		&[variant="danger"]::part(base) {
+			color: var(--button-color-primary-hover);
+			background-color: var(--button-background-color-danger-hover);
 		}
 	}
 

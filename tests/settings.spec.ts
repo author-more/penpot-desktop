@@ -1,10 +1,4 @@
-import {
-	ElectronApplication,
-	expect,
-	Locator,
-	Page,
-	test,
-} from "@playwright/test";
+import { ElectronApplication, expect, Page, test } from "@playwright/test";
 import { describe } from "node:test";
 import { launchElectronApp } from "./utils/app.js";
 import { getFile, saveFile } from "./utils/fs.js";
@@ -108,7 +102,15 @@ describe("settings", () => {
 			expect((await getConfig()).instances.length).toBe(2);
 
 			const newItem = itemList.last();
-			const deleteItemButton = newItem.getByRole("button", {
+			const instanceSettingsButton = newItem.getByRole("button", {
+				name: "Open settings",
+			});
+			await instanceSettingsButton.click();
+
+			const instanceSettingsModal = window.locator(
+				"sl-dialog#instance-creator-dialog",
+			);
+			const deleteItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Delete instance",
 			});
 			await deleteItemButton.click();
@@ -126,12 +128,26 @@ describe("settings", () => {
 
 			const itemList = window.locator("#instance-list .panel");
 			const item = itemList.first();
-			const field = item.locator("editable-text.label");
-			const text = field.locator('div[part="text"]');
 
-			await expect(text).toHaveText(currentValue);
-			await editField(field, "Label", newValue);
-			await expect(text).toHaveText(newValue);
+			const instanceSettingsButton = item.getByRole("button", {
+				name: "Open settings",
+			});
+			await instanceSettingsButton.click();
+
+			const instanceSettingsModal = window.locator(
+				"sl-dialog#instance-creator-dialog",
+			);
+
+			const field = instanceSettingsModal.getByLabel("Label");
+
+			await expect(field).toHaveValue(currentValue);
+			await field.fill(newValue);
+			await expect(field).toHaveValue(newValue);
+
+			const updateItemButton = instanceSettingsModal.getByRole("button", {
+				name: "Update",
+			});
+			await updateItemButton.click();
 
 			const config = await getFile(join(userDataPath, CONFIG_NAME));
 			expect(config.instances[0].label).toBe(newValue);
@@ -146,12 +162,26 @@ describe("settings", () => {
 
 			const itemList = window.locator("#instance-list .panel");
 			const item = itemList.first();
-			const field = item.locator("editable-text.hint");
-			const text = field.locator('div[part="text"]');
 
-			await expect(text).toHaveText(currentValue);
-			await editField(field, "Origin", newValue);
-			await expect(text).toHaveText(newValue);
+			const instanceSettingsButton = item.getByRole("button", {
+				name: "Open settings",
+			});
+			await instanceSettingsButton.click();
+
+			const instanceSettingsModal = window.locator(
+				"sl-dialog#instance-creator-dialog",
+			);
+
+			const field = instanceSettingsModal.getByLabel("Origin");
+
+			await expect(field).toHaveValue(currentValue);
+			await field.fill(newValue);
+			await expect(field).toHaveValue(newValue);
+
+			const updateItemButton = instanceSettingsModal.getByRole("button", {
+				name: "Update",
+			});
+			await updateItemButton.click();
 
 			const config = await getFile(join(userDataPath, CONFIG_NAME));
 			expect(config.instances[0].origin).toBe(newValue);
@@ -184,24 +214,22 @@ describe("settings", () => {
 
 			expect((await getConfig()).instances[1].isDefault).toBe(true);
 
-			const deleteItemButton = newItem.getByRole("button", {
+			const instanceSettingsButton = newItem.getByRole("button", {
+				name: "Open settings",
+			});
+			await instanceSettingsButton.click();
+
+			const instanceSettingsModal = window.locator(
+				"sl-dialog#instance-creator-dialog",
+			);
+			const deleteItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Delete instance",
 			});
+
 			await expect(deleteItemButton).toBeDisabled();
 		});
 	});
 });
-
-async function editField(field: Locator, label: string, newValue: string) {
-	const text = field.locator('div[part="text"]');
-	await text.click();
-
-	const input = field.getByLabel(label);
-	await input.waitFor({ state: "visible" });
-	await input.fill(newValue);
-	await input.press("Enter");
-	await input.waitFor({ state: "hidden" });
-}
 
 async function getConfig() {
 	const configPath = join(userDataPath, CONFIG_NAME);
