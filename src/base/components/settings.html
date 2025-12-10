@@ -86,18 +86,10 @@
 
 <template id="template-instance-panel">
 	<div class="panel" tabindex="0">
-		<sl-color-picker format="hsl" opacity="true"></sl-color-picker>
+		<div class="color" aria-hidden="true"></div>
 		<div class="body">
-			<editable-text
-				class="label"
-				label="Label"
-				placeholder="My instance"
-			></editable-text>
-			<editable-text
-				class="hint"
-				label="Origin"
-				placeholder="https://my-penpot.example.com"
-			></editable-text>
+			<span class="label"></span>
+			<span class="hint"></span>
 		</div>
 		<sl-icon-button
 			library="lucide"

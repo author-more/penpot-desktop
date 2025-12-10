@@ -149,6 +149,7 @@ describe("settings", () => {
 			});
 			await updateItemButton.click();
 
+			expect(item).toContainText(newValue);
 			const config = await getFile(join(userDataPath, CONFIG_NAME));
 			expect(config.instances[0].label).toBe(newValue);
 		});
@@ -183,6 +184,7 @@ describe("settings", () => {
 			});
 			await updateItemButton.click();
 
+			expect(item).toContainText(newValue);
 			const config = await getFile(join(userDataPath, CONFIG_NAME));
 			expect(config.instances[0].origin).toBe(newValue);
 		});
