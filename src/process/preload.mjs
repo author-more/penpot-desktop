@@ -47,6 +47,10 @@ contextBridge.exposeInMainWorld(
 			onSetDefault: (callback) => {
 				ipcRenderer.on("tab:set-default", (_event, value) => callback(value));
 			},
+			onOpen: (callback) =>
+				ipcRenderer.on("tab:open", (_event, value) => callback(value)),
+			onMenuAction: (callback) =>
+				ipcRenderer.on("tab:menu-action", (_event, value) => callback(value)),
 		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);
@@ -62,9 +66,5 @@ contextBridge.exposeInMainWorld(
 				callback(flag, value),
 			);
 		},
-		onOpenTab: (callback) =>
-			ipcRenderer.on("open-tab", (_event, value) => callback(value)),
-		onTabMenuAction: (callback) =>
-			ipcRenderer.on("tab-menu-action", (_event, value) => callback(value)),
 	}),
 );

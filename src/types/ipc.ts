@@ -55,6 +55,10 @@ export type Api = {
 				instance: Pick<Instances[number], "id" | "origin" | "color">,
 			) => void,
 		) => void;
+		onOpen: (callback: (href: string) => void) => void;
+		onMenuAction: (
+			callback: ({ command, tabId }: TabContextMenuAction) => void,
+		) => void;
 	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
@@ -63,10 +67,6 @@ export type Api = {
 		value: Settings[S],
 	) => void;
 	onSetFlag: (callback: (flag: string, value: string) => void) => void;
-	onOpenTab: (callback: (href: string) => void) => void;
-	onTabMenuAction: (
-		callback: ({ command, tabId }: TabContextMenuAction) => void,
-	) => void;
 };
 
 type TabContextMenuAction = { command: string; tabId: number };
