@@ -7,7 +7,6 @@ import {
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
-import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import {
 	disableSettingsFocusTrap,
@@ -94,13 +93,27 @@ async function prepareInstanceCreator() {
 /**
  * @param {Event} event
  */
-function addInstance(event) {
+async function addInstance(event) {
 	event.preventDefault();
 
-	registerInstance({
-		id: crypto.randomUUID(),
-	});
-	updateInstanceList();
+	try {
+		await window.api.instance.create();
+
+		updateInstanceList();
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to add an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
 }
 
 /**
@@ -411,23 +424,4 @@ async function getInstanceCreatorElements() {
 	);
 
 	return { alertsHolder, instanceCreatorDialog, instanceCreator };
-}
-
-/**
- * @param {Partial<Instances[number]>} instance
- */
-function registerInstance(instance) {
-	const { id, origin, color, isDefault } = instance;
-
-	window.api.instance.register({
-		...DEFAULT_INSTANCE,
-		...instance,
-	});
-
-	if (isDefault) {
-		setDefaultTab(origin, {
-			accentColor: color,
-			partition: id,
-		});
-	}
 }

@@ -26,7 +26,6 @@ contextBridge.exposeInMainWorld(
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
 			getAll: () => ipcRenderer.invoke("instance:get-all"),
 			getConfig: (id) => ipcRenderer.invoke("instance:get-config", id),
-			register: (instance) => ipcRenderer.send("instance:register", instance),
 			create: (instance) => ipcRenderer.invoke("instance:create", instance),
 			update: (id, instance) =>
 				ipcRenderer.invoke("instance:update", id, instance),
@@ -42,6 +41,11 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.on("diagnostics:toggle", (_event, diagnosticsData) =>
 					callback(diagnosticsData),
 				);
+			},
+		},
+		tab: {
+			onSetDefault: (callback) => {
+				ipcRenderer.on("tab:set-default", (_event, value) => callback(value));
 			},
 		},
 		setTheme: (themeId) => {

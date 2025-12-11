@@ -51,6 +51,9 @@ export async function initTabs() {
 
 	window.api.onOpenTab(openTab);
 	window.api.onTabMenuAction(handleTabMenuAction);
+	window.api.tab.onSetDefault(({ id, origin, color }) =>
+		setDefaultTab(origin, { accentColor: color, partition: id }),
+	);
 
 	const addTabButton = typedQuerySelector(
 		".buttons > button",

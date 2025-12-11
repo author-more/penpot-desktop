@@ -16,6 +16,7 @@ import { generateId } from "../tools/id.js";
 import { readConfig, writeConfig } from "./config.js";
 import { observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
+import { getMainWindow } from "./window.js";
 
 /**
  * @typedef {(import("./settings.js").Settings['instances'][number] & { isLocal: boolean})[]} AllInstances
@@ -130,7 +131,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	let ports = {};
 
 	try {
-		validInstance = instanceFormSchema.parse(instance);
+		validInstance = instanceFormSchema.parse(instance || DEFAULT_INSTANCE);
 		ports.frontend = await findAvailablePort([
 			DEFAULT_FRONTEND_CONTAINER_PORT,
 			DEFAULT_FRONTEND_CONTAINER_PORT + 9,
@@ -197,10 +198,6 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 });
 
-ipcMain.on(INSTANCE_EVENTS.REGISTER, (_event, instance) =>
-	registerInstance(instance),
-);
-
 ipcMain.on(INSTANCE_EVENTS.REMOVE, (_event, id) => {
 	const userDataPath = app.getPath("sessionData");
 	const partitionPath = join(userDataPath, "Partitions", id);
@@ -243,6 +240,12 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 		settings.instances.find(({ id: existingId }) => id === existingId) ||
 		DEFAULT_INSTANCE;
 	registerInstance({ ...existingSettings, ...instanceCore, id });
+
+	const { isDefault } = existingSettings;
+	if (isDefault) {
+		const { origin, color } = instanceCore;
+		getMainWindow().webContents.send("tab:set-default", { id, origin, color });
+	}
 
 	if (localInstance && localInstances[id]) {
 		const {
