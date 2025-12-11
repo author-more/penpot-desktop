@@ -257,11 +257,13 @@ export class InstanceCreator extends HTMLElement {
 							}
 						</form>
 						<div class="footer">
+							<div>
 							${
 								this._instance?.id
 									? `<sl-button id="delete" variant="danger" ${this._instance?.isDefault ? "disabled" : ""}>Delete instance</sl-button>`
 									: ""
 							}
+							</div>
 							<div>
 								<sl-button form="instance-creator-form" type="submit" variant="primary">
 									Create
