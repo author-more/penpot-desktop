@@ -16,6 +16,7 @@ import { typedQuerySelector } from "../scripts/dom.js";
  * @property {string} [tag]
  * @property {string} [enableInstanceTelemetry]
  * @property {string} [enableElevatedAccess]
+ * @property {string} [runContainerUpdate]
  *
  * @typedef {Object} ExistingInstanceDetails
  * @property {string} id
@@ -154,9 +155,14 @@ export class InstanceCreator extends HTMLElement {
 				}
 				form {
 					display: grid;
-					row-gap: var(--sl-spacing-medium);
+					row-gap: var(--sl-spacing-2x-large);
 
 					align-content: flex-start;
+				}
+
+				instance-info, container-settings, form-footer {
+					display: grid;
+					row-gap: var(--sl-spacing-medium);
 				}
 
 				sl-button,
@@ -237,24 +243,39 @@ export class InstanceCreator extends HTMLElement {
 					${infoSection}
 					<div>
 						<form id="instance-creator-form">
-							<div class="columns columns-2 side-right align-bottom">
-								<sl-input name="label" label="Label" required></sl-input>
-								<sl-color-picker name="color" label="Color" format="hsl" opacity="true"></sl-color-picker>
-							</div>
-							${!isLocalInstanceCreator ? `<sl-input name="origin" label="Origin" required></sl-input>` : ""}
+							<instance-info>
+								<div class="columns columns-2 side-right align-bottom">
+									<sl-input name="label" label="Label" required></sl-input>
+									<sl-color-picker name="color" label="Color" format="hsl" opacity="true"></sl-color-picker>
+								</div>
+								${!isLocalInstanceCreator ? `<sl-input name="origin" label="Origin" required></sl-input>` : ""}
+							</instance-info>
+
+								${
+									isLocalInstanceCreator
+										? `<container-settings>
+												<sl-input name="tag" label="Tag" value="latest" required></sl-input>
+												<sl-checkbox name="enableInstanceTelemetry" checked help-text="When enabled, a periodical process will send anonymous data about this instance.">
+													Enable instance telemetry
+												</sl-checkbox>
+												<sl-details summary="Advanced options">
+													<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions.">
+														Enable elevated access
+													</sl-checkbox>
+												</sl-details>
+											</container-settings>`
+										: ""
+								}
+
+
 							${
-								isLocalInstanceCreator
-									? `<sl-input name="tag" label="Tag" value="latest" required></sl-input>
-							<sl-checkbox name="enableInstanceTelemetry" checked help-text="When enabled, a periodical process will send anonymous data about this instance.">
-								Enable instance telemetry
-							</sl-checkbox>
-							<sl-details summary="Advanced options">
-								<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions.">
-									Enable elevated access
-								</sl-checkbox>
-							</sl-details>`
+								this._instance?.localInstance
+									? `<form-footer>
+											<sl-checkbox name="runContainerUpdate" help-text='When enabled, performs a Penpot upgrade (if tag is set to "latest") and updates container settings (tag, telemetry).'>Run container update</sl-checkbox>
+										</form-footer>`
 									: ""
 							}
+
 						</form>
 						<div class="footer">
 							<div>
@@ -428,8 +449,13 @@ export class InstanceCreator extends HTMLElement {
 
 		const formData = new FormData(form);
 		/** @type {InstanceCreationDetails} */
-		const { tag, enableInstanceTelemetry, enableElevatedAccess, ...instance } =
-			Object.fromEntries(formData.entries());
+		const {
+			tag,
+			enableInstanceTelemetry,
+			enableElevatedAccess,
+			runContainerUpdate,
+			...instance
+		} = Object.fromEntries(formData.entries());
 		const { id: instanceId } = this._instance || {};
 		const isLocalInstanceCreator = !instanceId || this._instance?.localInstance;
 		const eventName = instanceId
@@ -445,6 +471,7 @@ export class InstanceCreator extends HTMLElement {
 							tag,
 							enableInstanceTelemetry,
 							enableElevatedAccess,
+							runContainerUpdate,
 						},
 					}),
 					...(instanceId && { id: instanceId }),

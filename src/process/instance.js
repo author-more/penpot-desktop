@@ -51,6 +51,7 @@ export const instanceFormSchema = z.object({
 			tag: dockerTag,
 			enableElevatedAccess: checkboxSchema,
 			enableInstanceTelemetry: checkboxSchema,
+			runContainerUpdate: checkboxSchema.optional(),
 		})
 		.optional(),
 });
@@ -252,7 +253,12 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 			tag: newTag,
 			enableInstanceTelemetry,
 			enableElevatedAccess,
+			runContainerUpdate,
 		} = localInstance;
+
+		if (!runContainerUpdate) {
+			return;
+		}
 
 		localInstances[id] = {
 			...localInstances[id],
