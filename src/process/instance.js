@@ -128,11 +128,22 @@ ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
 });
 
 ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
+	const id = crypto.randomUUID();
+
+	if (!instance) {
+		registerInstance({
+			...DEFAULT_INSTANCE,
+			id,
+		});
+
+		return id;
+	}
+
 	let validInstance;
 	let ports = {};
 
 	try {
-		validInstance = instanceFormSchema.parse(instance || DEFAULT_INSTANCE);
+		validInstance = instanceFormSchema.parse(instance);
 		ports.frontend = await findAvailablePort([
 			DEFAULT_FRONTEND_CONTAINER_PORT,
 			DEFAULT_FRONTEND_CONTAINER_PORT + 9,
@@ -160,7 +171,6 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 
 	const { label, localInstance } = validInstance;
-	const id = crypto.randomUUID();
 	const containerNameId = `${CONTAINER_ID_PREFIX}-${generateId().toLowerCase()}`;
 
 	try {
