@@ -229,7 +229,7 @@ export function getTabMenu(tabId) {
 
 	/** @type {(command: string) => void} */
 	const dispatchAction = (command) =>
-		mainWindow.webContents.send("tab-menu-action", {
+		mainWindow.webContents.send("tab:menu-action", {
 			command,
 			tabId,
 		});

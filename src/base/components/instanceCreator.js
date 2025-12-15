@@ -1,6 +1,7 @@
 import {
 	SlButton,
 	SlCheckbox,
+	SlColorPicker,
 	SlInput,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { typedQuerySelector } from "../scripts/dom.js";
@@ -10,13 +11,22 @@ import { typedQuerySelector } from "../scripts/dom.js";
  *
  * @typedef {Object} InstanceCreationDetails
  * @property {string} [label]
+ * @property {string} [origin]
+ * @property {string} [color]
  * @property {string} [tag]
  * @property {string} [enableInstanceTelemetry]
  * @property {string} [enableElevatedAccess]
+ * @property {string} [runContainerUpdate]
  *
  * @typedef {Object} ExistingInstanceDetails
  * @property {string} id
  * @property {InstanceCreationDetails["label"]} label
+ * @property {InstanceCreationDetails["origin"]} origin
+ * @property {InstanceCreationDetails["color"]} color
+ * @property {boolean} isDefault
+ * @property {ExistingLocalInstanceDetails} [localInstance]
+ *
+ * @typedef {Object} ExistingLocalInstanceDetails
  * @property {InstanceCreationDetails["tag"]} tag
  * @property {boolean} isInstanceTelemetryEnabled
  */
@@ -25,6 +35,7 @@ export const INSTANCE_CREATOR_EVENTS = Object.freeze({
 	CREATE: "instance-creator:create",
 	UPDATE: "instance-creator:update",
 	CLOSE: "instance-creator:close",
+	DELETE: "instance-creator:delete",
 });
 
 export class InstanceCreator extends HTMLElement {
@@ -43,125 +54,10 @@ export class InstanceCreator extends HTMLElement {
 		this._submitButton = null;
 		/** @type {SlButton | null} */
 		this._closeButton = null;
+		/** @type {SlButton | null} */
+		this._deleteButton = null;
 
 		this.attachShadow({ mode: "open" });
-
-		this._template = document.createElement("template");
-		this._template.innerHTML = `
-			<style>
-				.columns {
-					display: grid;
-					column-gap: var(--sl-spacing-x-large);
-
-					&.columns-2 {
-						grid-template-columns: 1fr 1fr;
-					}
-				}
-				.info-section {
-					display: grid;
-					row-gap: var(--sl-spacing-small);
-					align-content: flex-start;
-
-					font-size: var(--sl-font-size-small);
-
-					> p {
-						margin: 0;
-					}
-				}
-				form {
-					display: grid;
-					row-gap: var(--sl-spacing-medium);
-
-					align-content: flex-start;
-				}
-
-				sl-button,
-				sl-icon-button {
-					--sl-border-width: 2px;
-
-					&::part(base) {
-						color: var(--button-color);
-						background-color: var(--button-background-color);
-
-						border-radius: var(--sl-border-radius-large);
-					}
-
-					&[variant="primary"]::part(base) {
-						color: var(--button-color-primary);
-						background-color: var(--button-background-color-primary);
-					}
-
-					&:not([disabled]):hover,
-					&:active {
-						&::part(base) {
-							color: var(--button-color-hover);
-						}
-
-						&[variant="primary"]::part(base) {
-							color: var(--button-color-primary-hover);
-							background-color: var(--button-background-color-primary-hover);
-						}
-					}
-				}
-
-				sl-button {
-					font-size: var(--sl-font-size-small);
-				}
-
-				sl-checkbox {
-					&::part(form-control-help-text) {
-						margin-top: var(--sl-spacing-small);
-					}
-				}
-
-				sl-select {
-					&::part(form-control-help-text) {
-						margin-top: var(--sl-spacing-x-small);
-					}
-				}
-
-				.footer {
-					display: flex;
-					justify-content: flex-end;
-					gap: var(--sl-spacing-medium);
-				}
-			</style>
-			<div>
-				<div class="columns columns-2">
-					<div class="info-section">
-						<p>
-							This is an experimental feature. For production-critical work, please use the existing self-hosting setup guide. Refer to the "Info" section in the Settings panel for more details.
-						</p>
-						<p>
-							The creator will set up a local Penpot instance using the official Docker method for self-hosting Penpot, and your computer as the host.
-						</p>
-						<p>
-							The process may take anywhere from a few seconds to a few minutes, depending on the availability of Docker images, your internet connection (for downloading images), and your computer's performance.
-						</p>
-					</div>
-					<form id="instance-creator-form">
-						<sl-input name="label" label="Label" required></sl-input>
-						<sl-input name="tag" label="Tag" value="latest" required></sl-input>
-						<sl-checkbox name="enableInstanceTelemetry" checked help-text="When enabled, a periodical process will send anonymous data about this instance.">
-							Enable instance telemetry
-						</sl-checkbox>
-						<sl-details summary="Advanced options">
-							<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions.">
-								Enable elevated access
-							</sl-checkbox>
-						</sl-details>
-					</form>
-				</div>
-				<div class="footer">
-					<sl-button form="instance-creator-form" type="submit" variant="primary">
-						Create
-					</sl-button>
-					<sl-button id="close" variant="primary">
-						Close
-					</sl-button>
-				</div>
-			</div>
-		`;
 
 		this.render();
 	}
@@ -203,7 +99,8 @@ export class InstanceCreator extends HTMLElement {
 			return;
 		}
 
-		this.shadowRoot.innerHTML = "";
+		const isLocalInstanceCreator =
+			!this._instance?.id || this._instance?.localInstance;
 
 		// Wait for controls to be defined. https://shoelace.style/getting-started/form-controls#required-fields
 		await Promise.all([
@@ -213,8 +110,194 @@ export class InstanceCreator extends HTMLElement {
 			customElements.whenDefined("sl-details"),
 		]);
 
-		const structure = this._template.content.cloneNode(true);
-		this.shadowRoot.appendChild(structure);
+		const infoSection =
+			(isLocalInstanceCreator &&
+				`<div class="info-section">
+						<p>
+							This is an experimental feature. For production-critical work, please use the existing self-hosting setup guide. Refer to the "Info" section in the Settings panel for more details.
+						</p>
+						<p>
+							The creator will set up a local Penpot instance using the official Docker method for self-hosting Penpot, and your computer as the host.
+						</p>
+						<p>
+							The process may take anywhere from a few seconds to a few minutes, depending on the availability of Docker images, your internet connection (for downloading images), and your computer's performance.
+						</p>
+					</div>`) ||
+			"";
+
+		this.shadowRoot.innerHTML = `
+			<style>
+				.columns {
+					display: grid;
+					column-gap: var(--sl-spacing-x-large);
+
+					&.columns-2 {
+						grid-template-columns: 1fr 1fr;
+					}
+
+					&.side-right {
+						grid-template-columns: auto min-content;
+					}
+					&.align-bottom {
+						align-items: end;
+					}
+				}
+				.info-section {
+					display: grid;
+					row-gap: var(--sl-spacing-small);
+					align-content: flex-start;
+
+					font-size: var(--sl-font-size-small);
+
+					> p {
+						margin: 0;
+					}
+				}
+				form {
+					display: grid;
+					row-gap: var(--sl-spacing-2x-large);
+
+					align-content: flex-start;
+				}
+
+				instance-info, container-settings, form-footer {
+					display: grid;
+					row-gap: var(--sl-spacing-medium);
+				}
+
+				sl-button,
+				sl-icon-button {
+					--sl-border-width: 2px;
+
+					&::part(base) {
+						color: var(--button-color);
+						background-color: var(--button-background-color);
+
+						border-radius: var(--sl-border-radius-large);
+					}
+
+					&[variant="primary"]::part(base) {
+						color: var(--button-color-primary);
+						background-color: var(--button-background-color-primary);
+					}
+
+					&[variant="danger"]::part(base) {
+						color: var(--button-color-danger);
+						background-color: var(--button-background-color-danger);
+					}
+
+					&:not([disabled]):hover,
+					&:active {
+						&::part(base) {
+							color: var(--button-color-hover);
+						}
+
+						&[variant="primary"]::part(base) {
+							color: var(--button-color-primary-hover);
+							background-color: var(--button-background-color-primary-hover);
+						}
+
+						&[variant="danger"]::part(base) {
+							color: var(--button-color-primary-hover);
+							background-color: var(--button-background-color-danger-hover);
+						}
+					}
+				}
+
+				sl-button {
+					font-size: var(--sl-font-size-small);
+				}
+
+				sl-checkbox {
+					&::part(form-control-help-text) {
+						margin-top: var(--sl-spacing-small);
+					}
+				}
+
+				sl-select {
+					&::part(form-control-help-text) {
+						margin-top: var(--sl-spacing-x-small);
+					}
+				}
+
+				sl-color-picker {
+					--sl-input-border-color: var(--color-input-border-color);
+
+					&::part(trigger) {
+						border-radius: var(--sl-border-radius-medium);
+					}
+
+					&:hover {
+						--sl-input-border-color: var(--color-primary);
+					}
+				}
+
+				.footer {
+					display: flex;
+					justify-content: space-between;
+					gap: var(--sl-spacing-medium);
+				}
+			</style>
+			<div>
+				<div class="${isLocalInstanceCreator ? "columns columns-2" : ""}">
+					${infoSection}
+					<div>
+						<form id="instance-creator-form">
+							<instance-info>
+								<div class="columns columns-2 side-right align-bottom">
+									<sl-input name="label" label="Label" required></sl-input>
+									<sl-color-picker name="color" label="Color" format="hsl" opacity="true"></sl-color-picker>
+								</div>
+								${!isLocalInstanceCreator ? `<sl-input name="origin" label="Origin" required></sl-input>` : ""}
+							</instance-info>
+
+								${
+									isLocalInstanceCreator
+										? `<container-settings>
+												<sl-input name="tag" label="Tag" value="latest" required></sl-input>
+												<sl-checkbox name="enableInstanceTelemetry" checked help-text="When enabled, a periodical process will send anonymous data about this instance.">
+													Enable instance telemetry
+												</sl-checkbox>
+												<sl-details summary="Advanced options">
+													<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions.">
+														Enable elevated access
+													</sl-checkbox>
+												</sl-details>
+											</container-settings>`
+										: ""
+								}
+
+
+							${
+								this._instance?.localInstance
+									? `<form-footer>
+											<sl-checkbox name="runContainerUpdate" help-text='When enabled, performs a Penpot upgrade (if tag is set to "latest") and updates container settings (tag, telemetry).'>Run container update</sl-checkbox>
+										</form-footer>`
+									: ""
+							}
+
+						</form>
+						<div class="footer">
+							<div>
+							${
+								this._instance?.id
+									? `<sl-button id="delete" variant="danger" ${this._instance?.isDefault ? "disabled" : ""}>Delete instance</sl-button>`
+									: ""
+							}
+							</div>
+							<div>
+								<sl-button form="instance-creator-form" type="submit" variant="primary">
+									Create
+								</sl-button>
+								<sl-button id="close" variant="primary">
+									Close
+								</sl-button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
 
 		this._form = typedQuerySelector("form", HTMLFormElement, this.shadowRoot);
 		this._tagInput = typedQuerySelector(
@@ -232,10 +315,25 @@ export class InstanceCreator extends HTMLElement {
 			SlButton,
 			this.shadowRoot,
 		);
+		this._deleteButton = typedQuerySelector(
+			"sl-button#delete",
+			SlButton,
+			this.shadowRoot,
+		);
 
 		if (this._instance) {
 			const labelInput = typedQuerySelector(
 				"sl-input[name='label']",
+				SlInput,
+				this.shadowRoot,
+			);
+			const colorPicker = typedQuerySelector(
+				"sl-color-picker",
+				SlColorPicker,
+				this.shadowRoot,
+			);
+			const originInput = typedQuerySelector(
+				"sl-input[name='origin']",
 				SlInput,
 				this.shadowRoot,
 			);
@@ -247,16 +345,29 @@ export class InstanceCreator extends HTMLElement {
 
 			if (labelInput && this._instance.label) {
 				labelInput.value = this._instance.label;
-				labelInput.disabled = true;
 			}
-			if (this._tagInput && this._instance.tag) {
-				this._tagInput.value = this._instance.tag;
+			if (colorPicker && this._instance.color) {
+				colorPicker.value = this._instance.color;
+			}
+			if (originInput && this._instance.origin) {
+				originInput.value = this._instance.origin;
+				if (this._instance.localInstance) {
+					originInput.disabled = true;
+				}
+			}
+			if (this._tagInput && this._instance.localInstance?.tag) {
+				this._tagInput.value = this._instance.localInstance.tag;
 			}
 			if (
 				telemetryCheckbox &&
-				Object.hasOwn(this._instance, "isInstanceTelemetryEnabled")
+				this._instance.localInstance &&
+				Object.hasOwn(
+					this._instance.localInstance,
+					"isInstanceTelemetryEnabled",
+				)
 			) {
-				telemetryCheckbox.checked = this._instance.isInstanceTelemetryEnabled;
+				telemetryCheckbox.checked =
+					this._instance.localInstance.isInstanceTelemetryEnabled;
 			}
 
 			if (this._submitButton) {
@@ -266,6 +377,7 @@ export class InstanceCreator extends HTMLElement {
 
 		this._form?.addEventListener("submit", this);
 		this._closeButton?.addEventListener("click", this);
+		this._deleteButton?.addEventListener("click", this);
 
 		this.prepareTagInput(this._tagInput, this._dockerTags);
 	}
@@ -309,6 +421,8 @@ export class InstanceCreator extends HTMLElement {
 		const isSubmitEvent = event.type === "submit";
 		const isCloseEvent =
 			event.type === "click" && event.target === this._closeButton;
+		const isDeleteEvent =
+			event.type === "click" && event.target === this._deleteButton;
 
 		if (isSubmitEvent && this._form) {
 			this.handleSubmit(event, this._form);
@@ -317,6 +431,11 @@ export class InstanceCreator extends HTMLElement {
 
 		if (isCloseEvent) {
 			this.handleClose();
+			return;
+		}
+
+		if (isDeleteEvent) {
+			this.handleDelete();
 			return;
 		}
 	}
@@ -330,8 +449,15 @@ export class InstanceCreator extends HTMLElement {
 
 		const formData = new FormData(form);
 		/** @type {InstanceCreationDetails} */
-		const detail = Object.fromEntries(formData.entries());
+		const {
+			tag,
+			enableInstanceTelemetry,
+			enableElevatedAccess,
+			runContainerUpdate,
+			...instance
+		} = Object.fromEntries(formData.entries());
 		const { id: instanceId } = this._instance || {};
+		const isLocalInstanceCreator = !instanceId || this._instance?.localInstance;
 		const eventName = instanceId
 			? INSTANCE_CREATOR_EVENTS.UPDATE
 			: INSTANCE_CREATOR_EVENTS.CREATE;
@@ -339,7 +465,15 @@ export class InstanceCreator extends HTMLElement {
 		this.dispatchEvent(
 			new CustomEvent(eventName, {
 				detail: {
-					...detail,
+					...instance,
+					...(isLocalInstanceCreator && {
+						localInstance: {
+							tag,
+							enableInstanceTelemetry,
+							enableElevatedAccess,
+							runContainerUpdate,
+						},
+					}),
 					...(instanceId && { id: instanceId }),
 				},
 				bubbles: true,
@@ -353,6 +487,18 @@ export class InstanceCreator extends HTMLElement {
 			new CustomEvent(INSTANCE_CREATOR_EVENTS.CLOSE, {
 				bubbles: true,
 				composed: true,
+			}),
+		);
+
+		this._instance = null;
+	}
+
+	handleDelete() {
+		this.dispatchEvent(
+			new CustomEvent(INSTANCE_CREATOR_EVENTS.DELETE, {
+				bubbles: true,
+				composed: true,
+				detail: { id: this._instance?.id },
 			}),
 		);
 

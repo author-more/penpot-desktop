@@ -8,6 +8,7 @@ import {
 } from "../process/diagnostics.js";
 import { Tag } from "../process/docker.js";
 import { AllInstances, LocalInstance } from "../process/instance.js";
+import { Instances } from "../base/scripts/instance.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
@@ -18,15 +19,16 @@ export type Api = {
 			containerSolution: ReturnType<typeof getContainerSolution>;
 		}>;
 		getAll: () => Promise<AllInstances>;
-		getConfig: (
-			id: string,
-		) => Promise<
-			| (Pick<Settings["instances"][number], "id" | "label"> &
-					Pick<LocalInstance, "tag" | "isInstanceTelemetryEnabled">)
+		getConfig: (id: string) => Promise<
+			| (Settings["instances"][number] & {
+					localInstance?: Pick<
+						LocalInstance,
+						"tag" | "isInstanceTelemetryEnabled"
+					>;
+			  })
 			| null
 		>;
-		register: (instance: Partial<Settings["instances"][number]>) => void;
-		create: (instance: Record<string, unknown>) => Promise<string>;
+		create: (instance?: Record<string, unknown>) => Promise<string>;
 		update: (id: string, instance: Record<string, unknown>) => Promise<void>;
 		remove: (id: string) => void;
 		setDefault: (id: string) => void;
@@ -47,6 +49,17 @@ export type Api = {
 			}) => void,
 		) => void;
 	};
+	tab: {
+		onSetDefault: (
+			callback: (
+				instance: Pick<Instances[number], "id" | "origin" | "color">,
+			) => void,
+		) => void;
+		onOpen: (callback: (href: string) => void) => void;
+		onMenuAction: (
+			callback: ({ command, tabId }: TabContextMenuAction) => void,
+		) => void;
+	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 	setSetting: <S extends keyof Settings>(
@@ -54,10 +67,6 @@ export type Api = {
 		value: Settings[S],
 	) => void;
 	onSetFlag: (callback: (flag: string, value: string) => void) => void;
-	onOpenTab: (callback: (href: string) => void) => void;
-	onTabMenuAction: (
-		callback: ({ command, tabId }: TabContextMenuAction) => void,
-	) => void;
 };
 
 type TabContextMenuAction = { command: string; tabId: number };

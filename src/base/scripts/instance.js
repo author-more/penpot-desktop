@@ -2,14 +2,11 @@ import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { openTab, setDefaultTab } from "./electron-tabs.js";
 import {
 	SlButton,
-	SlColorPicker,
 	SlDialog,
 	SlIconButton,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { isNonNull } from "../../tools/value.js";
 import { isParentNode } from "../../tools/element.js";
-import { EditableText } from "../components/editableText.js";
-import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import {
 	disableSettingsFocusTrap,
@@ -27,6 +24,7 @@ import {
  * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
+ * @typedef {CustomEvent<{id?: string}>} InstanceDeleteEvent
  */
 
 export async function initInstance() {
@@ -80,18 +78,42 @@ async function prepareInstanceCreator() {
 	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
 		instanceCreatorDialog.hide(),
 	);
+	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.DELETE, (event) => {
+		const {
+			detail: { id },
+		} = /** @type  {InstanceDeleteEvent} */ (event);
+		if (id) {
+			window.api.instance.remove(id);
+			updateInstanceList();
+			instanceCreatorDialog.hide();
+		}
+	});
 }
 
 /**
  * @param {Event} event
  */
-function addInstance(event) {
+async function addInstance(event) {
 	event.preventDefault();
 
-	registerInstance({
-		id: crypto.randomUUID(),
-	});
-	updateInstanceList();
+	try {
+		await window.api.instance.create();
+
+		updateInstanceList();
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to add an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
 }
 
 /**
@@ -106,22 +128,27 @@ async function openInstanceCreator(event, id) {
 	const { alertsHolder, instanceCreatorDialog, instanceCreator } =
 		await getInstanceCreatorElements();
 
-	alertsHolder?.replaceChildren();
-
-	const alert = await getCreatorAlert();
-	if (alert) {
-		alertsHolder?.append(alert);
-	}
-
-	if (!instanceCreator) {
+	if (!instanceCreatorDialog || !instanceCreator) {
 		return;
 	}
 
+	const alert = await getCreatorAlert();
 	const instanceConfig = id ? await window.api.instance.getConfig(id) : null;
+	const isLocalInstanceCreator =
+		!instanceConfig?.id || instanceConfig?.localInstance;
+
+	alertsHolder?.replaceChildren();
+	if (alert && isLocalInstanceCreator) {
+		alertsHolder?.append(alert);
+	}
 
 	instanceCreator.instance = instanceConfig;
 
-	instanceCreatorDialog?.show();
+	instanceCreatorDialog.label = !instanceConfig?.id
+		? "Instance creator"
+		: "Instance settings";
+	instanceCreatorDialog.style = `--width: ${isLocalInstanceCreator ? "75" : "30"}vw;`;
+	instanceCreatorDialog.show();
 }
 
 async function getCreatorAlert() {
@@ -233,12 +260,13 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	const { id, ...detail } = event.detail;
 	try {
 		await window.api.instance.update(id, detail);
+		updateInstanceList();
 
 		showAlert(
 			"success",
 			{
 				heading: "Instance updated",
-				message: "Local instance has been updated successfully.",
+				message: "Instance has been updated successfully.",
 			},
 			{
 				duration: 3000,
@@ -288,70 +316,43 @@ async function updateInstanceList() {
  * @param {HTMLTemplateElement} template
  */
 function createInstancePanel(instance, template) {
-	const { id, origin, label, color, isDefault } = { ...instance };
+	const { id, origin, label, color } = { ...instance };
 	const instancePanel = document.importNode(template.content, true);
 
 	if (!instancePanel || !isParentNode(instancePanel)) {
 		return;
 	}
 
-	const colorPickerEl = typedQuerySelector(
-		"sl-color-picker",
-		SlColorPicker,
-		instancePanel,
-	);
-	if (colorPickerEl) {
-		colorPickerEl.value = color || "";
-		colorPickerEl.addEventListener("sl-blur", () => {
-			instance.color = colorPickerEl.getFormattedValue("hsla");
-
-			registerInstance(instance);
-		});
+	const colorEl = typedQuerySelector(".color", HTMLDivElement, instancePanel);
+	if (colorEl) {
+		colorEl.style.backgroundColor = color;
 	}
 
-	const labelEl = typedQuerySelector(".label", EditableText, instancePanel);
+	const labelEl = typedQuerySelector(".label", HTMLSpanElement, instancePanel);
 	if (labelEl) {
 		labelEl.innerText = label || "";
-		labelEl.addEventListener(
-			"change",
-			(/**@type {CustomEventInit} */ { detail: { value } }) => {
-				instance.label = value;
-
-				registerInstance(instance);
-			},
-		);
 	}
 
-	const hintEl = typedQuerySelector(".hint", EditableText, instancePanel);
+	const hintEl = typedQuerySelector(".hint", HTMLSpanElement, instancePanel);
 	if (hintEl) {
 		hintEl.innerText = origin;
-		hintEl.addEventListener(
-			"change",
-			(/**@type {CustomEventInit} */ { detail: { value } }) => {
-				instance.origin = value;
-
-				registerInstance(instance);
-			},
-		);
 	}
 
-	const buttonDeleteEl = typedQuerySelector(
+	const buttonSettingsEl = typedQuerySelector(
 		"sl-icon-button",
 		SlIconButton,
 		instancePanel,
 	);
-	if (buttonDeleteEl) {
-		buttonDeleteEl.disabled = isDefault;
-		buttonDeleteEl.addEventListener("click", () => {
-			window.api.instance.remove(id);
-			updateInstanceList();
+	if (buttonSettingsEl) {
+		buttonSettingsEl.addEventListener("click", () => {
+			openInstanceCreator(null, id);
 		});
 	}
 
 	const panelElement = typedQuerySelector(".panel", HTMLElement, instancePanel);
 	if (panelElement) {
 		panelElement.addEventListener("contextmenu", async () => {
-			const { id, origin, color, isLocal } = instance;
+			const { id, origin, color } = instance;
 
 			await disableSettingsFocusTrap();
 
@@ -369,18 +370,6 @@ function createInstancePanel(instance, template) {
 						enableSettingsFocusTrap();
 					},
 				},
-				...(isLocal
-					? [
-							{
-								label: "Edit",
-								onClick: async () => {
-									openInstanceCreator(null, id);
-									hideContextMenu();
-									enableSettingsFocusTrap();
-								},
-							},
-						]
-					: []),
 			]);
 		});
 	}
@@ -435,23 +424,4 @@ async function getInstanceCreatorElements() {
 	);
 
 	return { alertsHolder, instanceCreatorDialog, instanceCreator };
-}
-
-/**
- * @param {Partial<Instances[number]>} instance
- */
-function registerInstance(instance) {
-	const { id, origin, color, isDefault } = instance;
-
-	window.api.instance.register({
-		...DEFAULT_INSTANCE,
-		...instance,
-	});
-
-	if (isDefault) {
-		setDefaultTab(origin, {
-			accentColor: color,
-			partition: id,
-		});
-	}
 }

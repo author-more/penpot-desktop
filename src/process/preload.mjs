@@ -26,7 +26,6 @@ contextBridge.exposeInMainWorld(
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
 			getAll: () => ipcRenderer.invoke("instance:get-all"),
 			getConfig: (id) => ipcRenderer.invoke("instance:get-config", id),
-			register: (instance) => ipcRenderer.send("instance:register", instance),
 			create: (instance) => ipcRenderer.invoke("instance:create", instance),
 			update: (id, instance) =>
 				ipcRenderer.invoke("instance:update", id, instance),
@@ -44,6 +43,15 @@ contextBridge.exposeInMainWorld(
 				);
 			},
 		},
+		tab: {
+			onSetDefault: (callback) => {
+				ipcRenderer.on("tab:set-default", (_event, value) => callback(value));
+			},
+			onOpen: (callback) =>
+				ipcRenderer.on("tab:open", (_event, value) => callback(value)),
+			onMenuAction: (callback) =>
+				ipcRenderer.on("tab:menu-action", (_event, value) => callback(value)),
+		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);
 		},
@@ -58,9 +66,5 @@ contextBridge.exposeInMainWorld(
 				callback(flag, value),
 			);
 		},
-		onOpenTab: (callback) =>
-			ipcRenderer.on("open-tab", (_event, value) => callback(value)),
-		onTabMenuAction: (callback) =>
-			ipcRenderer.on("tab-menu-action", (_event, value) => callback(value)),
 	}),
 );

@@ -49,8 +49,11 @@ export async function initTabs() {
 
 	prepareTabReloadButton();
 
-	window.api.onOpenTab(openTab);
-	window.api.onTabMenuAction(handleTabMenuAction);
+	window.api.tab.onOpen(openTab);
+	window.api.tab.onMenuAction(handleTabMenuAction);
+	window.api.tab.onSetDefault(({ id, origin, color }) =>
+		setDefaultTab(origin, { accentColor: color, partition: id }),
+	);
 
 	const addTabButton = typedQuerySelector(
 		".buttons > button",

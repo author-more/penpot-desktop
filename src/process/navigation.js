@@ -45,7 +45,7 @@ app.on("web-contents-created", (event, contents) => {
 				};
 			}
 
-			mainWindow.webContents.send("open-tab", parsedUrl.href);
+			mainWindow.webContents.send("tab:open", parsedUrl.href);
 		} else {
 			console.warn(
 				`[WARNING] [app.web-contents-created.setWindowOpenHandler] Forbidden origin: ${parsedUrl.origin}`,
