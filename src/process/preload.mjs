@@ -22,6 +22,12 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.send(channel, data);
 			}
 		},
+		app: {
+			onWillClose: (callback) => {
+				ipcRenderer.on("app:will-close", () => callback());
+			},
+			readyForClose: () => ipcRenderer.send("app:ready-for-close"),
+		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
 			getAll: () => ipcRenderer.invoke("instance:get-all"),

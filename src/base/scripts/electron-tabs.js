@@ -6,6 +6,7 @@ import { showAlert } from "./alert.js";
 import { hideContextMenu, showContextMenu } from "./contextMenu.js";
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
 import { handleFileExport } from "./file.js";
+import { getDefaultInstance } from "./instance.js";
 import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
 
 /**
@@ -28,6 +29,7 @@ const DEFAULT_TAB_OPTIONS = Object.freeze({
 	},
 	ready: tabReadyHandler,
 });
+const TABS_STORAGE_KEY = "pd-tabs";
 
 const TAB_STYLE_PROPERTIES = Object.freeze({
 	ACCENT_COLOR: "--tab-accent-color",
@@ -39,6 +41,16 @@ const TAB_STYLE_PROPERTIES = Object.freeze({
 
 export async function initTabs() {
 	const tabGroup = await getTabGroup();
+	const {
+		id: defaultId,
+		color: defaultColor,
+		origin: defaultOrigin,
+	} = await getDefaultInstance();
+
+	await setDefaultTab(defaultOrigin, {
+		accentColor: defaultColor,
+		partition: defaultId,
+	});
 
 	tabGroup?.on("tab-removed", () => {
 		handleNoTabs();
@@ -47,6 +59,7 @@ export async function initTabs() {
 		handleNoTabs();
 	});
 
+	await restoreTabs();
 	prepareTabReloadButton();
 
 	window.api.tab.onOpen(openTab);
@@ -79,6 +92,11 @@ export async function initTabs() {
 
 		showContextMenu(addTabButton, menuItems);
 	});
+
+	const isTabOpen = !!tabGroup?.tabs[0];
+	if (!isTabOpen) {
+		openTab();
+	}
 }
 
 /**
@@ -107,10 +125,12 @@ export async function openTab(href, { accentColor, partition } = {}) {
 	const tabGroup = await getTabGroup();
 	const activeTab = tabGroup?.getActiveTab();
 
-	// Use the same instance as the active tab if not requested otherwise.
-	const activeTabProperties = activeTab && getTabProperties(activeTab);
-	partition = partition || activeTabProperties?.partition;
-	accentColor = accentColor || activeTabProperties?.accentColor;
+	if (!partition || !accentColor) {
+		// Use the same instance as the active tab if not requested otherwise.
+		const activeTabProperties = activeTab && getTabProperties(activeTab);
+		partition = partition || activeTabProperties?.partition;
+		accentColor = accentColor || activeTabProperties?.accentColor;
+	}
 
 	tabGroup?.addTab(
 		href
@@ -269,6 +289,50 @@ async function handleNoTabs() {
 	const noTabsExistPage = typedQuerySelector(".no-tabs-exist", HTMLElement);
 	if (noTabsExistPage) {
 		noTabsExistPage.style.display = hasTabs ? "none" : "inherit";
+	}
+}
+
+export async function saveTabs() {
+	const tabGroup = await getTabGroup();
+	const tabs = tabGroup?.getTabs();
+	const hasTabs = !!tabs?.length;
+
+	if (!hasTabs) {
+		window.localStorage.removeItem(TABS_STORAGE_KEY);
+		return;
+	}
+
+	const tabDetails = await Promise.all(
+		tabs.map((tab) => {
+			const { url, partition } = getTabProperties(tab);
+
+			return { url, partition };
+		}),
+	);
+
+	window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(tabDetails));
+}
+
+async function restoreTabs() {
+	const storedTabs = window.localStorage.getItem(TABS_STORAGE_KEY);
+	/** @type {(TabOptions & { url: string})[]} */
+	const savedTabs = storedTabs && JSON.parse(storedTabs);
+
+	if (savedTabs) {
+		const instances = await window.api.instance.getAll();
+		await Promise.all(
+			savedTabs
+				.map(({ url, partition }) => {
+					const instanceConfig = instances.find(({ id }) => id === partition);
+					if (instanceConfig) {
+						return openTab(url, {
+							accentColor: instanceConfig.color,
+							partition,
+						});
+					}
+				})
+				.filter(Boolean),
+		);
 	}
 }
 

@@ -3,7 +3,7 @@ import "../../../node_modules/electron-tabs/dist/electron-tabs.js";
 
 import "../components/instanceCreator.js";
 
-import { initTabs } from "./electron-tabs.js";
+import { initTabs, saveTabs } from "./electron-tabs.js";
 import { initInstance } from "./instance.js";
 import { initSettings } from "./settings.js";
 import { initTheme } from "./theme.js";
@@ -25,4 +25,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 window.api.onSetFlag((flag, value) => {
 	document.documentElement.setAttribute(flag, value);
+});
+window.api.app.onWillClose(async () => {
+	await saveTabs();
+
+	window.api.app.readyForClose();
 });
