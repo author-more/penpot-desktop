@@ -27,7 +27,10 @@ window.api.onSetFlag((flag, value) => {
 	document.documentElement.setAttribute(flag, value);
 });
 window.api.app.onWillClose(async () => {
-	await saveTabs();
+	const rememberTabs = await window.api.getSetting("enableTabsRemembering");
+	if (rememberTabs) {
+		await saveTabs();
+	}
 
 	window.api.app.readyForClose();
 });

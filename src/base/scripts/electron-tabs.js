@@ -1,4 +1,7 @@
-import { SlIconButton } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
+import {
+	SlCheckbox,
+	SlIconButton,
+} from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { FILE_EVENTS } from "../../shared/file.js";
 import { DEFAULT_INSTANCE } from "../../shared/instance.js";
 import { isViewModeUrl } from "../../tools/penpot.js";
@@ -10,6 +13,9 @@ import { getDefaultInstance } from "./instance.js";
 import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
 
 /**
+ *
+ * @typedef {Parameters<typeof window.api.setSetting<"enableTabsRemembering">>[1]} EnableTabsRemembering
+ *
  * @typedef {import("electron-tabs").TabGroup} TabGroup
  * @typedef {import("electron-tabs").Tab} Tab
  * @typedef {import("electron").WebviewTag} WebviewTag
@@ -61,6 +67,7 @@ export async function initTabs() {
 
 	await restoreTabs();
 	prepareTabReloadButton();
+	prepareSettingsForm();
 
 	window.api.tab.onOpen(openTab);
 	window.api.tab.onMenuAction(handleTabMenuAction);
@@ -96,6 +103,24 @@ export async function initTabs() {
 	const isTabOpen = !!tabGroup?.tabs[0];
 	if (!isTabOpen) {
 		openTab();
+	}
+}
+
+async function prepareSettingsForm() {
+	const enableTabsRemembering = await window.api.getSetting(
+		"enableTabsRemembering",
+	);
+	const { rememberTabsSwitch } = await getSettingForm();
+
+	if (rememberTabsSwitch) {
+		rememberTabsSwitch.checked = enableTabsRemembering;
+
+		rememberTabsSwitch.addEventListener("sl-change", (event) => {
+			const { target } = event;
+			const value = target instanceof SlCheckbox && target.checked;
+
+			window.api.setSetting("enableTabsRemembering", value);
+		});
 	}
 }
 
@@ -335,6 +360,12 @@ async function restoreTabs() {
 				.filter(Boolean),
 		);
 	}
+
+	forgetTabs();
+}
+
+export function forgetTabs() {
+	window.localStorage.removeItem(TABS_STORAGE_KEY);
 }
 
 export async function getTabGroup() {
@@ -441,4 +472,14 @@ function getTabProperties(tab) {
 		accentColor,
 		partition: id,
 	};
+}
+
+async function getSettingForm() {
+	const rememberTabsSwitch = await getIncludedElement(
+		"#remember-tabs-switch",
+		"#include-settings",
+		SlCheckbox,
+	);
+
+	return { rememberTabsSwitch };
 }
