@@ -303,7 +303,8 @@ export async function saveTabs() {
 	}
 
 	const tabDetails = await Promise.all(
-		tabs.map((tab) => {
+		// electron-tab keeps tabs sorted last to first, compared to the rendering in the tab's panel when read left to right. Saving in reversed order matches the iteration order, important when restoring the tabs.
+		tabs.toReversed().map((tab) => {
 			const { url, partition } = getTabProperties(tab);
 
 			return { url, partition };
