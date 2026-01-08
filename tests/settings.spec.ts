@@ -33,6 +33,9 @@ test.beforeEach(async () => {
 test.afterEach(async () => {
 	saveFile(join(userDataPath, CONFIG_NAME), DEFAULT_CONFIG);
 
+	const window = await electronApp.firstWindow();
+
+	await window.close();
 	await electronApp.close();
 });
 
