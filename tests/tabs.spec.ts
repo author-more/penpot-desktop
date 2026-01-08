@@ -9,6 +9,9 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
+	const window = await electronApp.firstWindow();
+
+	await window.close();
 	await electronApp.close();
 });
 

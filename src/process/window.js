@@ -138,6 +138,15 @@ export const MainWindow = {
 		mainWindow.on("blur", () => {
 			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, false]);
 		});
+		mainWindow.once("close", (event) => {
+			event.preventDefault();
+
+			ipcMain.once("app:ready-for-close", () => {
+				app.quit();
+			});
+
+			mainWindow.webContents.send("app:will-close");
+		});
 
 		mainWindowState.manage(mainWindow);
 		setAppMenu();

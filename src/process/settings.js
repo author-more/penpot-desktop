@@ -13,6 +13,7 @@ const CONFIG_SETTINGS_ENTRY_NAMES = Object.freeze([
 	"theme",
 	"titleBarType",
 	"instances",
+	"enableTabsRemembering",
 	"enableAutoReload",
 	"enableViewModeWindow",
 ]);
@@ -25,6 +26,7 @@ const settingsSchema = z.object({
 		.enum([titleBarTypes[0], ...titleBarTypes.slice(1)])
 		.optional()
 		.default(CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY),
+	enableTabsRemembering: z.boolean().default(false),
 	enableAutoReload: z.boolean().default(false),
 	enableViewModeWindow: z.boolean().default(false),
 	instances: z

@@ -1,5 +1,5 @@
 import { getIncludedElement, typedQuerySelector } from "./dom.js";
-import { openTab, setDefaultTab } from "./electron-tabs.js";
+import { setDefaultTab } from "./electron-tabs.js";
 import {
 	SlButton,
 	SlDialog,
@@ -28,23 +28,15 @@ import {
  */
 
 export async function initInstance() {
-	const instances = await window.api.instance.getAll();
-
-	const { id, origin, color } =
-		instances.find(({ isDefault }) => isDefault) || instances[0];
-
-	await setDefaultTab(origin, {
-		accentColor: color,
-		partition: id,
-	});
-	openTab(origin, {
-		accentColor: color,
-		partition: id,
-	});
-
 	updateInstanceList();
 	prepareInstanceControls();
 	prepareInstanceCreator();
+}
+
+export async function getDefaultInstance() {
+	const instances = await window.api.instance.getAll();
+
+	return instances.find(({ isDefault }) => isDefault) || instances[0];
 }
 
 async function prepareInstanceControls() {

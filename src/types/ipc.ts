@@ -12,6 +12,10 @@ import { Instances } from "../base/scripts/instance.js";
 
 export type Api = {
 	send: (channel: string, data?: unknown) => void;
+	app: {
+		onWillClose: (callback: () => void) => void;
+		readyForClose: () => void;
+	};
 	instance: {
 		getSetupInfo: () => Promise<{
 			isDockerAvailable: boolean;
