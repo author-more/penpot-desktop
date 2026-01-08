@@ -53,6 +53,15 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v0.23.0" date="2026-01-08">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.23.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added open tabs remembering.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.22.0" date="2025-12-16">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.22.0</url>
             <description>
