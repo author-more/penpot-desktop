@@ -1,0 +1,30 @@
+name: "Cache Docker images"
+description: "Loads, or pulls and caches, Docker images."
+
+inputs:
+  cache_key:
+    required: true
+    description: "Key for cache entry."
+  cache_path:
+    required: true
+    description: "Directory to cache and restore."
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Read cache"
+      id: cache-docker-image
+      uses: actions/cache@v5
+      with:
+        path: ${{ inputs.cache_path }}
+        key: cache-docker-${{ inputs.cache_key }}-${{ runner.os }}
+
+    - name: "Cache images"
+      if: steps.cache-docker-image.outputs.cache-hit != 'true'
+      shell: "bash"
+      run: ${{github.action_path}}/cacheDockerImages.sh ${{ inputs.cache_path }}
+
+    - name: "Load images"
+      if: steps.cache-docker-image.outputs.cache-hit == 'true'
+      shell: "bash"
+      run: ${{github.action_path}}/loadDockerImages.sh ${{ inputs.cache_path }}
