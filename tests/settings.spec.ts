@@ -1,8 +1,10 @@
-import { ElectronApplication, expect, Page, test } from "@playwright/test";
+import { ElectronApplication, expect, test } from "@playwright/test";
 import { describe } from "node:test";
 import { launchElectronApp } from "./utils/app.js";
 import { getFile, saveFile } from "./utils/fs.js";
 import { join } from "node:path";
+import { openSettings } from "./utils/actions/settings.js";
+import { clickContextMenu } from "./utils/actions/contextMenu.js";
 
 let electronApp: ElectronApplication;
 let userDataPath: string;
@@ -40,18 +42,6 @@ test.afterEach(async () => {
 });
 
 describe("settings", () => {
-	const openSettings = async (page: Page) => {
-		const toggleButton = page.getByRole("button", {
-			name: "Toggle settings",
-		});
-
-		toggleButton.waitFor({ state: "visible" });
-		await toggleButton.click();
-
-		const sidePanel = page.locator("sl-drawer#settings");
-		expect(await sidePanel.isVisible()).toBeTruthy();
-	};
-
 	test("should open", async () => {
 		const window = await electronApp.firstWindow();
 
@@ -207,15 +197,7 @@ describe("settings", () => {
 			expect((await getConfig()).instances[1].isDefault).toBe(false);
 
 			const newItem = itemList.last();
-			newItem.click({ button: "right" });
-
-			const contextMenu = window.locator("#context-menu sl-menu");
-			await contextMenu.waitFor({ state: "visible" });
-			const setDefaultOption = contextMenu.getByRole("menuitem", {
-				name: "Set as default",
-			});
-			await setDefaultOption.click();
-			await contextMenu.waitFor({ state: "hidden" });
+			await clickContextMenu(window, newItem, "Set as default");
 
 			expect((await getConfig()).instances[1].isDefault).toBe(true);
 
