@@ -34,11 +34,11 @@ jobs:
         run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}" --verbose
       - name: Run code checks
         run: npm run check
-      - name: Cache Docker images
+      - name: Restore cache with Docker images
         if: matrix.os == 'ubuntu-latest'
-        uses: ./.github/actions/cache-docker-images
+        uses: ./.github/actions/cache-restore-docker-images
         with:
-          cache_key: penpot
+          cache_key: cache-penpot-docker-images-${{ runner.os }}
           cache_path: cache/docker/penpot
       - name: Run test
         shell: bash
@@ -48,6 +48,12 @@ jobs:
           else
             npm run test
           fi
+      - name: Save cache with Docker images
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./.github/actions/cache-save-docker-images
+        with:
+          cache_key: cache-penpot-docker-images-${{ runner.os }}
+          cache_path: cache/docker/penpot
       - name: Build macOS with signing & notarization
         if: ${{ matrix.os == 'macos-latest' && github.event_name == 'push' && github.ref_name == 'main' }}
         timeout-minutes: 15

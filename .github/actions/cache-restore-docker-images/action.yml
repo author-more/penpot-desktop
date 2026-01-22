@@ -1,4 +1,4 @@
-name: "Cache Docker images"
+name: "Restore cached Docker images"
 description: "Loads, or pulls and caches, Docker images."
 
 inputs:
@@ -12,14 +12,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Read cache"
+    - name: "Restore cache"
       id: cache-docker-image
-      uses: actions/cache@v5
+      uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.cache_path }}
-        key: cache-docker-${{ inputs.cache_key }}-${{ runner.os }}
+        key: ${{ inputs.cache_key }}
 
-    - name: "Cache images"
+    - name: "Populate cache"
       if: steps.cache-docker-image.outputs.cache-hit != 'true'
       shell: "bash"
       run: ${{github.action_path}}/cacheDockerImages.sh ${{ inputs.cache_path }}
