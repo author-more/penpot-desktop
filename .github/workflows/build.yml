@@ -35,6 +35,7 @@ jobs:
       - name: Run code checks
         run: npm run check
       - name: Cache Docker images
+        if: matrix.os == 'ubuntu-latest'
         uses: ./.github/actions/cache-docker-images
         with:
           cache_key: penpot
