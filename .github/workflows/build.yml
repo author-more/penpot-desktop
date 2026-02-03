@@ -70,8 +70,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: ./.github/actions/cache-restore-docker-images
         with:
-          cache_key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
-          cache_path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
+          cache-key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
+          cache-path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
       - name: Run test
         shell: bash
         run: |
@@ -84,8 +84,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && steps.cache-restore.outputs.cache-hit != 'true'
         uses: ./.github/actions/cache-save-docker-images
         with:
-          cache_key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
-          cache_path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
+          cache-key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
+          cache-path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
       - name: "Clear cache"
         if: matrix.os == 'ubuntu-latest'
         shell: "bash"

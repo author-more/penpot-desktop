@@ -2,10 +2,10 @@ name: "Restore cached Docker images"
 description: "Loads, or pulls and caches, Docker images."
 
 inputs:
-  cache_key:
+  cache-key:
     required: true
     description: "Key for cache entry."
-  cache_path:
+  cache-path:
     required: true
     description: "Directory to cache and restore."
 
@@ -21,15 +21,15 @@ runs:
       id: cache-docker-image
       uses: actions/cache/restore@v5
       with:
-        path: ${{ inputs.cache_path }}
-        key: ${{ inputs.cache_key }}
+        path: ${{ inputs.cache-path }}
+        key: ${{ inputs.cache-key }}
 
     - name: "Populate cache"
       if: steps.cache-docker-image.outputs.cache-hit != 'true'
       shell: "bash"
-      run: ${{github.action_path}}/cacheDockerImages.sh ${{ inputs.cache_path }}
+      run: ${{github.action_path}}/cacheDockerImages.sh ${{ inputs.cache-path }}
 
     - name: "Load images"
       if: steps.cache-docker-image.outputs.cache-hit == 'true'
       shell: "bash"
-      run: ${{github.action_path}}/loadDockerImages.sh ${{ inputs.cache_path }}
+      run: ${{github.action_path}}/loadDockerImages.sh ${{ inputs.cache-path }}
