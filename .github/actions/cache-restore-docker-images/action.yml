@@ -9,6 +9,11 @@ inputs:
     required: true
     description: "Directory to cache and restore."
 
+outputs:
+  cache-hit:
+    description: "A boolean indicating if the cache has been found."
+    value: ${{ steps.cache-docker-image.outputs.cache-hit }}
+
 runs:
   using: "composite"
   steps:

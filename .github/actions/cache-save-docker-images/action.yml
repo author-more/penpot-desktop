@@ -18,7 +18,3 @@ runs:
       with:
         path: ${{ inputs.cache_path }}
         key: ${{ inputs.cache_key }}
-
-    - name: "Clear cache"
-      shell: "bash"
-      run: ${{github.action_path}}/clearCache.sh ${{ inputs.cache_path }}
