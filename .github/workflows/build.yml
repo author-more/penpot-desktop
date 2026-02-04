@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   DEPENDENCIES_BOT_NAME: "dependabot[bot]"
+  CACHE_PREFIX_DOCKER_IMAGES: "cache-penpot-docker-images"
+  CACHE_DIR_DOCKER_IMAGES: "cache/docker/penpot"
 
 jobs:
   lint:
@@ -64,11 +66,12 @@ jobs:
       - name: Run code checks
         run: npm run check
       - name: Restore cache with Docker images
+        id: cache-restore
         if: matrix.os == 'ubuntu-latest'
         uses: ./.github/actions/cache-restore-docker-images
         with:
-          cache_key: cache-penpot-docker-images-${{ runner.os }}
-          cache_path: cache/docker/penpot
+          cache-key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
+          cache-path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
       - name: Run test
         shell: bash
         run: |
@@ -78,11 +81,15 @@ jobs:
             npm run test
           fi
       - name: Save cache with Docker images
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && steps.cache-restore.outputs.cache-hit != 'true'
         uses: ./.github/actions/cache-save-docker-images
         with:
-          cache_key: cache-penpot-docker-images-${{ runner.os }}
-          cache_path: cache/docker/penpot
+          cache-key: ${{ env.CACHE_PREFIX_DOCKER_IMAGES }}-${{ runner.os }}
+          cache-path: ${{ env.CACHE_DIR_DOCKER_IMAGES }}
+      - name: "Clear cache"
+        if: matrix.os == 'ubuntu-latest'
+        shell: "bash"
+        run: rm -rf ${{ env.CACHE_DIR_DOCKER_IMAGES }}
       - name: Build macOS with signing & notarization
         if: ${{ matrix.os == 'macos-latest' && github.event_name == 'push' && github.ref_name == 'main' }}
         timeout-minutes: 15

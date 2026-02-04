@@ -2,10 +2,10 @@ name: "Save cached Docker images"
 description: "Saves and clears cached Docker images."
 
 inputs:
-  cache_key:
+  cache-key:
     required: true
     description: "Key for cache entry."
-  cache_path:
+  cache-path:
     required: true
     description: "Directory to cache and restore."
 
@@ -16,9 +16,5 @@ runs:
       id: cache-docker-image
       uses: actions/cache/save@v5
       with:
-        path: ${{ inputs.cache_path }}
-        key: ${{ inputs.cache_key }}
-
-    - name: "Clear cache"
-      shell: "bash"
-      run: ${{github.action_path}}/clearCache.sh ${{ inputs.cache_path }}
+        path: ${{ inputs.cache-path }}
+        key: ${{ inputs.cache-key }}
