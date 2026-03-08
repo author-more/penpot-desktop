@@ -39,7 +39,7 @@
 		"@shoelace-style/shoelace": "^2.20.1",
 		"@vscode/sudo-prompt": "^9.3.2",
 		"electron-tabs": "^1.0.1",
-		"electron-updater": "^6.7.3",
+		"electron-updater": "^6.8.3",
 		"electron-window-state": "^5.0.3",
 		"jszip": "^3.10.1",
 		"zod": "^4.3.6"
@@ -51,7 +51,7 @@
 		"@playwright/test": "^1.57.0",
 		"@types/node": "^25.0.9",
 		"electron": "^40.2.1",
-		"electron-builder": "^26.7.0",
+		"electron-builder": "^26.8.1",
 		"eslint": "^9.39.2",
 		"globals": "^17.0.0",
 		"lint-staged": "^16.2.7",
