@@ -23,7 +23,9 @@ export async function readConfig(configName) {
 		const message = `[ERROR] [config:read:${configName}] ${isError ? error.message : "Failed to read config."}`;
 
 		if (isError && !isNoFile) {
-			throw new Error(message);
+			throw new Error(message, {
+				cause: error,
+			});
 		}
 
 		console.error(message);
