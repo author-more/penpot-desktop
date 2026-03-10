@@ -167,7 +167,9 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 		console.error(`[ERROR] [instance:create]: ${message}`);
 
-		throw new Error(message);
+		throw new Error(message, {
+			cause: error,
+		});
 	}
 
 	const { label, localInstance } = validInstance;
@@ -205,7 +207,9 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 			? error.message
 			: "Something went wrong during the local instance setup.";
 
-		throw new Error(message);
+		throw new Error(message, {
+			cause: error,
+		});
 	}
 });
 
@@ -242,7 +246,9 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 
 		console.error(`[ERROR] [instance:update]: ${message}`);
 
-		throw new Error(message);
+		throw new Error(message, {
+			cause: error,
+		});
 	}
 
 	const { localInstance, ...instanceCore } = validInstance;
