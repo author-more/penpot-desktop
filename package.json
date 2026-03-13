@@ -45,16 +45,16 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "^20.4.2",
-		"@commitlint/config-conventional": "^20.4.2",
+		"@commitlint/cli": "^20.4.3",
+		"@commitlint/config-conventional": "^20.4.3",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.58.2",
-		"@types/node": "^25.3.3",
+		"@types/node": "^25.3.5",
 		"electron": "^40.8.0",
 		"electron-builder": "^26.8.1",
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",
-		"lint-staged": "^16.3.1",
+		"lint-staged": "^16.3.2",
 		"prettier": "3.8.1",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.56.1"
