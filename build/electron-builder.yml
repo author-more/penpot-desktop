@@ -7,7 +7,7 @@ asar: true
 mac:
   darkModeSupport: true
   category: "public.app-category.graphics-design"
-  minimumSystemVersion: 10.13.6
+  minimumSystemVersion: 12
   target:
     - "dmg" # Installer
     - "zip" # Required for auto updater
