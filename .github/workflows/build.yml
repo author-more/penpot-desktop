@@ -121,7 +121,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref_name }}" = "main" ]; then
-            npm run build -- --x64 --arm64
+            npm run build -- --x64 --arm64 --publish=onTagOrDraft
           else
             npm run build -- --x64 --arm64 --publish=never
           fi
