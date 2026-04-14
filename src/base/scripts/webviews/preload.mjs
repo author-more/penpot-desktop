@@ -1,6 +1,4 @@
-/* eslint-disable */
-// @ts-nocheck The file requires a review, before dedicating time to add quality types.
-
+// eslint-disable-next-line no-undef, @typescript-eslint/no-require-imports
 const { ipcRenderer } = require("electron");
 
 /**
@@ -34,92 +32,10 @@ let isExportInProgress = false;
 /** @type {MutationObserver['disconnect'][]} */
 let fileStatusObserverDisconnects = [];
 
-// Set the title of the tab name
-/// Instead of the tab name being "PROJECT_NAME - Penpot", this script will remove the " - Penpot" portion.
-function SetTitleToDash() {
-	document.title = "Dashboard";
-}
-
-function SetTitleToProject() {
-	document.title = document.querySelector(
-		".main_ui_workspace_left_header__file-name",
-	).innerText;
-}
-
-function _waitForElement(selector, delay = 50, tries = 100) {
-	const AQ1 = document.querySelector(selector);
-
-	if (!window[`__${selector}`]) {
-		window[`__${selector}`] = 0;
-		window[`__${selector}__delay`] = delay;
-		window[`__${selector}__tries`] = tries;
-	}
-
-	function ElementSearchTitle() {
-		return new Promise((resolve) => {
-			window[`__${selector}`]++;
-			setTimeout(resolve, window[`__${selector}__delay`]);
-		});
-	}
-
-	if (AQ1 === null) {
-		if (AQ1[`__${selector}`] >= window[`__${selector}__tries`]) {
-			window[`__${selector}`] = 0;
-			return Promise.resolve(null);
-		}
-
-		return ElementSearchTitle().then(() => _waitForElement(selector));
-	} else {
-		return Promise.resolve(AQ1);
-	}
-}
-
-function UpdateTitle() {
-	if (window.location.href.indexOf("#/workspace") != -1) {
-		const start = (async () => {
-			const $el = await _waitForElement(
-				`.main_ui_workspace_left_header__file-name`,
-			);
-			SetTitleToProject();
-		})();
-	} else {
-		SetTitleToDash();
-	}
-}
-
-window.onload = function () {
-	var titleEl = document.getElementsByTagName("title")[0];
-	var docEl = document.documentElement;
-
-	if (docEl && docEl.addEventListener) {
-		docEl.addEventListener(
-			"DOMSubtreeModified",
-			function (evt) {
-				var t = evt.target;
-				if (t === titleEl || (t.parentNode && t.parentNode === titleEl)) {
-					setTimeout(() => {
-						UpdateTitle();
-					}, 1200);
-				}
-			},
-			false,
-		);
-	} else {
-		document.onpropertychange = function () {
-			if (window.event.propertyName == "title") {
-				setTimeout(() => {
-					UpdateTitle();
-				}, 1200);
-			}
-		};
-	}
-};
-
 window.addEventListener("DOMContentLoaded", () => {
 	onClassChange(document.body, () => dispatchThemeUpdate());
 });
 
-// @ts-expect-error
 navigation.addEventListener("navigate", (event) => {
 	const url = new URL(event.destination.url);
 	const search = extractSearchFromHash(url.hash);
@@ -143,12 +59,12 @@ ipcRenderer.on("file:export-finish", () => cleanUpUI());
 /**
  * Observes a node and executes a callback on a class change.
  *
- * @typedef {Object} Options
+ * @typedef {Object} ClassObserverOptions
  * @property {string|null} [className] - The class name to watch for.
  *
  * @param {Parameters<MutationObserver["observe"]>[0]} node
  * @param {function} callback
- * @param {Options} options
+ * @param {ClassObserverOptions} options
  */
 function onClassChange(
 	node,
@@ -166,7 +82,8 @@ function onClassChange(
 
 			const { target, oldValue } = mutation;
 			const hadClass = oldValue?.includes(className);
-			const hasClass = target.classList.contains(className);
+			const hasClass =
+				target instanceof Element && target.classList.contains(className);
 
 			if (!hadClass && hasClass) {
 				callback();
@@ -451,11 +368,11 @@ async function getBinFileById(id) {
 
 /**
  *
- * @typedef {Object} Options
+ * @typedef {Object} ElementGetterOptions
  * @property {number} maxRetries
  *
  * @param {string} selector
- * @param {Options} options
+ * @param {ElementGetterOptions} options
  *
  * @returns {Promise<HTMLElement | null>}
  */
@@ -526,6 +443,7 @@ function debounce(fn, delay) {
 	let timer;
 
 	/**
+	 * @this Function
 	 * @param  {unknown[]} args
 	 */
 	return function (...args) {
@@ -534,6 +452,9 @@ function debounce(fn, delay) {
 	};
 }
 
+/**
+ * @param {string} hash
+ */
 function extractSearchFromHash(hash) {
 	const match = hash.match(/\?([^#]*)$/);
 	return match ? `?${match[1]}` : "";

@@ -282,7 +282,11 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 	});
 	webview.addEventListener("page-title-updated", () => {
 		const newTitle = webview.getTitle();
-		tab.setTitle(newTitle);
+		const normalizedTitle = newTitle
+			.replace("- Penpot", "")
+			.replace("- Your Penpot", "");
+
+		tab.setTitle(normalizedTitle);
 	});
 }
 
