@@ -5,7 +5,7 @@
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>AGPL-3.0-or-later</project_license>
     <name>Penpot Desktop</name>
-    <summary>Design and code beautiful products together</summary>
+    <summary>Design beautiful products together</summary>
     <developer id="com.authormore">
         <name>Author More</name>
     </developer>
@@ -32,13 +32,14 @@
     <url type="homepage">https://github.com/author-more/penpot-desktop</url>
     <url type="help">https://github.com/author-more/penpot-desktop/discussions</url>
     <url type="bugtracker">https://github.com/author-more/penpot-desktop/issues</url>
+    <url type="vcs-browser">https://github.com/author-more/penpot-desktop</url>
     <screenshots>
         <screenshot type="default">
-            <image>https://raw.githubusercontent.com/author-more/penpot-desktop/4e121cc0882a1976f7094951862b4ce68a74c72c/build/flatpak/screenshots/penpot-1.png</image>
+            <image>https://raw.githubusercontent.com/author-more/penpot-desktop/6ad865293d69592d2e56318be302b5a1d59a705c/build/flatpak/screenshots/penpot-1.png</image>
             <caption>Example project showcasing the interface</caption>
         </screenshot>
         <screenshot>
-            <image>https://raw.githubusercontent.com/author-more/penpot-desktop/4e121cc0882a1976f7094951862b4ce68a74c72c/build/flatpak/screenshots/penpot-2.png</image>
+            <image>https://raw.githubusercontent.com/author-more/penpot-desktop/6ad865293d69592d2e56318be302b5a1d59a705c/build/flatpak/screenshots/penpot-2.png</image>
             <caption>Dashboard showing example projects and drafts</caption>
         </screenshot>
     </screenshots>
