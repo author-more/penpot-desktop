@@ -11,10 +11,10 @@ import { AllInstances, LocalInstance } from "../process/instance.js";
 import { Instances } from "../base/scripts/instance.js";
 
 export type Api = {
-	send: (channel: string, data?: unknown) => void;
 	app: {
 		onWillClose: (callback: () => void) => void;
 		readyForClose: () => void;
+		openInBrowser: (resource: "help" | "selfhost" | "credits") => void;
 	};
 	instance: {
 		getSetupInfo: () => Promise<{

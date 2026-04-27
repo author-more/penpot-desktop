@@ -82,18 +82,25 @@ export const MainWindow = {
 		});
 
 		// IPC Functions
-		ipcMain.on("OpenHelp", () => {
-			shell.openExternal("https://github.com/author-more/penpot-desktop/wiki");
-		});
-		ipcMain.on("OpenOffline", () => {
-			shell.openExternal(
-				"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting",
-			);
-		});
-		ipcMain.on("OpenCredits", () => {
-			shell.openExternal(
-				"https://github.com/author-more/penpot-desktop/wiki/Credits",
-			);
+		ipcMain.on("app:open-in-browser", (_event, resource) => {
+			let url;
+
+			switch (resource) {
+				case "help":
+					url = "https://github.com/author-more/penpot-desktop/wiki";
+					break;
+				case "selfhost":
+					url =
+						"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting";
+					break;
+				case "credits":
+					url = "https://github.com/author-more/penpot-desktop/wiki/Credits";
+					break;
+			}
+
+			if (url) {
+				shell.openExternal(url);
+			}
 		});
 		ipcMain.on("tab:open-context-menu", (_event, tabId) => {
 			const tabMenu = getTabMenu(tabId);

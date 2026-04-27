@@ -5,18 +5,13 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
 	"api",
 	/** @type {import("../types/ipc.js").Api} */ ({
-		send: (channel, data) => {
-			let validChannels = ["OpenHelp", "OpenOffline", "OpenCredits"];
-
-			if (validChannels.includes(channel)) {
-				ipcRenderer.send(channel, data);
-			}
-		},
 		app: {
 			onWillClose: (callback) => {
 				ipcRenderer.on("app:will-close", () => callback());
 			},
 			readyForClose: () => ipcRenderer.send("app:ready-for-close"),
+			openInBrowser: (resource) =>
+				ipcRenderer.send("app:open-in-browser", resource),
 		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
