@@ -7,11 +7,6 @@ contextBridge.exposeInMainWorld(
 	/** @type {import("../types/ipc.js").Api} */ ({
 		send: (channel, data) => {
 			let validChannels = [
-				"updateApp",
-				"ReloadApp",
-				"MaximizeWindow",
-				"UnmaximizeWindow",
-				"MinimizeWindow",
 				"OpenHelp",
 				"OpenOffline",
 				"OpenCredits",

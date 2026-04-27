@@ -82,18 +82,6 @@ export const MainWindow = {
 		});
 
 		// IPC Functions
-		ipcMain.on("ReloadApp", () => {
-			mainWindow.reload();
-		});
-		ipcMain.on("MaximizeWindow", () => {
-			mainWindow.maximize();
-		});
-		ipcMain.on("UnmaximizeWindow", () => {
-			mainWindow.restore();
-		});
-		ipcMain.on("MinimizeWindow", () => {
-			mainWindow.minimize();
-		});
 		ipcMain.on("OpenHelp", () => {
 			shell.openExternal("https://github.com/author-more/penpot-desktop/wiki");
 		});
