@@ -6,12 +6,7 @@ contextBridge.exposeInMainWorld(
 	"api",
 	/** @type {import("../types/ipc.js").Api} */ ({
 		send: (channel, data) => {
-			let validChannels = [
-				"OpenHelp",
-				"OpenOffline",
-				"OpenCredits",
-				"openTabMenu",
-			];
+			let validChannels = ["OpenHelp", "OpenOffline", "OpenCredits"];
 
 			if (validChannels.includes(channel)) {
 				ipcRenderer.send(channel, data);
@@ -52,6 +47,8 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.on("tab:open", (_event, value) => callback(value)),
 			onMenuAction: (callback) =>
 				ipcRenderer.on("tab:menu-action", (_event, value) => callback(value)),
+			openContextMenu: (tabId) =>
+				ipcRenderer.send("tab:open-context-menu", tabId),
 		},
 		setTheme: (themeId) => {
 			ipcRenderer.send("set-theme", themeId);

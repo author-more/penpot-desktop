@@ -63,6 +63,7 @@ export type Api = {
 		onMenuAction: (
 			callback: ({ command, tabId }: TabContextMenuAction) => void,
 		) => void;
+		openContextMenu: (tabId: number) => void;
 	};
 	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;

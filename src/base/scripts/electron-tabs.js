@@ -218,7 +218,7 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 	});
 	tab.element.addEventListener("contextmenu", (event) => {
 		event.preventDefault();
-		window.api.send("openTabMenu", tab.id);
+		window.api.tab.openContextMenu(tab.id);
 	});
 	webview.addEventListener("ipc-message", async (event) => {
 		const isError = event.channel === "error";

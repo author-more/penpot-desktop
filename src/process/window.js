@@ -95,7 +95,7 @@ export const MainWindow = {
 				"https://github.com/author-more/penpot-desktop/wiki/Credits",
 			);
 		});
-		ipcMain.on("openTabMenu", (_event, tabId) => {
+		ipcMain.on("tab:open-context-menu", (_event, tabId) => {
 			const tabMenu = getTabMenu(tabId);
 			tabMenu.popup({
 				window: mainWindow,
