@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld(
 			readyForClose: () => ipcRenderer.send("app:ready-for-close"),
 			openInBrowser: (resource) =>
 				ipcRenderer.send("app:open-in-browser", resource),
+			setTheme: (themeId) => {
+				ipcRenderer.send("app:set-theme", themeId);
+			},
 		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
@@ -44,9 +47,6 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.on("tab:menu-action", (_event, value) => callback(value)),
 			openContextMenu: (tabId) =>
 				ipcRenderer.send("tab:open-context-menu", tabId),
-		},
-		setTheme: (themeId) => {
-			ipcRenderer.send("set-theme", themeId);
 		},
 		getSetting: (setting) => {
 			return ipcRenderer.invoke("setting:get", setting);

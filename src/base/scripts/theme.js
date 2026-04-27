@@ -1,5 +1,5 @@
 /**
- * @typedef {Parameters<typeof window.api.setTheme>[0]} ThemeId
+ * @typedef {Parameters<typeof window.api.app.setTheme>[0]} ThemeId
  * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"theme">>>} ThemeSetting
  * @typedef {import("electron").IpcMessageEvent} IpcMessageEvent
  */
@@ -94,7 +94,7 @@ async function prepareForm(themeSetting) {
  */
 function setTheme(themeId) {
 	if (isThemeId(themeId)) {
-		window.api.setTheme(themeId);
+		window.api.app.setTheme(themeId);
 	}
 }
 

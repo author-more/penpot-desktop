@@ -15,6 +15,7 @@ export type Api = {
 		onWillClose: (callback: () => void) => void;
 		readyForClose: () => void;
 		openInBrowser: (resource: "help" | "selfhost" | "credits") => void;
+		setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	};
 	instance: {
 		getSetupInfo: () => Promise<{
@@ -65,7 +66,6 @@ export type Api = {
 		) => void;
 		openContextMenu: (tabId: number) => void;
 	};
-	setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 	setSetting: <S extends keyof Settings>(
 		setting: S,

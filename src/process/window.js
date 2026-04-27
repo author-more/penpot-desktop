@@ -108,7 +108,7 @@ export const MainWindow = {
 				window: mainWindow,
 			});
 		});
-		ipcMain.on("set-theme", (_event, themeId) => {
+		ipcMain.on("app:set-theme", (_event, themeId) => {
 			nativeTheme.themeSource = themeId;
 
 			if (titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
