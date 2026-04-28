@@ -66,11 +66,10 @@ export type Api = {
 		) => void;
 		openContextMenu: (tabId: number) => void;
 	};
-	getSetting: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
-	setSetting: <S extends keyof Settings>(
-		setting: S,
-		value: Settings[S],
-	) => void;
+	setting: {
+		get: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
+		set: <S extends keyof Settings>(setting: S, value: Settings[S]) => void;
+	};
 	onSetFlag: (callback: (flag: string, value: string) => void) => void;
 };
 

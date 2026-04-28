@@ -20,7 +20,7 @@ import {
 } from "../components/instanceCreator.js";
 
 /**
- * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"instances">>>} Instances
+ * @typedef {Awaited<ReturnType<typeof window.api.setting.get<"instances">>>} Instances
  * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent

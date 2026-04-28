@@ -48,11 +48,13 @@ contextBridge.exposeInMainWorld(
 			openContextMenu: (tabId) =>
 				ipcRenderer.send("tab:open-context-menu", tabId),
 		},
-		getSetting: (setting) => {
-			return ipcRenderer.invoke("setting:get", setting);
-		},
-		setSetting: (setting, value) => {
-			ipcRenderer.send("setting:set", setting, value);
+		setting: {
+			get: (setting) => {
+				return ipcRenderer.invoke("setting:get", setting);
+			},
+			set: (setting, value) => {
+				ipcRenderer.send("setting:set", setting, value);
+			},
 		},
 		onSetFlag: (callback) => {
 			ipcRenderer.on("set-flag", (_event, [flag, value]) =>
