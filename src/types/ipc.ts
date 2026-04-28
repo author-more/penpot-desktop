@@ -17,6 +17,9 @@ export type Api = {
 		openInBrowser: (resource: "help" | "selfhost" | "credits") => void;
 		setTheme: (themeId: NativeTheme["themeSource"]) => void;
 	};
+	env: {
+		onSetFlag: (callback: (flag: string, value: string) => void) => void;
+	};
 	instance: {
 		getSetupInfo: () => Promise<{
 			isDockerAvailable: boolean;
@@ -70,7 +73,6 @@ export type Api = {
 		get: <S extends keyof Settings>(setting: S) => Promise<Settings[S]>;
 		set: <S extends keyof Settings>(setting: S, value: Settings[S]) => void;
 	};
-	onSetFlag: (callback: (flag: string, value: string) => void) => void;
 };
 
 type TabContextMenuAction = { command: string; tabId: number };

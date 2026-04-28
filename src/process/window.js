@@ -71,11 +71,11 @@ export const MainWindow = {
 		});
 		mainWindow.loadFile(path.join(app.getAppPath(), "src/base/index.html"));
 		mainWindow.on("ready-to-show", () => {
-			mainWindow.webContents.send("set-flag", [
+			mainWindow.webContents.send("env:set-flag", [
 				FLAGS.PLATFORM,
 				process.platform,
 			]);
-			mainWindow.webContents.send("set-flag", [
+			mainWindow.webContents.send("env:set-flag", [
 				FLAGS.TITLE_BAR_TYPE,
 				titleBarType,
 			]);
@@ -122,16 +122,16 @@ export const MainWindow = {
 		});
 
 		mainWindow.on("enter-full-screen", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, true]);
+			mainWindow.webContents.send("env:set-flag", [FLAGS.FULL_SCREEN, true]);
 		});
 		mainWindow.on("leave-full-screen", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, false]);
+			mainWindow.webContents.send("env:set-flag", [FLAGS.FULL_SCREEN, false]);
 		});
 		mainWindow.on("focus", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, true]);
+			mainWindow.webContents.send("env:set-flag", [FLAGS.FOCUS, true]);
 		});
 		mainWindow.on("blur", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, false]);
+			mainWindow.webContents.send("env:set-flag", [FLAGS.FOCUS, false]);
 		});
 		mainWindow.once("close", (event) => {
 			event.preventDefault();

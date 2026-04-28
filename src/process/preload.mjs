@@ -16,6 +16,13 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.send("app:set-theme", themeId);
 			},
 		},
+		env: {
+			onSetFlag: (callback) => {
+				ipcRenderer.on("env:set-flag", (_event, [flag, value]) =>
+					callback(flag, value),
+				);
+			},
+		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
 			getAll: () => ipcRenderer.invoke("instance:get-all"),
@@ -55,11 +62,6 @@ contextBridge.exposeInMainWorld(
 			set: (setting, value) => {
 				ipcRenderer.send("setting:set", setting, value);
 			},
-		},
-		onSetFlag: (callback) => {
-			ipcRenderer.on("set-flag", (_event, [flag, value]) =>
-				callback(flag, value),
-			);
 		},
 	}),
 );
