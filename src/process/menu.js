@@ -1,6 +1,7 @@
 import { app, Menu, shell } from "electron";
 import { getMainWindow } from "./window.js";
 import { showDiagnostics } from "./diagnostics.js";
+import { ipcSend } from "./ipc.js";
 
 /**
  * @typedef {import("electron").MenuItemConstructorOptions} MenuItemConstructorOptions
@@ -229,7 +230,7 @@ export function getTabMenu(tabId) {
 
 	/** @type {(command: string) => void} */
 	const dispatchAction = (command) =>
-		mainWindow.webContents.send("tab:menu-action", {
+		ipcSend(mainWindow, "tab:menu-action", {
 			command,
 			tabId,
 		});

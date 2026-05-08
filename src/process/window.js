@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, nativeTheme } from "electron";
+import { app, BrowserWindow, shell, nativeTheme } from "electron";
 import windowStateKeeper from "electron-window-state";
 import path from "path";
 
@@ -6,6 +6,7 @@ import { setAppMenu, getTabMenu } from "./menu.js";
 import { deepFreeze } from "../tools/object.js";
 import { settings } from "./settings.js";
 import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
+import { ipcOn, ipcOnce, ipcSend } from "./ipc.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {
@@ -71,18 +72,12 @@ export const MainWindow = {
 		});
 		mainWindow.loadFile(path.join(app.getAppPath(), "src/base/index.html"));
 		mainWindow.on("ready-to-show", () => {
-			mainWindow.webContents.send("env:set-flag", [
-				FLAGS.PLATFORM,
-				process.platform,
-			]);
-			mainWindow.webContents.send("env:set-flag", [
-				FLAGS.TITLE_BAR_TYPE,
-				titleBarType,
-			]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.PLATFORM, process.platform]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.TITLE_BAR_TYPE, titleBarType]);
 		});
 
 		// IPC Functions
-		ipcMain.on("app:open-in-browser", (_event, resource) => {
+		ipcOn("app:open-in-browser", (_event, resource) => {
 			let url;
 
 			switch (resource) {
@@ -102,13 +97,13 @@ export const MainWindow = {
 				shell.openExternal(url);
 			}
 		});
-		ipcMain.on("tab:open-context-menu", (_event, tabId) => {
+		ipcOn("tab:open-context-menu", (_event, tabId) => {
 			const tabMenu = getTabMenu(tabId);
 			tabMenu.popup({
 				window: mainWindow,
 			});
 		});
-		ipcMain.on("app:set-theme", (_event, themeId) => {
+		ipcOn("app:set-theme", (_event, themeId) => {
 			nativeTheme.themeSource = themeId;
 
 			if (titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
@@ -122,25 +117,25 @@ export const MainWindow = {
 		});
 
 		mainWindow.on("enter-full-screen", () => {
-			mainWindow.webContents.send("env:set-flag", [FLAGS.FULL_SCREEN, true]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FULL_SCREEN, "true"]);
 		});
 		mainWindow.on("leave-full-screen", () => {
-			mainWindow.webContents.send("env:set-flag", [FLAGS.FULL_SCREEN, false]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FULL_SCREEN, "false"]);
 		});
 		mainWindow.on("focus", () => {
-			mainWindow.webContents.send("env:set-flag", [FLAGS.FOCUS, true]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
 		});
 		mainWindow.on("blur", () => {
-			mainWindow.webContents.send("env:set-flag", [FLAGS.FOCUS, false]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
 		});
 		mainWindow.once("close", (event) => {
 			event.preventDefault();
 
-			ipcMain.once("app:ready-for-close", () => {
+			ipcOnce("app:ready-for-close", () => {
 				app.quit();
 			});
 
-			mainWindow.webContents.send("app:will-close");
+			ipcSend(mainWindow, "app:will-close");
 		});
 
 		mainWindowState.manage(mainWindow);

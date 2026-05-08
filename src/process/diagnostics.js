@@ -1,10 +1,11 @@
 import { app } from "electron";
+import { ipcSend } from "./ipc.js";
 
 /**
  * @param {import("electron").BrowserWindow} window
  */
 export function showDiagnostics(window) {
-	window.webContents.send("diagnostics:toggle", {
+	ipcSend(window, "diagnostics:toggle", {
 		system: getSystemDiagnostics(),
 		gpu: getGPUDiagnostics(),
 	});

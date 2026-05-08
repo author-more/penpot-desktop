@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain } from "electron";
+import { BrowserWindow, dialog } from "electron";
 import { FILE_EVENTS } from "../shared/file.js";
 import JSZip from "jszip";
 import { createWriteStream } from "node:fs";
@@ -6,6 +6,7 @@ import { getMainWindow } from "./window.js";
 import { z } from "zod";
 import { AppError, ERROR_CODES } from "../tools/error.js";
 import { isViewModeUrl } from "../tools/penpot.js";
+import { ipcHandle, ipcOn } from "./ipc.js";
 
 const filesSchema = z.array(
 	z.object({
@@ -22,7 +23,7 @@ const fileIdSchema = z.string();
  */
 let exportPath;
 
-ipcMain.handle(FILE_EVENTS.PREPARE_PATH, async () => {
+ipcHandle(FILE_EVENTS.PREPARE_PATH, async () => {
 	const { canceled, filePath } = await dialog.showSaveDialog(getMainWindow());
 
 	if (canceled || !filePath) {
@@ -34,7 +35,7 @@ ipcMain.handle(FILE_EVENTS.PREPARE_PATH, async () => {
 	return { status: "success" };
 });
 
-ipcMain.handle(FILE_EVENTS.EXPORT, async (_event, files) => {
+ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 	const { success: isValidExport, data: filesValid } =
 		filesSchema.safeParse(files);
 
@@ -81,7 +82,7 @@ ipcMain.handle(FILE_EVENTS.EXPORT, async (_event, files) => {
 	}
 });
 
-ipcMain.on(FILE_EVENTS.CHANGE, (_event, fileId) => {
+ipcOn(FILE_EVENTS.CHANGE, (_event, fileId) => {
 	const { success: isValidFileId, data: fileIdValid } =
 		fileIdSchema.safeParse(fileId);
 

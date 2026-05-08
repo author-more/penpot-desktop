@@ -18,9 +18,7 @@ contextBridge.exposeInMainWorld(
 		},
 		env: {
 			onSetFlag: (callback) => {
-				ipcRenderer.on("env:set-flag", (_event, [flag, value]) =>
-					callback(flag, value),
-				);
+				ipcRenderer.on("env:set-flag", (_event, flag) => callback(flag));
 			},
 		},
 		instance: {

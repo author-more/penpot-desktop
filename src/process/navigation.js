@@ -5,6 +5,7 @@ import { toMultiline } from "./string.js";
 import { getMainWindow } from "./window.js";
 import { settings } from "./settings.js";
 import { isViewModeUrl } from "../tools/penpot.js";
+import { ipcSend } from "./ipc.js";
 
 // Covered origins and URLs are scoped to the Penpot web app (e.g. links in the Menu > Help & info).
 const ALLOWED_INTERNAL_ORIGINS = Object.freeze([
@@ -45,7 +46,7 @@ app.on("web-contents-created", (event, contents) => {
 				};
 			}
 
-			mainWindow.webContents.send("tab:open", parsedUrl.href);
+			ipcSend(mainWindow, "tab:open", parsedUrl.href);
 		} else {
 			console.warn(
 				`[WARNING] [app.web-contents-created.setWindowOpenHandler] Forbidden origin: ${parsedUrl.origin}`,
