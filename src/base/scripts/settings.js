@@ -15,12 +15,14 @@ export async function initSettings() {
 
 	toggleSettingsButton?.addEventListener("click", () => toggleSettings());
 	closeSettingsButton?.addEventListener("click", () => toggleSettings());
-	openDocsButton?.addEventListener("click", () => window.api.send("OpenHelp"));
+	openDocsButton?.addEventListener("click", () =>
+		window.api.app.openInBrowser("help"),
+	);
 	openSelfhostButton?.addEventListener("click", () =>
-		window.api.send("OpenOffline"),
+		window.api.app.openInBrowser("selfhost"),
 	);
 	openCreditsButton?.addEventListener("click", () =>
-		window.api.send("OpenCredits"),
+		window.api.app.openInBrowser("credits"),
 	);
 }
 

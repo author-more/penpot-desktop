@@ -23,11 +23,11 @@ window.addEventListener("DOMContentLoaded", () => {
 	initViewMode();
 });
 
-window.api.onSetFlag((flag, value) => {
+window.api.env.onSetFlag(([flag, value]) => {
 	document.documentElement.setAttribute(flag, value);
 });
 window.api.app.onWillClose(async () => {
-	const rememberTabs = await window.api.getSetting("enableTabsRemembering");
+	const rememberTabs = await window.api.setting.get("enableTabsRemembering");
 	if (rememberTabs) {
 		await saveTabs();
 	}

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, nativeTheme } from "electron";
+import { app, BrowserWindow, shell, nativeTheme } from "electron";
 import windowStateKeeper from "electron-window-state";
 import path from "path";
 
@@ -6,6 +6,7 @@ import { setAppMenu, getTabMenu } from "./menu.js";
 import { deepFreeze } from "../tools/object.js";
 import { settings } from "./settings.js";
 import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
+import { ipcOn, ipcOnce, ipcSend } from "./ipc.js";
 
 const TITLEBAR_OVERLAY = deepFreeze({
 	BASE: {
@@ -71,49 +72,38 @@ export const MainWindow = {
 		});
 		mainWindow.loadFile(path.join(app.getAppPath(), "src/base/index.html"));
 		mainWindow.on("ready-to-show", () => {
-			mainWindow.webContents.send("set-flag", [
-				FLAGS.PLATFORM,
-				process.platform,
-			]);
-			mainWindow.webContents.send("set-flag", [
-				FLAGS.TITLE_BAR_TYPE,
-				titleBarType,
-			]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.PLATFORM, process.platform]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.TITLE_BAR_TYPE, titleBarType]);
 		});
 
 		// IPC Functions
-		ipcMain.on("ReloadApp", () => {
-			mainWindow.reload();
+		ipcOn("app:open-in-browser", (_event, resource) => {
+			let url;
+
+			switch (resource) {
+				case "help":
+					url = "https://github.com/author-more/penpot-desktop/wiki";
+					break;
+				case "selfhost":
+					url =
+						"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting";
+					break;
+				case "credits":
+					url = "https://github.com/author-more/penpot-desktop/wiki/Credits";
+					break;
+			}
+
+			if (url) {
+				shell.openExternal(url);
+			}
 		});
-		ipcMain.on("MaximizeWindow", () => {
-			mainWindow.maximize();
-		});
-		ipcMain.on("UnmaximizeWindow", () => {
-			mainWindow.restore();
-		});
-		ipcMain.on("MinimizeWindow", () => {
-			mainWindow.minimize();
-		});
-		ipcMain.on("OpenHelp", () => {
-			shell.openExternal("https://github.com/author-more/penpot-desktop/wiki");
-		});
-		ipcMain.on("OpenOffline", () => {
-			shell.openExternal(
-				"https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting",
-			);
-		});
-		ipcMain.on("OpenCredits", () => {
-			shell.openExternal(
-				"https://github.com/author-more/penpot-desktop/wiki/Credits",
-			);
-		});
-		ipcMain.on("openTabMenu", (_event, tabId) => {
+		ipcOn("tab:open-context-menu", (_event, tabId) => {
 			const tabMenu = getTabMenu(tabId);
 			tabMenu.popup({
 				window: mainWindow,
 			});
 		});
-		ipcMain.on("set-theme", (_event, themeId) => {
+		ipcOn("app:set-theme", (_event, themeId) => {
 			nativeTheme.themeSource = themeId;
 
 			if (titleBarType === CONFIG_SETTINGS_TITLE_BAR_TYPES.OVERLAY) {
@@ -127,25 +117,25 @@ export const MainWindow = {
 		});
 
 		mainWindow.on("enter-full-screen", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, true]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FULL_SCREEN, "true"]);
 		});
 		mainWindow.on("leave-full-screen", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FULL_SCREEN, false]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FULL_SCREEN, "false"]);
 		});
 		mainWindow.on("focus", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, true]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
 		});
 		mainWindow.on("blur", () => {
-			mainWindow.webContents.send("set-flag", [FLAGS.FOCUS, false]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
 		});
 		mainWindow.once("close", (event) => {
 			event.preventDefault();
 
-			ipcMain.once("app:ready-for-close", () => {
+			ipcOnce("app:ready-for-close", () => {
 				app.quit();
 			});
 
-			mainWindow.webContents.send("app:will-close");
+			ipcSend(mainWindow, "app:will-close");
 		});
 
 		mainWindowState.manage(mainWindow);

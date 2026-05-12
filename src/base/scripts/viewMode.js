@@ -1,14 +1,14 @@
 /**
- * @typedef {Parameters<typeof window.api.setSetting<"enableAutoReload">>[1]} AutoReloadSetting
- * @typedef {Parameters<typeof window.api.setSetting<"enableViewModeWindow">>[1]} ViewModeWindowSetting
+ * @typedef {Parameters<typeof window.api.setting.set<"enableAutoReload">>[1]} AutoReloadSetting
+ * @typedef {Parameters<typeof window.api.setting.set<"enableViewModeWindow">>[1]} ViewModeWindowSetting
  */
 
 import { SlCheckbox } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { getIncludedElement } from "./dom.js";
 
 export async function initViewMode() {
-	const enableAutoReload = await window.api.getSetting("enableAutoReload");
-	const enableViewModeWindow = await window.api.getSetting(
+	const enableAutoReload = await window.api.setting.get("enableAutoReload");
+	const enableViewModeWindow = await window.api.setting.get(
 		"enableViewModeWindow",
 	);
 
@@ -32,7 +32,7 @@ async function prepareForm({ enableAutoReload, enableViewModeWindow }) {
 			const { target } = event;
 			const value = target instanceof SlCheckbox && target.checked;
 
-			window.api.setSetting("enableAutoReload", value);
+			window.api.setting.set("enableAutoReload", value);
 		});
 	}
 
@@ -43,7 +43,7 @@ async function prepareForm({ enableAutoReload, enableViewModeWindow }) {
 			const { target } = event;
 			const value = target instanceof SlCheckbox && target.checked;
 
-			window.api.setSetting("enableViewModeWindow", value);
+			window.api.setting.set("enableViewModeWindow", value);
 		});
 	}
 }

@@ -5,28 +5,21 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld(
 	"api",
 	/** @type {import("../types/ipc.js").Api} */ ({
-		send: (channel, data) => {
-			let validChannels = [
-				"updateApp",
-				"ReloadApp",
-				"MaximizeWindow",
-				"UnmaximizeWindow",
-				"MinimizeWindow",
-				"OpenHelp",
-				"OpenOffline",
-				"OpenCredits",
-				"openTabMenu",
-			];
-
-			if (validChannels.includes(channel)) {
-				ipcRenderer.send(channel, data);
-			}
-		},
 		app: {
 			onWillClose: (callback) => {
 				ipcRenderer.on("app:will-close", () => callback());
 			},
 			readyForClose: () => ipcRenderer.send("app:ready-for-close"),
+			openInBrowser: (resource) =>
+				ipcRenderer.send("app:open-in-browser", resource),
+			setTheme: (themeId) => {
+				ipcRenderer.send("app:set-theme", themeId);
+			},
+		},
+		env: {
+			onSetFlag: (callback) => {
+				ipcRenderer.on("env:set-flag", (_event, flag) => callback(flag));
+			},
 		},
 		instance: {
 			getSetupInfo: () => ipcRenderer.invoke("instance:setup-info"),
@@ -57,20 +50,16 @@ contextBridge.exposeInMainWorld(
 				ipcRenderer.on("tab:open", (_event, value) => callback(value)),
 			onMenuAction: (callback) =>
 				ipcRenderer.on("tab:menu-action", (_event, value) => callback(value)),
+			openContextMenu: (tabId) =>
+				ipcRenderer.send("tab:open-context-menu", tabId),
 		},
-		setTheme: (themeId) => {
-			ipcRenderer.send("set-theme", themeId);
-		},
-		getSetting: (setting) => {
-			return ipcRenderer.invoke("setting:get", setting);
-		},
-		setSetting: (setting, value) => {
-			ipcRenderer.send("setting:set", setting, value);
-		},
-		onSetFlag: (callback) => {
-			ipcRenderer.on("set-flag", (_event, [flag, value]) =>
-				callback(flag, value),
-			);
+		setting: {
+			get: (setting) => {
+				return ipcRenderer.invoke("setting:get", setting);
+			},
+			set: (setting, value) => {
+				ipcRenderer.send("setting:set", setting, value);
+			},
 		},
 	}),
 );

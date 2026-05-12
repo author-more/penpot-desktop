@@ -14,7 +14,7 @@ import { handleInTabThemeUpdate, THEME_TAB_EVENTS } from "./theme.js";
 
 /**
  *
- * @typedef {Parameters<typeof window.api.setSetting<"enableTabsRemembering">>[1]} EnableTabsRemembering
+ * @typedef {Parameters<typeof window.api.setting.set<"enableTabsRemembering">>[1]} EnableTabsRemembering
  *
  * @typedef {import("electron-tabs").TabGroup} TabGroup
  * @typedef {import("electron-tabs").Tab} Tab
@@ -81,7 +81,7 @@ export async function initTabs() {
 		tabGroup?.shadow,
 	);
 	addTabButton?.addEventListener("contextmenu", async () => {
-		const instances = await window.api.getSetting("instances");
+		const instances = await window.api.setting.get("instances");
 		const hasMultipleInstances = instances.length > 1;
 
 		if (!hasMultipleInstances) {
@@ -107,7 +107,7 @@ export async function initTabs() {
 }
 
 async function prepareSettingsForm() {
-	const enableTabsRemembering = await window.api.getSetting(
+	const enableTabsRemembering = await window.api.setting.get(
 		"enableTabsRemembering",
 	);
 	const { rememberTabsSwitch } = await getSettingForm();
@@ -119,7 +119,7 @@ async function prepareSettingsForm() {
 			const { target } = event;
 			const value = target instanceof SlCheckbox && target.checked;
 
-			window.api.setSetting("enableTabsRemembering", value);
+			window.api.setting.set("enableTabsRemembering", value);
 		});
 	}
 }
@@ -218,7 +218,7 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 	});
 	tab.element.addEventListener("contextmenu", (event) => {
 		event.preventDefault();
-		window.api.send("openTabMenu", tab.id);
+		window.api.tab.openContextMenu(tab.id);
 	});
 	webview.addEventListener("ipc-message", async (event) => {
 		const isError = event.channel === "error";
@@ -247,7 +247,8 @@ function tabReadyHandler(tab, { accentColor } = {}) {
 		}
 
 		const isFileChange = event.channel === FILE_EVENTS.CHANGE;
-		const isAutoReloadEnabled = await window.api.getSetting("enableAutoReload");
+		const isAutoReloadEnabled =
+			await window.api.setting.get("enableAutoReload");
 		if (isFileChange && isAutoReloadEnabled) {
 			const [fileId] = event.args;
 			if (!fileId) {

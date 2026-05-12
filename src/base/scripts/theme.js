@@ -1,6 +1,6 @@
 /**
- * @typedef {Parameters<typeof window.api.setTheme>[0]} ThemeId
- * @typedef {Awaited<ReturnType<typeof window.api.getSetting<"theme">>>} ThemeSetting
+ * @typedef {Parameters<typeof window.api.app.setTheme>[0]} ThemeId
+ * @typedef {Awaited<ReturnType<typeof window.api.setting.get<"theme">>>} ThemeSetting
  * @typedef {import("electron").IpcMessageEvent} IpcMessageEvent
  */
 
@@ -21,7 +21,7 @@ const THEME_MEDIA = Object.freeze({
 let currentThemeSetting = null;
 
 export async function initTheme() {
-	currentThemeSetting = await window.api.getSetting("theme");
+	currentThemeSetting = await window.api.setting.get("theme");
 
 	setTheme(currentThemeSetting);
 	prepareForm(currentThemeSetting);
@@ -77,7 +77,7 @@ async function prepareForm(themeSetting) {
 			const isTabTheme = value === "tab";
 
 			currentThemeSetting = value;
-			window.api.setSetting("theme", value);
+			window.api.setting.set("theme", value);
 
 			if (isTabTheme) {
 				requestTabTheme();
@@ -94,7 +94,7 @@ async function prepareForm(themeSetting) {
  */
 function setTheme(themeId) {
 	if (isThemeId(themeId)) {
-		window.api.setTheme(themeId);
+		window.api.app.setTheme(themeId);
 	}
 }
 

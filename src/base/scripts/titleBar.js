@@ -1,5 +1,5 @@
 /**
- * @typedef {Parameters<typeof window.api.setSetting<"titleBarType">>[1]} TitleBarTypeSetting
+ * @typedef {Parameters<typeof window.api.setting.set<"titleBarType">>[1]} TitleBarTypeSetting
  */
 
 import { SlSelect } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
@@ -10,7 +10,7 @@ import { getIncludedElement } from "./dom.js";
 let currentSetting = null;
 
 export async function initTitleBarType() {
-	currentSetting = await window.api.getSetting("titleBarType");
+	currentSetting = await window.api.setting.get("titleBarType");
 
 	prepareForm(currentSetting);
 }
@@ -31,7 +31,7 @@ async function prepareForm(settingValue) {
 
 		if (isTitleBarTypeSetting(value)) {
 			currentSetting = value;
-			window.api.setSetting("titleBarType", value);
+			window.api.setting.set("titleBarType", value);
 		}
 	});
 }

@@ -1,4 +1,4 @@
-import { app, ipcMain, shell } from "electron";
+import { app, shell } from "electron";
 import { join } from "node:path";
 import { settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
@@ -17,6 +17,7 @@ import { readConfig, writeConfig } from "./config.js";
 import { observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
 import { getMainWindow } from "./window.js";
+import { ipcHandle, ipcOn, ipcSend } from "./ipc.js";
 
 /**
  * @typedef {(import("./settings.js").Settings['instances'][number] & { isLocal: boolean})[]} AllInstances
@@ -82,13 +83,13 @@ const penpotDockerRepositoryAvailableTags = await getAvailableTags(
 	DOCKER_REPOSITORIES.FRONTEND,
 );
 
-ipcMain.handle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
+ipcHandle(INSTANCE_EVENTS.SETUP_INFO, async () => ({
 	isDockerAvailable: await isDockerAvailable(),
 	dockerTags: penpotDockerRepositoryAvailableTags,
 	containerSolution: getContainerSolution(),
 }));
 
-ipcMain.handle(INSTANCE_EVENTS.GET_ALL, async () => {
+ipcHandle(INSTANCE_EVENTS.GET_ALL, async () => {
 	const instances = settings.instances.map((instance) => {
 		const isLocal = !!localInstances[instance.id];
 
@@ -101,7 +102,7 @@ ipcMain.handle(INSTANCE_EVENTS.GET_ALL, async () => {
 	return instances;
 });
 
-ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
+ipcHandle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
 	const isValidId = instanceIdSchema.safeParse(id);
 	if (!isValidId.success) {
 		return null;
@@ -127,7 +128,7 @@ ipcMain.handle(INSTANCE_EVENTS.GET_LOCAL_CONFIG, async (_event, id) => {
 	};
 });
 
-ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
+ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	const id = crypto.randomUUID();
 
 	if (!instance) {
@@ -213,7 +214,7 @@ ipcMain.handle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 });
 
-ipcMain.on(INSTANCE_EVENTS.REMOVE, (_event, id) => {
+ipcOn(INSTANCE_EVENTS.REMOVE, (_event, id) => {
 	const userDataPath = app.getPath("sessionData");
 	const partitionPath = join(userDataPath, "Partitions", id);
 
@@ -224,14 +225,14 @@ ipcMain.on(INSTANCE_EVENTS.REMOVE, (_event, id) => {
 	delete localInstances[id];
 });
 
-ipcMain.on(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
+ipcOn(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
 	settings.instances = settings.instances.map((instance) => {
 		instance.isDefault = instance.id === id ? true : false;
 		return instance;
 	});
 });
 
-ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
+ipcHandle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 	let validInstance;
 
 	try {
@@ -256,12 +257,13 @@ ipcMain.handle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 	const existingSettings =
 		settings.instances.find(({ id: existingId }) => id === existingId) ||
 		DEFAULT_INSTANCE;
-	registerInstance({ ...existingSettings, ...instanceCore, id });
+	const updatedInstance = { ...existingSettings, ...instanceCore, id };
+	registerInstance(updatedInstance);
 
-	const { isDefault } = existingSettings;
+	const { isDefault } = updatedInstance;
 	if (isDefault) {
-		const { origin, color } = instanceCore;
-		getMainWindow().webContents.send("tab:set-default", { id, origin, color });
+		const { origin, color } = updatedInstance;
+		ipcSend(getMainWindow(), "tab:set-default", { id, origin, color });
 	}
 
 	if (localInstance && localInstances[id]) {
