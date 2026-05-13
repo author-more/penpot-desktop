@@ -52,11 +52,11 @@
 		"@types/node": "^25.6.0",
 		"electron": "^42.0.1",
 		"electron-builder": "^26.8.1",
-		"eslint": "^10.2.1",
-		"globals": "^17.5.0",
-		"lint-staged": "^16.4.0",
+		"eslint": "^10.3.0",
+		"globals": "^17.6.0",
+		"lint-staged": "^17.0.2",
 		"prettier": "3.8.3",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.59.1"
+		"typescript-eslint": "^8.59.2"
 	}
 }
