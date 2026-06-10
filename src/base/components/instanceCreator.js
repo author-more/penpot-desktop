@@ -259,8 +259,8 @@ export class InstanceCreator extends HTMLElement {
 													Enable instance telemetry
 												</sl-checkbox>
 												<sl-details summary="Advanced options">
-													<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions.">
-														Enable elevated access
+													<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions. Elevated access is deprecated in favour of rootless Docker.">
+														Enable elevated access (Deprecated)
 													</sl-checkbox>
 												</sl-details>
 											</container-settings>`
