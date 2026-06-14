@@ -53,6 +53,19 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v0.23.2" date="2026-06-14">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.23.2</url>
+            <description>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed tab title to skip redundant information.</li>
+                </ul>
+                <p>Deprecated</p>
+                <ul>
+                    <li>Added deprecation note for elevated access.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.23.1" date="2026-03-17">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.23.1</url>
             <description>
