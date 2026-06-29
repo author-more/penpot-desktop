@@ -49,14 +49,14 @@
 		"@commitlint/config-conventional": "^21.0.2",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.61.0",
-		"@types/node": "^25.9.3",
+		"@types/node": "^26.0.0",
 		"electron": "^42.5.0",
 		"electron-builder": "^26.15.3",
 		"eslint": "^10.5.0",
-		"globals": "^17.6.0",
-		"lint-staged": "^17.0.7",
+		"globals": "^17.7.0",
+		"lint-staged": "^17.0.8",
 		"prettier": "3.8.4",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.61.1"
+		"typescript-eslint": "^8.62.0"
 	}
 }
