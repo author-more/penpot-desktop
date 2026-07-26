@@ -210,6 +210,6 @@ function showNavigationQuestion(url, { buttons, onCancel, onAllow, logLabel }) {
 /**
  * @param {import("./settings.js").Settings} settings
  */
-function getUserInstanceOrigins(settings) {
+export function getUserInstanceOrigins(settings) {
 	return new Set(settings.instances.map(({ origin }) => origin));
 }
