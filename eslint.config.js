@@ -1,9 +1,9 @@
 import globals from "globals";
+import { defineConfig } from "eslint/config";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 
-/** @type {import('@typescript-eslint/utils').TSESLint.FlatConfig.ConfigFile} */
-export default [
+export default defineConfig([
 	{ files: ["**/*.{js,mjs,cjs,ts}"] },
 	{
 		files: ["src/base/**/*.{js,mjs,cjs,ts}"],
@@ -25,4 +25,4 @@ export default [
 			],
 		},
 	},
-];
+]);
