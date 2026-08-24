@@ -38,7 +38,7 @@ const checkboxSchema = z
 
 const dockerTag = z.union([
 	z.literal(["latest", "main"]),
-	z.string().regex(/^\d+\.\d+\.\d+$/),
+	z.string().regex(/^\d+\.\d+(\.\d+)?$/),
 ]);
 
 export const instanceIdSchema = z.uuid();
