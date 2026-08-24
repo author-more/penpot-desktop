@@ -142,6 +142,7 @@ export async function isTagAvailable(repository, tag) {
  * @param {string} containerNamePrefix
  * @param {Tag["name"]} tag
  * @param {ContainerPorts} ports
+ * @param {string} secretKey
  * @param {CommandOptions} options
  */
 export async function compose(
@@ -149,6 +150,7 @@ export async function compose(
 	containerNamePrefix,
 	tag,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
+	secretKey,
 	{ isSudoEnabled, isInstanceTelemetryEnabled } = {},
 ) {
 	if (!dockerPath) {
@@ -171,6 +173,7 @@ export async function compose(
 		PENPOT_DESKTOP_MAILCATCH_PORT: `${mailcatchPort}`,
 		PENPOT_DESKTOP_FLAGS: `${instanceTelemetryFlag}`,
 		PENPOT_DESKTOP_BACKEND_TELEMETRY: `${isInstanceTelemetryEnabled}`,
+		PENPOT_DESKTOP_SECRET_KEY: `${secretKey}`,
 	};
 	const envVariablesCommandString = Object.entries(envVariables).reduce(
 		(envVarString, [key, value]) => {
