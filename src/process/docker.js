@@ -4,7 +4,7 @@ import path from "node:path";
 import { app } from "electron";
 import { AppError, ERROR_CODES } from "../tools/error.js";
 import { getCommandPath } from "./path.js";
-import { constants as fsConstants, copyFile } from "node:fs/promises";
+import { copyFile } from "node:fs/promises";
 import { sudoExec } from "./childProcess.js";
 import { isLinux } from "./platform.js";
 
@@ -220,18 +220,12 @@ async function deployComposeFile() {
 	const deployPath = path.join(app.getPath("userData"), fileName);
 
 	try {
-		await copyFile(composeFileAsarPath, deployPath, fsConstants.COPYFILE_EXCL);
+		await copyFile(composeFileAsarPath, deployPath);
 	} catch (error) {
-		const isError = error instanceof Error;
-		const isExistingFile =
-			isError && "code" in error && error.code === "EEXIST";
-
-		if (!isExistingFile) {
-			throw new AppError(
-				ERROR_CODES.FAILED_CONFIG_DEPLOY,
-				"Failed to deploy Docker Compose config.",
-			);
-		}
+		throw new AppError(
+			ERROR_CODES.FAILED_CONFIG_DEPLOY,
+			"Failed to deploy Docker Compose config.",
+		);
 	}
 
 	return deployPath;
