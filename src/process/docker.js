@@ -4,7 +4,7 @@ import path from "node:path";
 import { app } from "electron";
 import { AppError, ERROR_CODES } from "../tools/error.js";
 import { getCommandPath } from "./path.js";
-import { constants as fsConstants, copyFile } from "node:fs/promises";
+import { copyFile } from "node:fs/promises";
 import { sudoExec } from "./childProcess.js";
 import { isLinux } from "./platform.js";
 
@@ -142,6 +142,7 @@ export async function isTagAvailable(repository, tag) {
  * @param {string} containerNamePrefix
  * @param {Tag["name"]} tag
  * @param {ContainerPorts} ports
+ * @param {string} secretKey
  * @param {CommandOptions} options
  */
 export async function compose(
@@ -149,6 +150,7 @@ export async function compose(
 	containerNamePrefix,
 	tag,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
+	secretKey,
 	{ isSudoEnabled, isInstanceTelemetryEnabled } = {},
 ) {
 	if (!dockerPath) {
@@ -171,6 +173,7 @@ export async function compose(
 		PENPOT_DESKTOP_MAILCATCH_PORT: `${mailcatchPort}`,
 		PENPOT_DESKTOP_FLAGS: `${instanceTelemetryFlag}`,
 		PENPOT_DESKTOP_BACKEND_TELEMETRY: `${isInstanceTelemetryEnabled}`,
+		PENPOT_DESKTOP_SECRET_KEY: `${secretKey}`,
 	};
 	const envVariablesCommandString = Object.entries(envVariables).reduce(
 		(envVarString, [key, value]) => {
@@ -217,18 +220,12 @@ async function deployComposeFile() {
 	const deployPath = path.join(app.getPath("userData"), fileName);
 
 	try {
-		await copyFile(composeFileAsarPath, deployPath, fsConstants.COPYFILE_EXCL);
+		await copyFile(composeFileAsarPath, deployPath);
 	} catch (error) {
-		const isError = error instanceof Error;
-		const isExistingFile =
-			isError && "code" in error && error.code === "EEXIST";
-
-		if (!isExistingFile) {
-			throw new AppError(
-				ERROR_CODES.FAILED_CONFIG_DEPLOY,
-				"Failed to deploy Docker Compose config.",
-			);
-		}
+		throw new AppError(
+			ERROR_CODES.FAILED_CONFIG_DEPLOY,
+			"Failed to deploy Docker Compose config.",
+		);
 	}
 
 	return deployPath;

@@ -12,7 +12,7 @@ import {
 import { z, ZodError } from "zod";
 import { findAvailablePort } from "./server.js";
 import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
-import { generateId } from "../tools/id.js";
+import { generateId, generateUrlsafeToken } from "../tools/id.js";
 import { readConfig, writeConfig } from "./config.js";
 import { observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
@@ -38,7 +38,7 @@ const checkboxSchema = z
 
 const dockerTag = z.union([
 	z.literal(["latest", "main"]),
-	z.string().regex(/^\d+\.\d+\.\d+$/),
+	z.string().regex(/^\d+\.\d+(\.\d+)?$/),
 ]);
 
 export const instanceIdSchema = z.uuid();
@@ -180,8 +180,9 @@ ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 		if (localInstance) {
 			const { tag, enableElevatedAccess, enableInstanceTelemetry } =
 				localInstance;
+			const secretKey = generateUrlsafeToken();
 
-			await compose("up", containerNameId, tag, ports, {
+			await compose("up", containerNameId, tag, ports, secretKey, {
 				isSudoEnabled: enableElevatedAccess,
 				isInstanceTelemetryEnabled: enableInstanceTelemetry,
 			});
@@ -286,13 +287,14 @@ ipcHandle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 
 		const { dockerId, tag, ports, isInstanceTelemetryEnabled } =
 			localInstances[id];
+		const secretKey = generateUrlsafeToken();
 		const isSudoEnabled = enableElevatedAccess;
 
-		await compose("pull", dockerId, tag, ports, {
+		await compose("pull", dockerId, tag, ports, secretKey, {
 			isInstanceTelemetryEnabled,
 			isSudoEnabled,
 		});
-		await compose("up", dockerId, tag, ports, {
+		await compose("up", dockerId, tag, ports, secretKey, {
 			isInstanceTelemetryEnabled,
 			isSudoEnabled,
 		});

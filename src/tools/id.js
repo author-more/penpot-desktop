@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 /**
  * Generates a random id.
  *
@@ -6,7 +8,6 @@
  * @param {number} length
  * @returns {string}
  */
-
 export function generateId(length = 8) {
 	const allowedCharacters =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -18,4 +19,14 @@ export function generateId(length = 8) {
 		);
 
 	return Array.from({ length }, getRandomCharacter).join("");
+}
+
+/**
+ * Generates a random, urlsafe, base64 encoded string.
+ *
+ * @param {number} [bytes=64] bytes
+ * @returns {string}
+ */
+export function generateUrlsafeToken(bytes = 64) {
+	return randomBytes(bytes).toString("base64url");
 }
