@@ -53,6 +53,27 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v0.24.0" date="2026-08-26">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.24.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added automatic Docker configuration update.</li>
+                </ul>
+                <p>Improvements</p>
+                <ul>
+                    <li>Updated the Docker Compose configuration template.</li>
+                </ul>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed support for non-patch image tags in local instance creator.</li>
+                </ul>
+                <p>Security</p>
+                <ul>
+                    <li>Added content loading restrictions.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.23.2" date="2026-06-14">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.23.2</url>
             <description>
