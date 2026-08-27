@@ -53,7 +53,7 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
-		    <release version="v0.24.0" date="2026-08-26">
+		    <release version="v0.24.0" date="2026-08-27">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.24.0</url>
             <description>
                 <p>Features</p>
