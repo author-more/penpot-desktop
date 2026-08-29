@@ -3,6 +3,12 @@ appId: "com.authormore.penpotdesktop"
 artifactName: "${name}-${arch}.${ext}"
 asar: true
 
+fileAssociations:
+  name: "Penpot File"
+  ext: "penpot"
+  mimeType: "application/x-penpot"
+  role: "Editor"
+
 # macOS
 mac:
   darkModeSupport: true
