@@ -1,5 +1,4 @@
 import { app, BrowserWindow, shell, nativeTheme } from "electron";
-import windowStateKeeper from "electron-window-state";
 import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
@@ -40,19 +39,13 @@ export function getMainWindow() {
 
 export const MainWindow = {
 	create: function () {
-		let mainWindowState = windowStateKeeper({
-			// Remember the positiona and size of the window
-			defaultWidth: 1400,
-			defaultHeight: 900,
-		});
 		mainWindow = new BrowserWindow({
-			// Size
-			x: mainWindowState.x,
-			y: mainWindowState.y,
-			width: mainWindowState.width,
-			height: mainWindowState.height,
+			name: "window:main",
+			width: 1400,
+			height: 900,
 			minWidth: 1000,
 			minHeight: 400,
+			windowStatePersistence: true,
 			transparent: global.transparent,
 			vibrancy: "sidebar",
 			// Titlebar
@@ -138,7 +131,6 @@ export const MainWindow = {
 			ipcSend(mainWindow, "app:will-close");
 		});
 
-		mainWindowState.manage(mainWindow);
 		setAppMenu();
 	},
 };
