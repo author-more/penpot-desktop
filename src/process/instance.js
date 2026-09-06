@@ -331,7 +331,6 @@ function registerInstance(instance) {
 }
 
 async function getInstancesConfig() {
-	/** @type {LocalInstances | Record<string, unknown>} */
 	const instancesConfig = (await readConfig(CONFIG_INSTANCES_NAME)) || {};
 
 	return instancesConfigSchema.parse(instancesConfig);

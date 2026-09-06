@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from "node:util";
+
 /**
  * Deep freeze an object.
  *
@@ -71,4 +73,37 @@ export function observe(obj, callback) {
 	};
 
 	return new Proxy(obj, handler);
+}
+
+/**
+ * Creates a record of properties that have changed between "current" and "initial" objects.
+ *
+ * @template {Record<string, unknown>} O
+ *
+ * @param {O} current
+ * @param {O} initial
+ *
+ * @returns {Partial<O>}
+ */
+export function getChangedProperties(current, initial) {
+	/** @type {Partial<O>} */
+	const changed = {};
+
+	for (const key of /** @type {(keyof O)[]} */ (Object.keys(initial))) {
+		const hasChanged = !isDeepStrictEqual(current[key], initial[key]);
+		if (hasChanged) {
+			changed[key] = current[key];
+		}
+	}
+
+	return changed;
+}
+
+/**
+ * @param {unknown} value
+ *
+ * @returns {value is Record<string, unknown>}
+ */
+export function isRecord(value) {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
 }

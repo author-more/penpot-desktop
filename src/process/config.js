@@ -1,13 +1,15 @@
 import { app } from "electron";
-import { copyFile, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+export class ConfigReadError extends Error {
+	name = "ConfigReadError";
+}
+
 /**
- * @template Config
- *
  * @param {string} configName
  *
- * @returns {Promise<Config | undefined>}
+ * @returns {Promise<unknown>}
  */
 export async function readConfig(configName) {
 	const configFilePath = getConfigFilePath(configName);
@@ -23,7 +25,7 @@ export async function readConfig(configName) {
 		const message = `[ERROR] [config:read:${configName}] ${isError ? error.message : "Failed to read config."}`;
 
 		if (isError && !isNoFile) {
-			throw new Error(message, {
+			throw new ConfigReadError(message, {
 				cause: error,
 			});
 		}
@@ -33,10 +35,8 @@ export async function readConfig(configName) {
 }
 
 /**
- * @template Config
- *
  * @param {string} configName
- * @param {Partial<Config>} config
+ * @param {Record<string, unknown>} config
  */
 export function writeConfig(configName, config) {
 	const configFilePath = getConfigFilePath(configName);
@@ -46,35 +46,13 @@ export function writeConfig(configName, config) {
 		writeFile(configFilePath, configJSON, "utf8");
 	} catch (error) {
 		const isError = error instanceof Error;
-		const message = isError ? error.message : "Failed to save the  config.";
+		const message = isError ? error.message : "Failed to save the config.";
 		console.error(`[ERROR] [config:write:${configName}] ${message}`);
 	}
 }
 
 /**
  * @param {string} configName
- * @param {string =} suffix
- */
-export function duplicateConfig(configName, suffix) {
-	const configFilePath = getConfigFilePath(configName);
-	const modifier = suffix ? `.${suffix}` : "";
-	const configFileCopyPath = getConfigFilePath(`${configName}${modifier}`);
-
-	try {
-		copyFile(configFilePath, configFileCopyPath);
-	} catch (error) {
-		const isError = error instanceof Error;
-		const message = isError
-			? error.message
-			: "Failed to duplicate the  config.";
-		console.error(`[ERROR] [config:duplicate:${configName}] ${message}`);
-	}
-}
-
-/**
- * @param {string} configName
- *
- * @returns
  */
 function getConfigFilePath(configName) {
 	const configDir = app.getPath("userData");
