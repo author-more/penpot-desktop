@@ -22,7 +22,7 @@ export async function readConfig(configName) {
 	} catch (error) {
 		const isError = error instanceof Error;
 		const isNoFile = isError && "code" in error && error.code === "ENOENT";
-		const message = `[ERROR] [config:read:${configName}] ${isError ? error.message : "Failed to read config."}`;
+		const message = isError ? error.message : "Failed to read config.";
 
 		if (isError && !isNoFile) {
 			throw new ConfigReadError(message, {
@@ -30,7 +30,7 @@ export async function readConfig(configName) {
 			});
 		}
 
-		console.error(message);
+		console.error(`[ERROR] [config:read:${configName}] ${message}`);
 	}
 }
 
