@@ -48,10 +48,6 @@
 		display: grid;
 		place-content: center;
 	}
-
-	sl-dialog {
-		--width: 75vw;
-	}
 }
 
 .panel-list {

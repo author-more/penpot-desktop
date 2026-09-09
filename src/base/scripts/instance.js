@@ -139,7 +139,7 @@ async function openInstanceCreator(event, id) {
 	instanceCreatorDialog.label = !instanceConfig?.id
 		? "Instance creator"
 		: "Instance settings";
-	instanceCreatorDialog.style = `--width: ${isLocalInstanceCreator ? "75" : "30"}vw;`;
+	instanceCreatorDialog.style = `--width: ${isLocalInstanceCreator ? "75" : "45"}vw;`;
 	instanceCreatorDialog.show();
 }
 
