@@ -53,6 +53,23 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v0.25.0" date="2026-09-10">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.25.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>Added non-destructive settings.</li>
+                </ul>
+                <p>Improvements</p>
+                <ul>
+                    <li>Migrated window state persistence to Electron's built-in API.</li>
+                </ul>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed instance creator to fit narrow application window.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.24.0" date="2026-08-27">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.24.0</url>
             <description>
