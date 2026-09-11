@@ -120,7 +120,13 @@ export function setAppMenu() {
 					mainWindow.reload();
 				},
 			},
-			{ role: "toggleDevTools" },
+			{
+				label: "Open Developer Tools",
+				accelerator: "CmdOrCtrl+Shift+I",
+				click: () => {
+					mainWindow.webContents.openDevTools();
+				},
+			},
 			{
 				label: "Open Tab Developer Tools",
 				accelerator: "CmdOrCtrl+Shift+D",
