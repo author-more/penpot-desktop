@@ -50,7 +50,6 @@ export const instanceFormSchema = z.object({
 	localInstance: z
 		.object({
 			tag: dockerTag,
-			enableElevatedAccess: checkboxSchema,
 			enableInstanceTelemetry: checkboxSchema,
 			runContainerUpdate: checkboxSchema.optional(),
 		})
@@ -178,12 +177,10 @@ ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 
 	try {
 		if (localInstance) {
-			const { tag, enableElevatedAccess, enableInstanceTelemetry } =
-				localInstance;
+			const { tag, enableInstanceTelemetry } = localInstance;
 			const secretKey = generateUrlsafeToken();
 
 			await compose("up", containerNameId, tag, ports, secretKey, {
-				isSudoEnabled: enableElevatedAccess,
 				isInstanceTelemetryEnabled: enableInstanceTelemetry,
 			});
 
@@ -271,7 +268,6 @@ ipcHandle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 		const {
 			tag: newTag,
 			enableInstanceTelemetry,
-			enableElevatedAccess,
 			runContainerUpdate,
 		} = localInstance;
 
@@ -288,15 +284,12 @@ ipcHandle(INSTANCE_EVENTS.UPDATE, async (_event, id, instance) => {
 		const { dockerId, tag, ports, isInstanceTelemetryEnabled } =
 			localInstances[id];
 		const secretKey = generateUrlsafeToken();
-		const isSudoEnabled = enableElevatedAccess;
 
 		await compose("pull", dockerId, tag, ports, secretKey, {
 			isInstanceTelemetryEnabled,
-			isSudoEnabled,
 		});
 		await compose("up", dockerId, tag, ports, secretKey, {
 			isInstanceTelemetryEnabled,
-			isSudoEnabled,
 		});
 	}
 });

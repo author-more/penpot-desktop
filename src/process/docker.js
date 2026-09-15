@@ -5,8 +5,6 @@ import { app } from "electron";
 import { AppError, ERROR_CODES } from "../tools/error.js";
 import { getCommandPath } from "./path.js";
 import { copyFile } from "node:fs/promises";
-import { sudoExec } from "./childProcess.js";
-import { isLinux } from "./platform.js";
 
 const exec = promisify(child_process.exec);
 
@@ -57,7 +55,6 @@ const exec = promisify(child_process.exec);
  * @typedef {import("zod").z.infer<typeof import("./instance.js").localInstanceConfig>} LocalInstanceConfig
  *
  * @typedef {Object} CommandOptions
- * @property {boolean =} isSudoEnabled
  * @property {boolean =} isInstanceTelemetryEnabled
  */
 
@@ -65,9 +62,6 @@ export const DOCKER_REPOSITORIES = Object.freeze({
 	FRONTEND: "penpotapp/frontend",
 });
 
-const sudoOptions = {
-	name: "Penpot Desktop",
-};
 const dockerPath = await getCommandPath("docker");
 
 export async function isDockerAvailable() {
@@ -151,7 +145,7 @@ export async function compose(
 	tag,
 	{ frontend: frontendPort, mailcatch: mailcatchPort },
 	secretKey,
-	{ isSudoEnabled, isInstanceTelemetryEnabled } = {},
+	{ isInstanceTelemetryEnabled } = {},
 ) {
 	if (!dockerPath) {
 		throw new AppError(ERROR_CODES.MISSING_DOCKER, "Docker command not found.");
@@ -175,12 +169,6 @@ export async function compose(
 		PENPOT_DESKTOP_BACKEND_TELEMETRY: `${isInstanceTelemetryEnabled}`,
 		PENPOT_DESKTOP_SECRET_KEY: `${secretKey}`,
 	};
-	const envVariablesCommandString = Object.entries(envVariables).reduce(
-		(envVarString, [key, value]) => {
-			return `${envVarString} ${key}=${value}`;
-		},
-		"",
-	);
 	const commandString = command === "up" ? "up -d" : "pull";
 	const dockerComposeCommand = `"${dockerPath}" compose -p ${containerNamePrefix} -f "${dockerComposeFilePath}" ${commandString}`;
 
@@ -189,21 +177,9 @@ export async function compose(
 			env: { ...process.env, ...envVariables },
 		};
 
-		if (isSudoEnabled) {
-			// Variables from the `env` option are excluded by `pkexec` and `kdesudo`. On Linux they will be set with the command.
-			const command = isLinux()
-				? `${envVariablesCommandString} ${dockerComposeCommand}`
-				: dockerComposeCommand;
-
-			await sudoExec(command, {
-				...sudoOptions,
-				...(!isLinux() && optionEnv),
-			});
-		} else {
-			await exec(dockerComposeCommand, {
-				...optionEnv,
-			});
-		}
+		await exec(dockerComposeCommand, {
+			...optionEnv,
+		});
 	} catch (error) {
 		const message =
 			error instanceof Error
