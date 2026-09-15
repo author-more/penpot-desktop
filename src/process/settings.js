@@ -20,17 +20,9 @@ const instanceSchema = z
 		color: z
 			.string()
 			.trim()
-			// For settings with the old, invalid, default color value, updates the setting and prevents the settings invalidation.
-			.transform((value) =>
-				value === "hsla(0,0,0,0)" ? DEFAULT_INSTANCE.color : value,
-			)
-			.pipe(
-				z
-					.string()
-					.regex(
-						HSLA_REGEXP,
-						`Invalid format. Currently, only the legacy format (with comma separated values), without optional units (deg), is supported. For example, ${DEFAULT_INSTANCE.color}.`,
-					),
+			.regex(
+				HSLA_REGEXP,
+				`Invalid format. Currently, only the legacy format (with comma separated values), without optional units (deg), is supported. For example, ${DEFAULT_INSTANCE.color}.`,
 			)
 			.default(DEFAULT_INSTANCE.color),
 		isDefault: z.boolean().default(false),

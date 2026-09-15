@@ -57,11 +57,7 @@ export const instanceFormSchema = z.object({
 });
 
 export const localInstanceConfig = z.object({
-	dockerId: z.string().transform((value) => {
-		const hasPrefixDuplicate = value.startsWith("pd-pd");
-
-		return hasPrefixDuplicate ? value.replace(/^pd-pd/, "pd") : value;
-	}),
+	dockerId: z.string(),
 	tag: dockerTag.default("latest"),
 	ports: z.object({
 		frontend: z.number().min(0).max(65535),
