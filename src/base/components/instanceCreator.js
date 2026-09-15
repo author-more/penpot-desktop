@@ -15,7 +15,6 @@ import { typedQuerySelector } from "../scripts/dom.js";
  * @property {string} [color]
  * @property {string} [tag]
  * @property {string} [enableInstanceTelemetry]
- * @property {string} [enableElevatedAccess]
  * @property {string} [runContainerUpdate]
  *
  * @typedef {Object} ExistingInstanceDetails
@@ -258,11 +257,6 @@ export class InstanceCreator extends HTMLElement {
 												<sl-checkbox name="enableInstanceTelemetry" checked help-text="When enabled, a periodical process will send anonymous data about this instance.">
 													Enable instance telemetry
 												</sl-checkbox>
-												<sl-details summary="Advanced options">
-													<sl-checkbox name="enableElevatedAccess" help-text="Docker commands will run as super user, with elevated privileges. You will be prompted by the system to allow the actions. Elevated access is deprecated in favour of rootless Docker.">
-														Enable elevated access (Deprecated)
-													</sl-checkbox>
-												</sl-details>
 											</container-settings>`
 										: ""
 								}
@@ -449,13 +443,8 @@ export class InstanceCreator extends HTMLElement {
 
 		const formData = new FormData(form);
 		/** @type {InstanceCreationDetails} */
-		const {
-			tag,
-			enableInstanceTelemetry,
-			enableElevatedAccess,
-			runContainerUpdate,
-			...instance
-		} = Object.fromEntries(formData.entries());
+		const { tag, enableInstanceTelemetry, runContainerUpdate, ...instance } =
+			Object.fromEntries(formData.entries());
 		const { id: instanceId } = this._instance || {};
 		const isLocalInstanceCreator = !instanceId || this._instance?.localInstance;
 		const eventName = instanceId
@@ -470,7 +459,6 @@ export class InstanceCreator extends HTMLElement {
 						localInstance: {
 							tag,
 							enableInstanceTelemetry,
-							enableElevatedAccess,
 							runContainerUpdate,
 						},
 					}),
