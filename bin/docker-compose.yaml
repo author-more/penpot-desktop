@@ -84,7 +84,7 @@ services:
     image: "penpotapp/frontend:${PENPOT_VERSION:-2.16}"
     restart: always
     ports:
-      - ${PENPOT_DESKTOP_FRONTEND_PORT}:8080
+      - "127.0.0.1:${PENPOT_DESKTOP_FRONTEND_PORT}:8080"
 
     volumes:
       - penpot_assets:/opt/data/assets
@@ -267,6 +267,6 @@ services:
     expose:
       - "1025"
     ports:
-      - "${PENPOT_DESKTOP_MAILCATCH_PORT}:1080"
+      - "127.0.0.1:${PENPOT_DESKTOP_MAILCATCH_PORT}:1080"
     networks:
       - penpot
