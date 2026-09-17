@@ -40,7 +40,7 @@
 		"electron-tabs": "^1.0.1",
 		"electron-updater": "^6.8.9",
 		"jszip": "^3.10.2",
-		"zod": "^4.6.0"
+		"zod": "^4.6.1"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.2",
