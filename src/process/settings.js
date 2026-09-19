@@ -68,7 +68,7 @@ const initialSettings = normalize({
 	...DEFAULT_SETTINGS,
 	...acceptedSettings,
 });
-const baseSettings = {
+export const baseSettings = {
 	...rawSettings,
 	instances: [...initialSettings.instances, ...rejectedInstances],
 };
@@ -76,10 +76,10 @@ const baseSettings = {
 /**
  * Writes are suspended when the file couldn't be read. Since contents are unknown, overwriting would discard whatever the user has set.
  */
-const canSaveConfig = !hasConfigReadError(errors);
+export const hasSettingsConfigAccess = !hasConfigReadError(errors);
 const hasUnsavedChanges = !isDeepStrictEqual(baseSettings, rawSettings);
 
-if (canSaveConfig && hasUnsavedChanges) {
+if (hasSettingsConfigAccess && hasUnsavedChanges) {
 	writeConfig(CONFIG_SETTINGS_NAME, baseSettings);
 }
 
@@ -89,7 +89,7 @@ if (canSaveConfig && hasUnsavedChanges) {
  * E.g. `{ theme: "lig", customProperty: true, enableTabsRemembering: true }`. User can change `enableTabsRemembering` setting, without losing `theme`'s invalid value (typo "lig" instead of "light") they set manually. However, `theme` will be fixed (overwritten) if they change the setting through the application's UI. Unknown property, like `customProperty`, is retained.
  */
 export const settings = observe(structuredClone(initialSettings), (current) => {
-	if (!canSaveConfig) {
+	if (!hasSettingsConfigAccess) {
 		return;
 	}
 
