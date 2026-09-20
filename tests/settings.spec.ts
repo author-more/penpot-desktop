@@ -1,70 +1,58 @@
-import { ElectronApplication, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { describe } from "node:test";
-import { launchElectronApp } from "./utils/app.js";
-import { getFile, saveFile } from "./utils/fs.js";
-import { join } from "node:path";
-import { openSettings } from "./utils/actions/settings.js";
+import { TestApp } from "./utils/app.js";
+import { Config } from "./utils/config.js";
+import { expectUUID } from "./utils/assertions.js";
+import { createTempDir, removeDir } from "./utils/fs.js";
+import { openSettings, selectTheme } from "./utils/actions/settings.js";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
 
-let electronApp: ElectronApplication;
+let app: TestApp;
+let config: Config;
 let userDataPath: string;
 
 const CONFIG_NAME = "settings.json";
 
+const DEFAULT_INSTANCE = {
+	origin: "http://localhost:9008",
+	label: "Official",
+	color: "hsla(0, 0%, 0%, 0)",
+	isDefault: false,
+	id: "f6657e6b-4b07-4320-8a3a-9ead32f9549a",
+};
 const DEFAULT_CONFIG = {
 	theme: "system",
 	titleBarType: "overlay",
-	instances: [
-		{
-			origin: "http://localhost:9008",
-			label: "Official",
-			color: "hsla(0, 0%, 0%, 0)",
-			isDefault: false,
-			id: "f6657e6b-4b07-4320-8a3a-9ead32f9549a",
-		},
-	],
+	instances: [DEFAULT_INSTANCE],
 };
 
 test.beforeEach(async () => {
-	electronApp = await launchElectronApp();
-	userDataPath = await electronApp.evaluate(async ({ app }) => {
-		return app.getPath("userData");
-	});
+	userDataPath = await createTempDir();
+	app = new TestApp({ userDataPath });
+	config = new Config(userDataPath, CONFIG_NAME);
 });
 
 test.afterEach(async () => {
-	saveFile(join(userDataPath, CONFIG_NAME), DEFAULT_CONFIG);
-
-	const window = await electronApp.firstWindow();
-
-	await window.close();
-	await electronApp.close();
+	await app.close();
+	await removeDir(userDataPath);
 });
 
 describe("settings", () => {
 	test("should open", async () => {
-		const window = await electronApp.firstWindow();
+		const window = await launchApp();
 
 		await openSettings(window);
 	});
 
 	test("should control theme", async () => {
-		const window = await electronApp.firstWindow();
+		const window = await launchApp();
 
 		await openSettings(window);
 
-		const selector = window.locator("sl-select#theme-select");
-		await selector.waitFor({ state: "visible" });
-
 		for (const newValue of ["light", "dark", "system"]) {
-			await selector.click();
+			await selectTheme(window, newValue);
 
-			const option = selector.locator(`sl-option[value="${newValue}"]`);
-			await option.waitFor({ state: "visible" });
-			await option.click();
-			await option.waitFor({ state: "hidden" });
-
-			const appThemePropertyValue = await electronApp.evaluate(
+			const appThemePropertyValue = await app.electron.evaluate(
 				async ({ nativeTheme }) => {
 					return nativeTheme.themeSource;
 				},
@@ -72,14 +60,15 @@ describe("settings", () => {
 
 			expect(appThemePropertyValue).toBe(newValue);
 
-			const config = await getFile(join(userDataPath, CONFIG_NAME));
-			expect(config.theme).toBe(newValue);
+			await expect
+				.poll(() => config.readSettled())
+				.toMatchObject({ theme: newValue });
 		}
 	});
 
 	describe("instance", () => {
 		test("should add/remove item", async () => {
-			const window = await electronApp.firstWindow();
+			const window = await launchApp();
 
 			await openSettings(window);
 
@@ -92,7 +81,9 @@ describe("settings", () => {
 			await addItemButton.click();
 
 			await expect(itemList).toHaveCount(2);
-			expect((await getConfig()).instances.length).toBe(2);
+			await expect
+				.poll(async () => (await config.readSettled())?.instances.length)
+				.toBe(2);
 
 			const newItem = itemList.last();
 			const instanceSettingsButton = newItem.getByRole("button", {
@@ -109,11 +100,13 @@ describe("settings", () => {
 			await deleteItemButton.click();
 
 			await expect(itemList).toHaveCount(1);
-			expect((await getConfig()).instances.length).toBe(1);
+			await expect
+				.poll(async () => (await config.readSettled())?.instances.length)
+				.toBe(1);
 		});
 
 		test("should edit label", async () => {
-			const window = await electronApp.firstWindow();
+			const window = await launchApp();
 			const currentValue = "Official";
 			const newValue = "Local instance";
 
@@ -142,13 +135,14 @@ describe("settings", () => {
 			});
 			await updateItemButton.click();
 
-			expect(item).toContainText(newValue);
-			const config = await getFile(join(userDataPath, CONFIG_NAME));
-			expect(config.instances[0].label).toBe(newValue);
+			await expect(item).toContainText(newValue);
+			await expect
+				.poll(() => config.readSettled())
+				.toMatchObject({ instances: [{ label: newValue }] });
 		});
 
 		test("should edit origin", async () => {
-			const window = await electronApp.firstWindow();
+			const window = await launchApp();
 			const currentValue = "http://localhost:9008";
 			const newValue = "http://localhost:9009";
 
@@ -177,13 +171,14 @@ describe("settings", () => {
 			});
 			await updateItemButton.click();
 
-			expect(item).toContainText(newValue);
-			const config = await getFile(join(userDataPath, CONFIG_NAME));
-			expect(config.instances[0].origin).toBe(newValue);
+			await expect(item).toContainText(newValue);
+			await expect
+				.poll(() => config.readSettled())
+				.toMatchObject({ instances: [{ origin: newValue }] });
 		});
 
 		test("should set default", async () => {
-			const window = await electronApp.firstWindow();
+			const window = await launchApp();
 
 			await openSettings(window);
 
@@ -194,12 +189,16 @@ describe("settings", () => {
 			await addItemButton.click();
 
 			await expect(itemList).toHaveCount(2);
-			expect((await getConfig()).instances[1].isDefault).toBe(false);
+			await expect
+				.poll(async () => (await config.readSettled())?.instances[1]?.isDefault)
+				.toBe(false);
 
 			const newItem = itemList.last();
 			await clickContextMenu(window, newItem, "Set as default");
 
-			expect((await getConfig()).instances[1].isDefault).toBe(true);
+			await expect
+				.poll(async () => (await config.readSettled())?.instances[1]?.isDefault)
+				.toBe(true);
 
 			const instanceSettingsButton = newItem.getByRole("button", {
 				name: "Open settings",
@@ -216,9 +215,102 @@ describe("settings", () => {
 			await expect(deleteItemButton).toBeDisabled();
 		});
 	});
+
+	describe("config", () => {
+		test("should save values derived from an instance's schema", async () => {
+			const window = await launchApp({
+				instances: [{ origin: DEFAULT_INSTANCE.origin, label: "Official" }],
+			});
+			expect(window).toBeDefined();
+
+			await expect
+				.poll(() => config.readSettled())
+				.toEqual({
+					instances: [
+						{
+							...DEFAULT_INSTANCE,
+							id: expectUUID,
+							isDefault: true,
+						},
+					],
+				});
+		});
+
+		test("should save a generated default instance", async () => {
+			const window = await launchApp({ theme: "dark" });
+			expect(window).toBeDefined();
+
+			await expect
+				.poll(() => config.readSettled())
+				.toEqual({
+					theme: "dark",
+					instances: [
+						{
+							...DEFAULT_INSTANCE,
+							id: expectUUID,
+							isDefault: true,
+						},
+					],
+				});
+		});
+
+		test("should keep a generated instance id between launches", async () => {
+			const window = await launchApp({
+				instances: [{ origin: DEFAULT_INSTANCE.origin, label: "Official" }],
+			});
+			expect(window).toBeDefined();
+
+			await expect
+				.poll(() => config.readSettled())
+				.toMatchObject({
+					instances: [{ id: expectUUID }],
+				});
+			const { instances } = await config.read();
+
+			const relaunchedWindow = await app.launch();
+			await openSettings(relaunchedWindow);
+
+			await expect.poll(() => config.readSettled()).toEqual({ instances });
+		});
+
+		test("should retain unknown properties", async () => {
+			const window = await launchApp({
+				...DEFAULT_CONFIG,
+				customProperty: true,
+			});
+
+			await openSettings(window);
+			await selectTheme(window, "dark");
+
+			await expect
+				.poll(() => config.readSettled())
+				.toMatchObject({
+					theme: "dark",
+					titleBarType: "overlay",
+					customProperty: true,
+				});
+		});
+
+		test("should not rewrite a config without changes", async () => {
+			const settings = {
+				...DEFAULT_CONFIG,
+				instances: [{ ...DEFAULT_INSTANCE, isDefault: true }],
+			};
+
+			await config.save(settings);
+			const modificationTime = await config.getModificationTime();
+
+			const window = await app.launch();
+			expect(window).toBeDefined();
+
+			expect(await config.read()).toEqual(settings);
+			expect(await config.getModificationTime()).toBe(modificationTime);
+		});
+	});
 });
 
-async function getConfig() {
-	const configPath = join(userDataPath, CONFIG_NAME);
-	return await getFile(configPath);
+async function launchApp(settings: Record<string, unknown> = DEFAULT_CONFIG) {
+	await config.save(settings);
+
+	return await app.launch();
 }
