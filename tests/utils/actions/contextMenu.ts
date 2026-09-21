@@ -5,7 +5,7 @@ export async function clickContextMenu(
 	menuTrigger: Locator,
 	targetMenuItemName: string,
 ) {
-	menuTrigger.click({ button: "right" });
+	await menuTrigger.click({ button: "right" });
 
 	const contextMenu = menuHost.locator("#context-menu sl-menu");
 	await contextMenu.waitFor({ state: "visible" });

@@ -5,7 +5,7 @@ export async function openSettings(page: Page) {
 		name: "Toggle settings",
 	});
 
-	toggleButton.waitFor({ state: "visible" });
+	await toggleButton.waitFor({ state: "visible" });
 	await toggleButton.click();
 
 	const sidePanel = page.locator("sl-drawer#settings");
