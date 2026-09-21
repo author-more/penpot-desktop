@@ -1,6 +1,6 @@
 import { app, shell } from "electron";
 import { join } from "node:path";
-import { settings } from "./settings.js";
+import { baseSettings, settings } from "./settings.js";
 import { DEFAULT_INSTANCE, INSTANCE_EVENTS } from "../shared/instance.js";
 import {
 	compose,
@@ -14,10 +14,11 @@ import { findAvailablePort } from "./server.js";
 import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
 import { generateId, generateUrlsafeToken } from "../tools/id.js";
 import { readConfig, writeConfig } from "./config.js";
-import { observe } from "../tools/object.js";
+import { isRecord, observe } from "../tools/object.js";
 import { getContainerSolution } from "./platform.js";
 import { getMainWindow } from "./window.js";
 import { ipcHandle, ipcOn, ipcSend } from "./ipc.js";
+import { getDirNamesForPath } from "./fileSystem.js";
 
 /**
  * @typedef {(import("./settings.js").Settings['instances'][number] & { isLocal: boolean})[]} AllInstances
@@ -208,15 +209,13 @@ ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 });
 
-ipcOn(INSTANCE_EVENTS.REMOVE, (_event, id) => {
-	const userDataPath = app.getPath("sessionData");
-	const partitionPath = join(userDataPath, "Partitions", id);
-
-	shell.trashItem(partitionPath);
+ipcOn(INSTANCE_EVENTS.REMOVE, async (_event, id) => {
 	settings.instances = settings.instances.filter(
 		({ id: registeredId }) => registeredId !== id,
 	);
 	delete localInstances[id];
+
+	await removePartitions([id]);
 });
 
 ipcOn(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {
@@ -323,4 +322,61 @@ async function getInstancesConfig() {
 	const instancesConfig = (await readConfig(CONFIG_INSTANCES_NAME)) || {};
 
 	return instancesConfigSchema.parse(instancesConfig);
+}
+
+/**
+ * Removes partitions that don't have matching registered instance.
+ */
+export async function removeAbandonedPartitions() {
+	const partitions = await getDirNamesForPath(getPartitionsPath());
+	if (!partitions) {
+		return;
+	}
+
+	const instances = [...baseSettings.instances, ...settings.instances]
+		.map((instance) => isRecord(instance) && instance.id)
+		.filter(Boolean);
+	const abandonedPartitions = partitions.filter(
+		(partitionId) => !instances.includes(partitionId),
+	);
+
+	await removePartitions(abandonedPartitions);
+}
+
+/**
+ * Removes partitions for given instance ids.
+ *
+ * @param {string[]} ids
+ */
+async function removePartitions(ids) {
+	await Promise.allSettled(
+		ids.map(async (id) => {
+			try {
+				return await shell.trashItem(getPartitionPath(id));
+			} catch (error) {
+				const isError = error instanceof Error;
+				const message = isError ? error.message : "Failed to remove partition.";
+
+				console.error(`[ERROR] [instance:remove-partition:${id}] ${message}`);
+			}
+		}),
+	);
+}
+
+/**
+ * Returns path to a directory of a partition for a given id.
+ *
+ * @param {string} id
+ */
+function getPartitionPath(id) {
+	return join(getPartitionsPath(), id);
+}
+
+/**
+ * Returns path to the directory with partitions.
+ */
+function getPartitionsPath() {
+	const userDataPath = app.getPath("sessionData");
+
+	return join(userDataPath, "Partitions");
 }

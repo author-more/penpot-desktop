@@ -19,3 +19,14 @@ export async function closeSettings(page: Page) {
 
 	await closeButton.click();
 }
+
+export async function selectTheme(page: Page, theme: string) {
+	const selector = page.locator("sl-select#theme-select");
+	await selector.waitFor({ state: "visible" });
+	await selector.click();
+
+	const option = selector.locator(`sl-option[value="${theme}"]`);
+	await option.waitFor({ state: "visible" });
+	await option.click();
+	await option.waitFor({ state: "hidden" });
+}

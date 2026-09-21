@@ -1,4 +1,5 @@
 import { app, dialog, ipcMain, shell } from "electron";
+import { isDeepStrictEqual } from "node:util";
 import { getChangedProperties, isRecord, observe } from "../tools/object.js";
 import { ConfigReadError, readConfig, writeConfig } from "./config.js";
 import { z, ZodError } from "zod";
@@ -44,6 +45,7 @@ const settingsShape = Object.freeze({
 /**
  * @typedef {z.infer<z.ZodObject<typeof settingsShape>>} Settings
  * @typedef {{ key?: string, error: unknown }} ConfigError
+ * @typedef{{instances: unknown[]}} RejectedSettings
  */
 
 /** @type {Settings} */
@@ -59,17 +61,27 @@ const DEFAULT_SETTINGS = Object.freeze({
 const {
 	raw: rawSettings,
 	accepted: acceptedSettings,
+	rejected: { instances: rejectedInstances },
 	errors,
 } = await getUserSettings();
 const initialSettings = normalize({
 	...DEFAULT_SETTINGS,
 	...acceptedSettings,
 });
+export const baseSettings = {
+	...rawSettings,
+	instances: [...initialSettings.instances, ...rejectedInstances],
+};
 
 /**
  * Writes are suspended when the file couldn't be read. Since contents are unknown, overwriting would discard whatever the user has set.
  */
-const canSaveConfig = !hasConfigReadError(errors);
+export const hasSettingsConfigAccess = !hasConfigReadError(errors);
+const hasUnsavedChanges = !isDeepStrictEqual(baseSettings, rawSettings);
+
+if (hasSettingsConfigAccess && hasUnsavedChanges) {
+	writeConfig(CONFIG_SETTINGS_NAME, baseSettings);
+}
 
 /**
  * In-operation settings config consist of accepted (known and valid) properties. On save, the config's all properties are retained and overwritten only with accepted properties that have changed (overwriting an  invalid property only if the user changed that setting).
@@ -77,13 +89,14 @@ const canSaveConfig = !hasConfigReadError(errors);
  * E.g. `{ theme: "lig", customProperty: true, enableTabsRemembering: true }`. User can change `enableTabsRemembering` setting, without losing `theme`'s invalid value (typo "lig" instead of "light") they set manually. However, `theme` will be fixed (overwritten) if they change the setting through the application's UI. Unknown property, like `customProperty`, is retained.
  */
 export const settings = observe(structuredClone(initialSettings), (current) => {
-	if (!canSaveConfig) {
+	if (!hasSettingsConfigAccess) {
 		return;
 	}
 
 	writeConfig(CONFIG_SETTINGS_NAME, {
-		...rawSettings,
+		...baseSettings,
 		...getChangedProperties(current, initialSettings),
+		instances: [...current.instances, ...rejectedInstances],
 	});
 });
 
@@ -133,6 +146,7 @@ ipcMain.on(
  * @returns {Promise<{
  *   raw: Record<string, unknown>,
  *   accepted: Partial<Settings>,
+ *   rejected: RejectedSettings,
  *   errors: ConfigError[],
  * }>}
  */
@@ -155,20 +169,27 @@ async function getUserSettings() {
 						cause: error,
 					});
 
-		return { raw: {}, accepted: {}, errors: [{ error: readError }] };
+		return {
+			raw: {},
+			accepted: {},
+			rejected: { instances: [] },
+			errors: [{ error: readError }],
+		};
 	}
 }
 
 /**
- * Validates the config setting by setting. Rejected settings are left out.
+ * Validates the config setting by setting.
  *
  * @param {Record<string, unknown>} rawConfig
  *
- * @returns {{ accepted: Partial<Settings>, errors: ConfigError[] }}
+ * @returns {{ accepted: Partial<Settings>, rejected: RejectedSettings, errors: ConfigError[] }}
  */
 function validateSettings(rawConfig) {
 	/** @type {Partial<Settings>} */
 	const accepted = {};
+	/** @type {RejectedSettings} */
+	let rejected = { instances: [] };
 	/** @type {ConfigError[]} */
 	const errors = [];
 
@@ -182,6 +203,7 @@ function validateSettings(rawConfig) {
 			const result = validateInstances(value);
 
 			accepted.instances = result.valid;
+			rejected.instances = result.rejected;
 			errors.push(...result.errors);
 
 			continue;
@@ -196,17 +218,19 @@ function validateSettings(rawConfig) {
 		}
 	}
 
-	return { accepted, errors };
+	return { accepted, rejected, errors };
 }
 
 /**
  * @param {unknown[]} entries
  *
- * @returns {{ valid: Settings["instances"], errors: ConfigError[] }}
+ * @returns {{ valid: Settings["instances"], rejected: unknown[], errors: ConfigError[] }}
  */
 function validateInstances(entries) {
 	/** @type {Settings["instances"]} */
 	const valid = [];
+	/** @type {unknown[]} */
+	const rejected = [];
 	/** @type {ConfigError[]} */
 	const errors = [];
 
@@ -216,11 +240,12 @@ function validateInstances(entries) {
 		if (result.success) {
 			valid.push(result.data);
 		} else {
+			rejected.push(entry);
 			errors.push({ key: `instances/${index}`, error: result.error });
 		}
 	});
 
-	return { valid, errors };
+	return { valid, rejected, errors };
 }
 
 /**
