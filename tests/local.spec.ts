@@ -9,6 +9,9 @@ import { platform } from "node:process";
 
 const LOCAL_INSTANCE_LABEL = "Local instance";
 
+// In GH Actions, macOS runners don't support Docker, and Windows runners can't run Linux containers. Local instance setup will be tested on Linux only, which leaves a testing hole around command strings.
+test.skip(platform !== "linux");
+
 let app: TestApp;
 let window: Page;
 
@@ -33,9 +36,6 @@ test.afterAll(async () => {
 });
 
 describe("local instance", () => {
-	// In GH Actions, macOS runners don't support Docker, and Windows runners can't run Linux containers. Local instance setup will be tested on Linux only, which leaves a testing hole around command strings.
-	test.skip(() => platform !== "linux");
-
 	test("should create and remove instance", async () => {
 		await openSettings(window);
 		const openLocalWizardButton = window.getByRole("button", {
