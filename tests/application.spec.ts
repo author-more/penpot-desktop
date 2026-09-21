@@ -1,24 +1,21 @@
-import { ElectronApplication, expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { describe } from "node:test";
-import { launchElectronApp } from "./utils/app.js";
+import { TestApp } from "./utils/app.js";
 
-let electronApp: ElectronApplication;
+let app: TestApp;
+let window: Page;
 
 test.beforeAll(async () => {
-	electronApp = await launchElectronApp();
+	app = new TestApp();
+	window = await app.launch();
 });
 
 test.afterAll(async () => {
-	const window = await electronApp.firstWindow();
-
-	await window.close();
-	await electronApp.close();
+	await app.close();
 });
 
 describe("application", () => {
 	test("should open main window", async () => {
-		const window = await electronApp.firstWindow();
-
 		expect(window).toBeDefined();
 		expect(await window.title()).toBe("Penpot Desktop");
 	});

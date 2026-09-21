@@ -1,24 +1,21 @@
-import { ElectronApplication, expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { describe } from "node:test";
-import { launchElectronApp } from "./utils/app.js";
+import { TestApp } from "./utils/app.js";
 
-let electronApp: ElectronApplication;
+let app: TestApp;
+let window: Page;
 
 test.beforeEach(async () => {
-	electronApp = await launchElectronApp();
+	app = new TestApp();
+	window = await app.launch();
 });
 
 test.afterEach(async () => {
-	const window = await electronApp.firstWindow();
-
-	await window.close();
-	await electronApp.close();
+	await app.close();
 });
 
 describe("tabs", () => {
 	test("should show no tabs screen", async () => {
-		const window = await electronApp.firstWindow();
-
 		const screen = window.locator(".no-tabs-exist");
 		const tabs = window.locator("tab-group .tabs > .tab");
 
@@ -37,8 +34,6 @@ describe("tabs", () => {
 	});
 
 	test("should add a tab from no tabs screen", async () => {
-		const window = await electronApp.firstWindow();
-
 		const tabs = window.locator("tab-group .tabs > .tab");
 		const tab = tabs.first();
 		await tab.getByRole("button", { name: "×" }).click();
