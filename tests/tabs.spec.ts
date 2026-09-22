@@ -11,7 +11,7 @@ test.beforeEach(async () => {
 });
 
 test.afterEach(async () => {
-	await app.close();
+	await app.destroy();
 });
 
 describe("tabs", () => {

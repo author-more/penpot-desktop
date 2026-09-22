@@ -22,7 +22,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
 	try {
-		await app.close();
+		await app.destroy();
 	} finally {
 		// In-app instance deletion doesn't remove an instance's containers.
 		try {

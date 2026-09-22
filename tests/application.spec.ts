@@ -11,7 +11,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-	await app.close();
+	await app.destroy();
 });
 
 describe("application", () => {

@@ -3,13 +3,11 @@ import { describe } from "node:test";
 import { TestApp } from "./utils/app.js";
 import { Config } from "./utils/config.js";
 import { expectUUID } from "./utils/assertions.js";
-import { createTempDir, removeDir } from "./utils/fs.js";
 import { openSettings, selectTheme } from "./utils/actions/settings.js";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
 
 let app: TestApp;
 let config: Config;
-let userDataPath: string;
 
 const CONFIG_NAME = "settings.json";
 
@@ -27,14 +25,12 @@ const DEFAULT_CONFIG = {
 };
 
 test.beforeEach(async () => {
-	userDataPath = await createTempDir();
-	app = new TestApp({ userDataPath });
-	config = new Config(userDataPath, CONFIG_NAME);
+	app = new TestApp();
+	config = new Config(app.userDataPath, CONFIG_NAME);
 });
 
 test.afterEach(async () => {
-	await app.close();
-	await removeDir(userDataPath);
+	await app.destroy();
 });
 
 describe("settings", () => {
