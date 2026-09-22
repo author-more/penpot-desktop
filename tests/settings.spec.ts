@@ -5,6 +5,7 @@ import { Config } from "./utils/config.js";
 import { expectUUID } from "./utils/assertions.js";
 import { openSettings, selectTheme } from "./utils/actions/settings.js";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
+import { fillField } from "./utils/actions/form.js";
 
 let app: TestApp;
 let config: Config;
@@ -123,8 +124,7 @@ describe("settings", () => {
 			const field = instanceSettingsModal.getByLabel("Label");
 
 			await expect(field).toHaveValue(currentValue);
-			await field.fill(newValue);
-			await expect(field).toHaveValue(newValue);
+			await fillField(field, newValue);
 
 			const updateItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Update",
@@ -159,8 +159,7 @@ describe("settings", () => {
 			const field = instanceSettingsModal.getByLabel("Origin");
 
 			await expect(field).toHaveValue(currentValue);
-			await field.fill(newValue);
-			await expect(field).toHaveValue(newValue);
+			await fillField(field, newValue);
 
 			const updateItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Update",

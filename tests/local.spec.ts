@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process";
 import { closeSettings, openSettings } from "./utils/actions/settings.js";
 import { SlCheckbox } from "@shoelace-style/shoelace";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
+import { fillField } from "./utils/actions/form.js";
 import { platform } from "node:process";
 
 const LOCAL_INSTANCE_LABEL = "Local instance";
@@ -49,7 +50,7 @@ describe("local instance", () => {
 
 		const field = instanceSettingsModal.getByLabel("Label");
 		await expect(field).toBeEmpty();
-		await field.fill(LOCAL_INSTANCE_LABEL);
+		await fillField(field, LOCAL_INSTANCE_LABEL);
 
 		// Playwright's uncheck and click are confused by SlCheckbox's event handling and have no effect on the checkbox. The checked state is being switched directly with the DOM element's method.
 		const slCheckbox = instanceSettingsModal.locator(
