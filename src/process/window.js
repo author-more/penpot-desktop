@@ -119,7 +119,7 @@ export const MainWindow = {
 			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
 		});
 		mainWindow.on("blur", () => {
-			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "true"]);
+			ipcSend(mainWindow, "env:set-flag", [FLAGS.FOCUS, "false"]);
 		});
 		mainWindow.once("close", (event) => {
 			event.preventDefault();
