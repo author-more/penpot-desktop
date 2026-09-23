@@ -42,12 +42,16 @@ const dockerTag = z.union([
 	z.string().regex(/^\d+\.\d+(\.\d+)?$/),
 ]);
 
+export const originSchema = z
+	.url({ protocol: /^https?$/ })
+	.transform((url) => new URL(url).origin);
+
 export const instanceIdSchema = z.uuid();
 
 export const instanceFormSchema = z.object({
 	label: z.string().trim().min(1),
 	color: z.string(),
-	origin: z.string().optional(),
+	origin: originSchema.optional(),
 	localInstance: z
 		.object({
 			tag: dockerTag,
