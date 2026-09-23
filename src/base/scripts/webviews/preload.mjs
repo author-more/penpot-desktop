@@ -34,24 +34,12 @@ let fileStatusObserverDisconnects = [];
 
 window.addEventListener("DOMContentLoaded", () => {
 	onClassChange(document.body, () => dispatchThemeUpdate());
+	preparePage(document.location.href);
 });
 
-navigation.addEventListener("navigate", (event) => {
-	const url = new URL(event.destination.url);
-	const search = extractSearchFromHash(url.hash);
-	const searchParams = new URLSearchParams(search);
-	const fileId = searchParams.get("file-id");
-	const isDashboard = url.hash.startsWith("#/dashboard");
-	const isWorkspace = url.hash.startsWith("#/workspace");
-
-	if (isDashboard) {
-		prepareUI();
-	}
-
-	if (isWorkspace && fileId) {
-		trackProjectStatus(fileId);
-	}
-});
+navigation.addEventListener("navigate", (event) =>
+	preparePage(event.destination.url),
+);
 
 ipcRenderer.on("theme-request-update", () => dispatchThemeUpdate());
 ipcRenderer.on("file:export-finish", () => cleanUpUI());
@@ -106,6 +94,26 @@ function onClassChange(
 function dispatchThemeUpdate() {
 	const isLightTheme = document.body.classList.contains("light");
 	ipcRenderer.sendToHost("theme-update", isLightTheme ? "light" : "dark");
+}
+
+/**
+ * @param {string} pageUrl
+ */
+function preparePage(pageUrl) {
+	const url = new URL(pageUrl);
+	const search = extractSearchFromHash(url.hash);
+	const searchParams = new URLSearchParams(search);
+	const fileId = searchParams.get("file-id");
+	const isDashboard = url.hash.startsWith("#/dashboard");
+	const isWorkspace = url.hash.startsWith("#/workspace");
+
+	if (isDashboard) {
+		prepareUI();
+	}
+
+	if (isWorkspace && fileId) {
+		trackProjectStatus(fileId);
+	}
 }
 
 async function prepareUI() {
