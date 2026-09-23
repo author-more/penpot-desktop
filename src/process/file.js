@@ -37,6 +37,9 @@ ipcHandle(FILE_EVENTS.PREPARE_PATH, async () => {
 });
 
 ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
+	const archiveExportPath = exportPath;
+	exportPath = null;
+
 	const { success: isValidExport, data: filesValid } =
 		filesSchema.safeParse(files);
 
@@ -48,7 +51,7 @@ ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 	}
 
 	try {
-		if (!exportPath) {
+		if (!archiveExportPath) {
 			throw new Error("Export path is not set.");
 		}
 
@@ -62,7 +65,7 @@ ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 
 		await pipeline(
 			archive.generateNodeStream({ streamFiles: true }),
-			createWriteStream(exportPath),
+			createWriteStream(archiveExportPath),
 		);
 
 		return { status: "success" };
@@ -71,8 +74,6 @@ ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 			error instanceof Error ? error.message : "Failed to save the projects.";
 
 		throw new AppError(ERROR_CODES.FAILED_EXPORT, message);
-	} finally {
-		exportPath = null;
 	}
 });
 
