@@ -2,6 +2,7 @@ import { BrowserWindow, dialog } from "electron";
 import { FILE_EVENTS } from "../shared/file.js";
 import JSZip from "jszip";
 import { createWriteStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
 import { getMainWindow } from "./window.js";
 import { z } from "zod";
 import { AppError, ERROR_CODES } from "../tools/error.js";
@@ -47,6 +48,10 @@ ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 	}
 
 	try {
+		if (!exportPath) {
+			throw new Error("Export path is not set.");
+		}
+
 		const archive = new JSZip();
 
 		filesValid.forEach(({ name, projectName, data }) => {
@@ -55,30 +60,19 @@ ipcHandle(FILE_EVENTS.EXPORT, async (_event, files) => {
 			archive.file(path, data);
 		});
 
-		return new Promise((resolve) => {
-			if (!exportPath) {
-				throw new Error("Export path is not set.");
-			}
+		await pipeline(
+			archive.generateNodeStream({ streamFiles: true }),
+			createWriteStream(exportPath),
+		);
 
-			archive
-				.generateNodeStream({ streamFiles: true })
-				.pipe(createWriteStream(exportPath))
-				.on("error", () => {
-					exportPath = null;
-
-					throw new Error("Failed to save the archive.");
-				})
-				.on("finish", () => {
-					exportPath = null;
-
-					resolve({ status: "success" });
-				});
-		});
+		return { status: "success" };
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to save the projects.";
 
 		throw new AppError(ERROR_CODES.FAILED_EXPORT, message);
+	} finally {
+		exportPath = null;
 	}
 });
 
