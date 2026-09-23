@@ -3,13 +3,12 @@ import { describe } from "node:test";
 import { TestApp } from "./utils/app.js";
 import { Config } from "./utils/config.js";
 import { expectUUID } from "./utils/assertions.js";
-import { createTempDir, removeDir } from "./utils/fs.js";
 import { openSettings, selectTheme } from "./utils/actions/settings.js";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
+import { fillField } from "./utils/actions/form.js";
 
 let app: TestApp;
 let config: Config;
-let userDataPath: string;
 
 const CONFIG_NAME = "settings.json";
 
@@ -27,14 +26,12 @@ const DEFAULT_CONFIG = {
 };
 
 test.beforeEach(async () => {
-	userDataPath = await createTempDir();
-	app = new TestApp({ userDataPath });
-	config = new Config(userDataPath, CONFIG_NAME);
+	app = new TestApp();
+	config = new Config(app.userDataPath, CONFIG_NAME);
 });
 
 test.afterEach(async () => {
-	await app.close();
-	await removeDir(userDataPath);
+	await app.destroy();
 });
 
 describe("settings", () => {
@@ -127,8 +124,7 @@ describe("settings", () => {
 			const field = instanceSettingsModal.getByLabel("Label");
 
 			await expect(field).toHaveValue(currentValue);
-			await field.fill(newValue);
-			await expect(field).toHaveValue(newValue);
+			await fillField(field, newValue);
 
 			const updateItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Update",
@@ -163,8 +159,7 @@ describe("settings", () => {
 			const field = instanceSettingsModal.getByLabel("Origin");
 
 			await expect(field).toHaveValue(currentValue);
-			await field.fill(newValue);
-			await expect(field).toHaveValue(newValue);
+			await fillField(field, newValue);
 
 			const updateItemButton = instanceSettingsModal.getByRole("button", {
 				name: "Update",

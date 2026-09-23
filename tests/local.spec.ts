@@ -1,43 +1,43 @@
-import { ElectronApplication, expect, test } from "@playwright/test";
+import { expect, Page, test } from "@playwright/test";
 import { describe } from "node:test";
-import { launchElectronApp } from "./utils/app.js";
+import { TestApp } from "./utils/app.js";
 import { execFileSync } from "node:child_process";
 import { closeSettings, openSettings } from "./utils/actions/settings.js";
 import { SlCheckbox } from "@shoelace-style/shoelace";
 import { clickContextMenu } from "./utils/actions/contextMenu.js";
+import { fillField } from "./utils/actions/form.js";
 import { platform } from "node:process";
 
 const LOCAL_INSTANCE_LABEL = "Local instance";
 
-let electronApp: ElectronApplication;
+// In GH Actions, macOS runners don't support Docker, and Windows runners can't run Linux containers. Local instance setup will be tested on Linux only, which leaves a testing hole around command strings.
+test.skip(platform !== "linux");
+
+let app: TestApp;
+let window: Page;
 
 test.beforeAll(async () => {
-	electronApp = await launchElectronApp();
+	app = new TestApp();
+	window = await app.launch();
 });
 
 test.afterAll(async () => {
-	const window = await electronApp.firstWindow();
-
-	await window.close();
-	await electronApp.close();
-
-	// In-app instance deletion doesn't remove an instance's containers.
 	try {
-		execFileSync("./bin/deleteDockerContainers.sh", []);
-	} catch (error) {
-		if (error instanceof Error && "code" in error) {
-			console.error(error.code);
+		await app.destroy();
+	} finally {
+		// In-app instance deletion doesn't remove an instance's containers.
+		try {
+			execFileSync("./bin/deleteDockerContainers.sh", []);
+		} catch (error) {
+			if (error instanceof Error && "code" in error) {
+				console.error(error.code);
+			}
 		}
 	}
 });
 
 describe("local instance", () => {
-	// In GH Actions, macOS runners don't support Docker, and Windows runners can't run Linux containers. Local instance setup will be tested on Linux only, which leaves a testing hole around command strings.
-	test.skip(() => platform !== "linux");
-
 	test("should create and remove instance", async () => {
-		const window = await electronApp.firstWindow();
-
 		await openSettings(window);
 		const openLocalWizardButton = window.getByRole("button", {
 			name: "Create local instance",
@@ -50,7 +50,7 @@ describe("local instance", () => {
 
 		const field = instanceSettingsModal.getByLabel("Label");
 		await expect(field).toBeEmpty();
-		await field.fill(LOCAL_INSTANCE_LABEL);
+		await fillField(field, LOCAL_INSTANCE_LABEL);
 
 		// Playwright's uncheck and click are confused by SlCheckbox's event handling and have no effect on the checkbox. The checked state is being switched directly with the DOM element's method.
 		const slCheckbox = instanceSettingsModal.locator(

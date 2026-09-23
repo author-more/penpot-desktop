@@ -1,5 +1,6 @@
 import { _electron as electron, ElectronApplication } from "@playwright/test";
 import { platform } from "node:process";
+import { createTempDirSync, removeDir } from "./fs.js";
 
 type LaunchOptions = {
 	/**
@@ -9,11 +10,18 @@ type LaunchOptions = {
 };
 
 export class TestApp {
-	#options: LaunchOptions;
+	#userDataPath: string;
 	#electronApp: ElectronApplication | undefined;
 
-	constructor(options: LaunchOptions = {}) {
-		this.#options = options;
+	constructor() {
+		this.#userDataPath = createTempDirSync();
+	}
+
+	/**
+	 * Directory holding the application's data.
+	 */
+	get userDataPath() {
+		return this.#userDataPath;
 	}
 
 	/**
@@ -22,9 +30,13 @@ export class TestApp {
 	async launch() {
 		await this.close();
 
-		this.#electronApp = await launchElectronApp(this.#options);
+		this.#electronApp = await launchApp({ userDataPath: this.#userDataPath });
 
-		return await this.#electronApp.firstWindow();
+		const window = await this.#electronApp.firstWindow();
+		// `firstWindow()` resolves before the renderer's modules have evaluated, affecting process<->renderer events.
+		await window.waitForLoadState("domcontentloaded");
+
+		return window;
 	}
 
 	async close() {
@@ -32,12 +44,27 @@ export class TestApp {
 			return;
 		}
 
-		const window = await this.#electronApp.firstWindow();
+		// Report an application that closed or lost its window during a test.
+		// Waiting for one, e.g. with `firstWindow()`, hangs a case.
+		const hasWindow = !!this.#electronApp.windows().length;
 
-		await window.close();
 		await this.#electronApp.close();
-
 		this.#electronApp = undefined;
+
+		if (!hasWindow) {
+			throw new Error("The application had no window to close.");
+		}
+	}
+
+	/**
+	 * Closes the application and removes a data directory.
+	 */
+	async destroy() {
+		try {
+			await this.close();
+		} finally {
+			await removeDir(this.#userDataPath);
+		}
 	}
 
 	/**
@@ -52,7 +79,7 @@ export class TestApp {
 	}
 }
 
-export function launchElectronApp({ userDataPath }: LaunchOptions = {}) {
+function launchApp({ userDataPath }: LaunchOptions = {}) {
 	return electron.launch({
 		args: [
 			process.cwd(),
