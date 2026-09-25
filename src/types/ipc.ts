@@ -16,7 +16,6 @@ export type IpcSend = {
 	"app:ready-for-close": [];
 	"app:open-in-browser": [resource: "help" | "selfhost" | "credits"];
 	"app:set-theme": [themeId: NativeTheme["themeSource"]];
-	"instance:remove": [id: string];
 	"instance:setDefault": [id: string];
 	"file:change": [fieldId: string];
 	"tab:open-context-menu": [tabId: number];
@@ -49,6 +48,10 @@ export type IpcInvoke = {
 	};
 	"instance:update": {
 		args: [id: string, instance: Record<string, unknown>];
+		return: void;
+	};
+	"instance:remove": {
+		args: [id: string];
 		return: void;
 	};
 	// Unexposed method used between the webview preload and the main process
@@ -104,7 +107,7 @@ export type Api = {
 		getConfig: Invoke<"instance:get-config">;
 		create: Invoke<"instance:create">;
 		update: Invoke<"instance:update">;
-		remove: Send<"instance:remove">;
+		remove: Invoke<"instance:remove">;
 		setDefault: Send<"instance:setDefault">;
 	};
 	file: {

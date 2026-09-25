@@ -93,6 +93,18 @@ export class InstanceCreator extends HTMLElement {
 		}
 	}
 
+	get deleting() {
+		return this._deleteButton?.hasAttribute("loading") || false;
+	}
+
+	set deleting(isDeleting) {
+		if (isDeleting) {
+			this._deleteButton?.setAttribute("loading", "true");
+		} else {
+			this._deleteButton?.removeAttribute("loading");
+		}
+	}
+
 	async render() {
 		if (!this.shadowRoot) {
 			return;

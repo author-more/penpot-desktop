@@ -213,13 +213,38 @@ ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 });
 
-ipcOn(INSTANCE_EVENTS.REMOVE, async (_event, id) => {
-	settings.instances = settings.instances.filter(
-		({ id: registeredId }) => registeredId !== id,
-	);
-	delete localInstances[id];
+ipcHandle(INSTANCE_EVENTS.REMOVE, async (_event, id) => {
+	try {
+		const localInstance = localInstances[id];
+		const isLocal = !!localInstance;
 
-	await removePartitions([id]);
+		if (isLocal) {
+			const { dockerId, tag, ports, isInstanceTelemetryEnabled } =
+				localInstance;
+			// Secret key is not needed for the removal. Placeholder is used for the template evaluation.
+			const secretKey = "not-secret-key";
+
+			await compose("down", dockerId, tag, ports, secretKey, {
+				isInstanceTelemetryEnabled,
+			});
+
+			delete localInstances[id];
+		}
+
+		settings.instances = settings.instances.filter(
+			({ id: registeredId }) => registeredId !== id,
+		);
+
+		await removePartitions([id]);
+	} catch (error) {
+		const message = isAppError(error)
+			? error.message
+			: "Something went wrong during the local instance removal.";
+
+		throw new Error(message, {
+			cause: error,
+		});
+	}
 });
 
 ipcOn(INSTANCE_EVENTS.SET_DEFAULT, (_event, id) => {

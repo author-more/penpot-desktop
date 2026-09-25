@@ -70,16 +70,14 @@ async function prepareInstanceCreator() {
 	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
 		instanceCreatorDialog.hide(),
 	);
-	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.DELETE, (event) => {
-		const {
-			detail: { id },
-		} = /** @type  {InstanceDeleteEvent} */ (event);
-		if (id) {
-			window.api.instance.remove(id);
-			updateInstanceList();
+	instanceCreator.addEventListener(
+		INSTANCE_CREATOR_EVENTS.DELETE,
+		async (event) => {
+			const customEvent = /** @type  {InstanceDeleteEvent} */ (event);
+			await handleInstanceRemove(customEvent, instanceCreator);
 			instanceCreatorDialog.hide();
-		}
-	});
+		},
+	);
 }
 
 /**
@@ -280,6 +278,54 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	}
 
 	instanceCreator.loading = false;
+}
+
+/**
+ * Handles instance removal.
+ *
+ * @param {InstanceDeleteEvent} event
+ * @param {InstanceCreator} instanceCreator
+ */
+async function handleInstanceRemove(event, instanceCreator) {
+	event.preventDefault();
+
+	instanceCreator.deleting = true;
+
+	try {
+		const {
+			detail: { id },
+		} = event;
+		if (id) {
+			await window.api.instance.remove(id);
+			updateInstanceList();
+
+			showAlert(
+				"success",
+				{
+					heading: "Instance removed",
+					message: "Instance has been removed successfully.",
+				},
+				{
+					duration: 3000,
+				},
+			);
+		}
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to remove an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
+
+	instanceCreator.deleting = false;
 }
 
 /**
