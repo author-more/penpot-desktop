@@ -250,7 +250,9 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	const { id, ...detail } = event.detail;
 	try {
 		await window.api.instance.update(id, detail);
+
 		updateInstanceList();
+		instanceCreator.instance = await window.api.instance.getConfig(id);
 
 		showAlert(
 			"success",
