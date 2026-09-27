@@ -24,7 +24,7 @@ import {
  * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
- * @typedef {CustomEvent<{id?: string}>} InstanceDeleteEvent
+ * @typedef {CustomEvent<{id?: string, confirmationPhrase?: string}>} InstanceDeleteEvent
  */
 
 export async function initInstance() {
@@ -293,10 +293,10 @@ async function handleInstanceRemove(event, instanceCreator) {
 
 	try {
 		const {
-			detail: { id },
+			detail: { id, confirmationPhrase },
 		} = event;
 		if (id) {
-			await window.api.instance.remove(id);
+			await window.api.instance.remove(id, confirmationPhrase);
 			updateInstanceList();
 
 			showAlert(

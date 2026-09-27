@@ -11,7 +11,12 @@ import {
 
 import { z, ZodError } from "zod";
 import { findAvailablePort } from "./server.js";
-import { isErrorCode, ERROR_CODES, isAppError } from "../tools/error.js";
+import {
+	AppError,
+	isErrorCode,
+	ERROR_CODES,
+	isAppError,
+} from "../tools/error.js";
 import { generateId, generateUrlsafeToken } from "../tools/id.js";
 import { readConfig, writeConfig } from "./config.js";
 import { isRecord, observe } from "../tools/object.js";
@@ -213,12 +218,26 @@ ipcHandle(INSTANCE_EVENTS.CREATE, async (_event, instance) => {
 	}
 });
 
-ipcHandle(INSTANCE_EVENTS.REMOVE, async (_event, id) => {
+ipcHandle(INSTANCE_EVENTS.REMOVE, async (_event, id, confirmationPhrase) => {
 	try {
 		const localInstance = localInstances[id];
 		const isLocal = !!localInstance;
 
 		if (isLocal) {
+			const instance = settings.instances.find(
+				({ id: registeredId }) => registeredId === id,
+			);
+			const isConfirmed =
+				!!instance &&
+				typeof confirmationPhrase === "string" &&
+				confirmationPhrase.trim() === instance.label.trim();
+			if (!isConfirmed) {
+				throw new AppError(
+					ERROR_CODES.FAILED_VALIDATION,
+					"The confirmation phrase doesn't match the instance's name.",
+				);
+			}
+
 			const { dockerId, tag, ports, isInstanceTelemetryEnabled } =
 				localInstance;
 			// Secret key is not needed for the removal. Placeholder is used for the template evaluation.

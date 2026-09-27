@@ -51,7 +51,7 @@ export type IpcInvoke = {
 		return: void;
 	};
 	"instance:remove": {
-		args: [id: string];
+		args: [id: string, confirmationPhrase?: string];
 		return: void;
 	};
 	// Unexposed method used between the webview preload and the main process

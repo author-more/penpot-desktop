@@ -5,6 +5,7 @@ import {
 	SlInput,
 } from "../../../node_modules/@shoelace-style/shoelace/cdn/shoelace.js";
 import { typedQuerySelector } from "../scripts/dom.js";
+import { ConfirmDialog } from "./confirmDialog.js";
 
 /**
  * @typedef {string} DockerTag
@@ -55,6 +56,8 @@ export class InstanceCreator extends HTMLElement {
 		this._closeButton = null;
 		/** @type {SlButton | null} */
 		this._deleteButton = null;
+		/** @type {ConfirmDialog | null} */
+		this._confirmDialog = null;
 
 		this.attachShadow({ mode: "open" });
 
@@ -303,9 +306,15 @@ export class InstanceCreator extends HTMLElement {
 					</div>
 				</div>
 			</div>
+			<confirm-dialog></confirm-dialog>
 		`;
 
 		this._form = typedQuerySelector("form", HTMLFormElement, this.shadowRoot);
+		this._confirmDialog = typedQuerySelector(
+			"confirm-dialog",
+			ConfirmDialog,
+			this.shadowRoot,
+		);
 		this._tagInput = typedQuerySelector(
 			"sl-input[name='tag']",
 			SlInput,
@@ -493,12 +502,41 @@ export class InstanceCreator extends HTMLElement {
 		this._instance = null;
 	}
 
-	handleDelete() {
+	async handleDelete() {
+		if (!this._instance || !this._confirmDialog) {
+			return;
+		}
+
+		const { id, label, origin, localInstance } = this._instance;
+		const { isConfirmed, confirmationPhrase } = await this._confirmDialog.show({
+			label: "Delete instance",
+			header: { title: label, subtitle: origin },
+			description: [
+				"This instance entry and its stored session data will be removed.",
+				...(localInstance
+					? [
+							"This is a local instance. Its containers and volumes, including all of its projects and files, will be permanently deleted. This can't be undone.",
+						]
+					: []),
+			],
+			// Require typing instance's name to confirm deletion.
+			...(localInstance && {
+				confirmation: {
+					phrase: label || "",
+					phraseLabel: "Type the instance's name to confirm",
+				},
+			}),
+			action: { label: "Delete", variant: "danger" },
+		});
+		if (!isConfirmed) {
+			return;
+		}
+
 		this.dispatchEvent(
 			new CustomEvent(INSTANCE_CREATOR_EVENTS.DELETE, {
 				bubbles: true,
 				composed: true,
-				detail: { id: this._instance?.id },
+				detail: { id, confirmationPhrase },
 			}),
 		);
 
