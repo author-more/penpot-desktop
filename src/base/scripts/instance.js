@@ -24,7 +24,7 @@ import {
  * @typedef {Awaited<ReturnType<typeof window.api.instance.getAll>>} AllInstances
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails>} InstanceCreationEvent
  * @typedef {CustomEvent<import("../components/instanceCreator.js").InstanceCreationDetails & {id: string}>} InstanceUpdateEvent
- * @typedef {CustomEvent<{id?: string}>} InstanceDeleteEvent
+ * @typedef {CustomEvent<{id?: string, confirmationPhrase?: string}>} InstanceDeleteEvent
  */
 
 export async function initInstance() {
@@ -70,16 +70,14 @@ async function prepareInstanceCreator() {
 	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.CLOSE, () =>
 		instanceCreatorDialog.hide(),
 	);
-	instanceCreator.addEventListener(INSTANCE_CREATOR_EVENTS.DELETE, (event) => {
-		const {
-			detail: { id },
-		} = /** @type  {InstanceDeleteEvent} */ (event);
-		if (id) {
-			window.api.instance.remove(id);
-			updateInstanceList();
+	instanceCreator.addEventListener(
+		INSTANCE_CREATOR_EVENTS.DELETE,
+		async (event) => {
+			const customEvent = /** @type  {InstanceDeleteEvent} */ (event);
+			await handleInstanceRemove(customEvent, instanceCreator);
 			instanceCreatorDialog.hide();
-		}
-	});
+		},
+	);
 }
 
 /**
@@ -252,7 +250,9 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	const { id, ...detail } = event.detail;
 	try {
 		await window.api.instance.update(id, detail);
+
 		updateInstanceList();
+		instanceCreator.instance = await window.api.instance.getConfig(id);
 
 		showAlert(
 			"success",
@@ -280,6 +280,54 @@ async function handleInstanceUpdate(event, instanceCreator) {
 	}
 
 	instanceCreator.loading = false;
+}
+
+/**
+ * Handles instance removal.
+ *
+ * @param {InstanceDeleteEvent} event
+ * @param {InstanceCreator} instanceCreator
+ */
+async function handleInstanceRemove(event, instanceCreator) {
+	event.preventDefault();
+
+	instanceCreator.deleting = true;
+
+	try {
+		const {
+			detail: { id, confirmationPhrase },
+		} = event;
+		if (id) {
+			await window.api.instance.remove(id, confirmationPhrase);
+			updateInstanceList();
+
+			showAlert(
+				"success",
+				{
+					heading: "Instance removed",
+					message: "Instance has been removed successfully.",
+				},
+				{
+					duration: 3000,
+				},
+			);
+		}
+	} catch (error) {
+		if (error instanceof Error) {
+			showAlert(
+				"danger",
+				{
+					heading: "Failed to remove an instance",
+					message: error.message,
+				},
+				{
+					closable: true,
+				},
+			);
+		}
+	}
+
+	instanceCreator.deleting = false;
 }
 
 /**

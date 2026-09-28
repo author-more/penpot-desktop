@@ -28,7 +28,8 @@ contextBridge.exposeInMainWorld(
 			create: (instance) => ipcRenderer.invoke("instance:create", instance),
 			update: (id, instance) =>
 				ipcRenderer.invoke("instance:update", id, instance),
-			remove: (id) => ipcRenderer.send("instance:remove", id),
+			remove: (id, confirmationPhrase) =>
+				ipcRenderer.invoke("instance:remove", id, confirmationPhrase),
 			setDefault: (id) => ipcRenderer.send("instance:setDefault", id),
 		},
 		file: {

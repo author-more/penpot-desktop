@@ -132,7 +132,7 @@ export async function isTagAvailable(repository, tag) {
  *
  * @typedef {LocalInstanceConfig["ports"]} ContainerPorts
  *
- * @param {"up" | "pull"} command
+ * @param {"up" | "pull" | "down"} command
  * @param {string} containerNamePrefix
  * @param {Tag["name"]} tag
  * @param {ContainerPorts} ports
@@ -147,11 +147,14 @@ export async function compose(
 	secretKey,
 	{ isInstanceTelemetryEnabled } = {},
 ) {
+	const isCreate = command === "up";
+	const isRemove = command === "down";
+
 	if (!dockerPath) {
 		throw new AppError(ERROR_CODES.MISSING_DOCKER, "Docker command not found.");
 	}
 
-	if (!(await isTagAvailable(DOCKER_REPOSITORIES.FRONTEND, tag))) {
+	if (!isRemove && !(await isTagAvailable(DOCKER_REPOSITORIES.FRONTEND, tag))) {
 		throw new AppError(
 			ERROR_CODES.DOCKER_TAG_UNAVAILABLE,
 			`Tag ${tag} is not available.`,
@@ -169,7 +172,9 @@ export async function compose(
 		PENPOT_DESKTOP_BACKEND_TELEMETRY: `${isInstanceTelemetryEnabled}`,
 		PENPOT_DESKTOP_SECRET_KEY: `${secretKey}`,
 	};
-	const commandString = command === "up" ? "up -d" : "pull";
+	const commandString = [command, isCreate && "-d", isRemove && "-v"]
+		.filter(Boolean)
+		.join(" ");
 	const dockerComposeCommand = `"${dockerPath}" compose -p ${containerNamePrefix} -f "${dockerComposeFilePath}" ${commandString}`;
 
 	try {

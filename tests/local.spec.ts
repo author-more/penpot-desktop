@@ -25,7 +25,7 @@ test.afterAll(async () => {
 	try {
 		await app.destroy();
 	} finally {
-		// In-app instance deletion doesn't remove an instance's containers.
+		// Cleans up Docker resources in case of the test failing before the in-app deletion.
 		try {
 			execFileSync("./bin/deleteDockerContainers.sh", []);
 		} catch (error) {
@@ -112,6 +112,18 @@ describe("local instance", () => {
 			name: "Delete instance",
 		});
 		await deleteItemButton.click();
+
+		const confirmDialog = instanceSettingsModal.locator("confirm-dialog");
+		const confirmButton = confirmDialog.getByRole("button", {
+			name: "Delete",
+		});
+		await expect(confirmButton).toBeDisabled();
+
+		const confirmationField = confirmDialog.getByLabel(
+			"Type the instance's name to confirm",
+		);
+		await fillField(confirmationField, LOCAL_INSTANCE_LABEL);
+		await confirmButton.click();
 
 		await expect(itemList).toHaveCount(1);
 	});
