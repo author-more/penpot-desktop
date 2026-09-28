@@ -96,6 +96,12 @@ describe("settings", () => {
 			});
 			await deleteItemButton.click();
 
+			const confirmDialog = instanceSettingsModal.locator("confirm-dialog");
+			const confirmButton = confirmDialog.getByRole("button", {
+				name: "Delete",
+			});
+			await confirmButton.click();
+
 			await expect(itemList).toHaveCount(1);
 			await expect
 				.poll(async () => (await config.readSettled())?.instances.length)
