@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain, shell } from "electron";
+import { app, dialog, ipcMain } from "electron";
 import { isDeepStrictEqual } from "node:util";
 import { getChangedProperties, isRecord, observe } from "../tools/object.js";
 import { ConfigReadError, readConfig, writeConfig } from "./config.js";
@@ -8,6 +8,7 @@ import { getMainWindow } from "./window.js";
 import { HSLA_REGEXP } from "../tools/color.js";
 import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
 import { instanceIdSchema, originSchema } from "./instance.js";
+import { openInBrowser } from "./browser.js";
 
 const CONFIG_SETTINGS_NAME = "settings";
 
@@ -313,7 +314,7 @@ function showSettingsIssues(errors) {
 
 	const isReport = decision === DIALOG_DECISIONS.REPORT;
 	if (isReport) {
-		shell.openExternal("https://github.com/author-more/penpot-desktop/issues");
+		openInBrowser("https://github.com/author-more/penpot-desktop/issues");
 		return;
 	}
 }
