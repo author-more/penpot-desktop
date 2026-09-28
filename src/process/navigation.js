@@ -1,4 +1,4 @@
-import { app, shell, dialog } from "electron";
+import { app, dialog } from "electron";
 import { URL } from "url";
 import { join } from "path";
 import { toMultiline } from "./string.js";
@@ -6,6 +6,7 @@ import { getMainWindow } from "./window.js";
 import { settings } from "./settings.js";
 import { isViewModeUrl } from "../tools/penpot.js";
 import { ipcSend } from "./ipc.js";
+import { openInBrowser } from "./browser.js";
 
 // Covered origins and URLs are scoped to the Penpot web app (e.g. links in the Menu > Help & info).
 const ALLOWED_INTERNAL_ORIGINS = Object.freeze([
@@ -54,7 +55,7 @@ app.on("web-contents-created", (event, contents) => {
 		}
 
 		if (isAllowedExternal) {
-			shell.openExternal(parsedUrl.href);
+			openInBrowser(parsedUrl.href);
 		} else {
 			console.warn(
 				`[WARNING] [app.web-contents-created.setWindowOpenHandler] Forbidden external URL: ${parsedUrl.href}`,
@@ -68,7 +69,7 @@ app.on("web-contents-created", (event, contents) => {
 
 			showNavigationQuestion(parsedUrl.href, {
 				buttons: ["Open in a browser"],
-				onAllow: () => shell.openExternal(parsedUrl.href),
+				onAllow: () => openInBrowser(parsedUrl.href),
 				logLabel: "app.web-contents-created.setWindowOpenHandler",
 			});
 		}

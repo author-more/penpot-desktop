@@ -1,7 +1,8 @@
-import { app, BrowserWindow, shell, nativeTheme } from "electron";
+import { app, BrowserWindow, nativeTheme } from "electron";
 import path from "path";
 
 import { setAppMenu, getTabMenu } from "./menu.js";
+import { openInBrowser } from "./browser.js";
 import { deepFreeze } from "../tools/object.js";
 import { settings } from "./settings.js";
 import { CONFIG_SETTINGS_TITLE_BAR_TYPES } from "../shared/settings.js";
@@ -87,7 +88,7 @@ export const MainWindow = {
 			}
 
 			if (url) {
-				shell.openExternal(url);
+				openInBrowser(url);
 			}
 		});
 		ipcOn("tab:open-context-menu", (_event, tabId) => {

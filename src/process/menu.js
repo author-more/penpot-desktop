@@ -1,5 +1,6 @@
-import { app, Menu, shell } from "electron";
+import { app, Menu } from "electron";
 import { getMainWindow } from "./window.js";
+import { openInBrowser } from "./browser.js";
 import { showDiagnostics } from "./diagnostics.js";
 import { ipcSend } from "./ipc.js";
 
@@ -184,32 +185,32 @@ export function setAppMenu() {
 			{
 				label: "User Guide",
 				click: () => {
-					shell.openExternal("https://help.penpot.app/user-guide/");
+					openInBrowser("https://help.penpot.app/user-guide/");
 				},
 			},
 			{
 				label: "FAQ",
 				click: () => {
-					shell.openExternal("https://help.penpot.app/faqs");
+					openInBrowser("https://help.penpot.app/faqs");
 				},
 			},
 			{
 				label: "Learn to Self-host",
 				click: () => {
-					shell.openExternal("https://penpot.app/self-host");
+					openInBrowser("https://penpot.app/self-host");
 				},
 			},
 			{
 				label: "Penpot Community",
 				click: () => {
-					shell.openExternal("https://community.penpot.app/");
+					openInBrowser("https://community.penpot.app/");
 				},
 			},
 			{ type: "separator" },
 			{
 				label: "Source Code",
 				click: () => {
-					shell.openExternal("https://github.com/author-more/penpot-desktop");
+					openInBrowser("https://github.com/author-more/penpot-desktop");
 				},
 			},
 		],
