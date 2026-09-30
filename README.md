@@ -39,8 +39,8 @@ It provides you with access to the functionality of the browser version of Penpo
 
 1. Clone the repository or download the source code.
 1. Navigate to the project's directory.
-1. Run `npm ci` to install packages.
-   _Other package managers such as Yarn, PNPM, or Bun should work as well._
+1. Run `npm ci` to install packages.  
+   _Other package managers such as Yarn or pnpm should work as well._
 1. (Optional) Run `npm run setup` to prepare development environment.
 1. (Optional) Run `npm run dev` to start the application in development mode. This will open a new window with the application running.
 
