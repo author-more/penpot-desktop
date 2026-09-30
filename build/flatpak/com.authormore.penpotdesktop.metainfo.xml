@@ -53,6 +53,36 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v1.0.0" date="2026-09-30">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v1.0.0</url>
+            <description>
+                <p>Features</p>
+                <ul>
+                    <li>[BREAKING CHANGE] Added local instance resources clean-up on deletion.</li>
+                    <li>Added instance removal confirmation.</li>
+                </ul>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed dev tools to open for the application’s window.</li>
+                    <li>Fixed abandoned partitions to be cleaned up.</li>
+                    <li>Fixed derived instance content to be saved.</li>
+                    <li>Fixed batch export error to be handled.</li>
+                    <li>Fixed batch download button to be present on launch.</li>
+                    <li>Fixed instance to use valid origin.</li>
+                    <li>Fixed the app to force single instance.</li>
+                </ul>
+                <p>Removed</p>
+                <ul>
+                    <li>[BREAKING CHANGE] Removed elevated access mode for instance creator.</li>
+                    <li>[BREAKING CHANGE] Removed configurations’ migrations.</li>
+                </ul>
+                <p>Security</p>
+                <ul>
+                    <li>[BREAKING CHANGE] Added limit for local instance’s network availability.</li>
+                    <li>Added limit for URL opener to accept only web URLs.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v0.25.0" date="2026-09-10">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v0.25.0</url>
             <description>
