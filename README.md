@@ -6,12 +6,14 @@ Penpot Desktop is an unofficial desktop application for the open-source design t
 
 It provides you with access to the functionality of the browser version of Penpot with an experience of a desktop application. It comes with
 
-- system-level application experience e.g. a dedicated window, file extension association,
+- system-level application experience e.g. a dedicated window,
 - versatile dark-light mode setup,
 - tab interface for easy navigation between projects,
+- open tabs remembering,
 - ability to connect to different instances e.g. officially hosted, local for offline work,
 - local instance creator, based on the official Docker setup,
 - batch export of projects,
+- auto-reload in the view mode,
 - and more are coming.
 
 📡 Penpot Desktop loads the Penpot web application like a browser does. For offline use, the built-in [local instance creator](https://github.com/author-more/penpot-desktop/wiki/Self%E2%80%90hosting#instance-creator) can set up and run a local Penpot instance via Docker (per the official self‑hosting guide).
