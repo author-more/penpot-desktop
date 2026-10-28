@@ -102,13 +102,44 @@ export async function getAvailableTags(repository) {
 		return [];
 	}
 }
+
 /**
- * Checks if a specific Docker tag is available.
+ * Retrieves the list of local Docker image tags for a given repository.
+ *
+ * @param {string} repository
+ */
+export async function getImageTags(repository) {
+	if (!dockerPath) {
+		return [];
+	}
+
+	try {
+		const { stdout } = await exec(
+			`"${dockerPath}" images "${repository}" --filter "dangling=false" --format "{{.Tag}}"`,
+		);
+		const tags = stdout
+			.split("\n")
+			.map((tag) => tag.trim())
+			.filter(Boolean);
+
+		return tags;
+	} catch (error) {
+		return [];
+	}
+}
+
+/**
+ * Checks if a specific Docker tag is available, either in locally available images or in the registry.
  *
  * @param {string} repository
  * @param {string} tag
  */
 export async function isTagAvailable(repository, tag) {
+	const imageTags = await getImageTags(repository);
+	if (imageTags.includes(tag)) {
+		return true;
+	}
+
 	try {
 		const res = await fetch(
 			`https://hub.docker.com/v2/repositories/${repository}/tags/${tag}`,
