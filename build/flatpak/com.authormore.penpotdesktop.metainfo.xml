@@ -53,6 +53,15 @@
         <internet>offline-only</internet>
     </supports>
     <releases>
+		    <release version="v1.0.1" date="2026-11-01">
+            <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v1.0.1</url>
+            <description>
+                <p>Fixes</p>
+                <ul>
+                    <li>Fixed local instance creator to work offline with local images.</li>
+                </ul>
+            </description>
+		    </release>
 		    <release version="v1.0.0" date="2026-09-30">
             <url type="details">https://github.com/author-more/penpot-desktop/releases/tag/v1.0.0</url>
             <description>
